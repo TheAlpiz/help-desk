@@ -45,10 +45,16 @@ interface Condition {
   value: string;
 }
 
+type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+
 interface AutoAction {
   id: string;
   type: ActionType;
   value: string;
+  // create_task config
+  assignee?: string;
+  priority?: TaskPriority;
+  dueInDays?: number;
 }
 
 interface AutomationRule {
@@ -128,6 +134,9 @@ function normalizeRule(r: any): AutomationRule {
       id: a.id ?? String(i),
       type: a.type ?? "set_status",
       value: a.value ?? "",
+      assignee: a.assignee,
+      priority: a.priority,
+      dueInDays: a.dueInDays,
     })),
     enabled: r.isActive ?? r.enabled ?? false,
     isActive: r.isActive,
@@ -242,8 +251,49 @@ function ActionRow({
           inputClassName={`${inputCls} w-36`}
           selectClassName={`${selectCls} w-36`}
           ariaLabel="Action value"
+          placeholder={action.type === "create_task" ? "task title" : "value"}
         />
       )}
+
+      {action.type === "create_task" && (
+        <>
+          {/* Assignee (optional) — reuses the agent directory dropdown */}
+          <FieldValueInput
+            optionKey="assign_to"
+            value={action.assignee ?? ""}
+            onChange={(v) => onChange({ assignee: v || undefined })}
+            selectClassName={`${selectCls} w-36`}
+            inputClassName={`${inputCls} w-36`}
+            ariaLabel="Task assignee"
+          />
+          <div className="relative">
+            <select
+              value={action.priority ?? "MEDIUM"}
+              onChange={(e) => onChange({ priority: e.target.value as TaskPriority })}
+              className={`${selectCls} w-28`}
+              aria-label="Task priority"
+            >
+              {(["LOW", "MEDIUM", "HIGH", "URGENT"] as TaskPriority[]).map((p) => (
+                <option key={p} value={p}>{p[0] + p.slice(1).toLowerCase()}</option>
+              ))}
+            </select>
+            <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant/40 pointer-events-none" />
+          </div>
+          <input
+            type="number"
+            min={0}
+            max={365}
+            value={action.dueInDays ?? ""}
+            onChange={(e) =>
+              onChange({ dueInDays: e.target.value === "" ? undefined : Number(e.target.value) })
+            }
+            placeholder="due (days)"
+            className={`${inputCls} w-28`}
+            aria-label="Task due in days"
+          />
+        </>
+      )}
+
       <button
         onClick={onRemove}
         aria-label="Remove action"

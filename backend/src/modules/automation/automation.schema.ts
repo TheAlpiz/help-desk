@@ -34,7 +34,13 @@ export type AutomationActionDef =
   | { type: "remove_tag"; value: string }
   | { type: "send_email"; value: string }
   | { type: "add_note"; value: string }
-  | { type: "create_task"; value: string };
+  | {
+      type: "create_task";
+      value: string;
+      assignee?: string;
+      priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+      dueInDays?: number;
+    };
 
 export type Automation = typeof automation.$inferSelect;
 export type NewAutomation = typeof automation.$inferInsert;

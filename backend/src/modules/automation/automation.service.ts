@@ -154,15 +154,36 @@ export const AutomationService = {
                 // triggering event has no actor (e.g. inbound email created the ticket).
                 const creatorId = actorId ?? rule.createdById;
                 if (!creatorId) { logger.warn({ ruleId: rule.id }, "Automation create_task: no creator available"); break; }
+
+                // Optional assignee — value may be a UUID or an email address.
+                let assigneeId: string | null = null;
+                if (action.assignee) {
+                  if (action.assignee.includes("@")) {
+                    const [found] = await tx.select({ id: user.id }).from(user).where(eq(user.email, action.assignee)).limit(1);
+                    if (found) assigneeId = found.id;
+                    else logger.warn({ email: action.assignee }, "Automation create_task: assignee not found");
+                  } else {
+                    assigneeId = action.assignee;
+                  }
+                }
+
+                const priority = action.priority ?? "MEDIUM";
+                const dueDate =
+                  action.dueInDays != null
+                    ? new Date(Date.now() + action.dueInDays * 24 * 60 * 60 * 1000)
+                    : null;
+
                 const [createdTask] = await tx.insert(task).values({
                   organizationId: tenantId,
                   ticketId,
                   creatorId,
+                  assigneeId,
                   title: action.value.slice(0, 255),
                   status: "TODO",
-                  priority: "MEDIUM",
+                  priority,
+                  dueDate,
                 }).returning();
-                await tx.insert(auditLog).values({ organizationId: tenantId, entityType: "task", entityId: createdTask.id, actorId: actorId ?? "system", action: "created", newValues: { title: createdTask.title, viaAutomation: rule.id } });
+                await tx.insert(auditLog).values({ organizationId: tenantId, entityType: "task", entityId: createdTask.id, actorId: actorId ?? "system", action: "created", newValues: { title: createdTask.title, assigneeId, priority, dueDate, viaAutomation: rule.id } });
                 break;
               }
               case "send_email":

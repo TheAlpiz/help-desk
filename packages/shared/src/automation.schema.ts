@@ -46,10 +46,16 @@ export const automationConditionSchema = z.object({
   value: z.string().default(""),
 });
 
+export const TASK_PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"] as const;
+
 export const automationActionSchema = z.object({
   id: z.string().min(1),
   type: z.enum(AUTOMATION_ACTION_TYPES),
   value: z.string().default(""),
+  // Extra config used by create_task (ignored by other action types).
+  assignee: z.string().optional(),          // user UUID or email
+  priority: z.enum(TASK_PRIORITIES).optional(),
+  dueInDays: z.number().int().min(0).max(365).optional(), // relative to fire time
 });
 
 export const createAutomationSchema = z.object({
