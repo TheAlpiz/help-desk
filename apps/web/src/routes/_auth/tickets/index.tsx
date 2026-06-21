@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { authFetch } from "@/lib/api";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
@@ -139,7 +140,7 @@ function CreateTicketModal({ onClose }: { onClose: () => void }) {
   const { data: macros = [] } = useQuery({
     queryKey: ["macros"],
     queryFn: async () => {
-      const res = await fetch("/api/macros", { headers: macroHeaders });
+      const res = await authFetch("/api/macros", { headers: macroHeaders });
       const json = await res.json();
       return (json?.data ?? []) as Array<{ id: string; name: string; description?: string; actions: any[] }>;
     },
@@ -167,7 +168,7 @@ function CreateTicketModal({ onClose }: { onClose: () => void }) {
         const newTicketId = created?.data?.id ?? created?.id;
 
         if (selectedMacroId && newTicketId) {
-          await fetch(`/api/macros/${selectedMacroId}/apply`, {
+          await authFetch(`/api/macros/${selectedMacroId}/apply`, {
             method: "POST",
             headers: macroHeaders,
             body: JSON.stringify({ ticketId: newTicketId }),

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { authFetch } from "@/lib/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Bell, Mail, MessageSquare } from "lucide-react";
 import { useAppStore } from "@/store";
@@ -84,7 +85,7 @@ function NotificationPreferences() {
   const { data, isLoading } = useQuery({
     queryKey: ["notification-preferences"],
     queryFn: async () => {
-      const res = await fetch("/api/notifications/preferences", { headers });
+      const res = await authFetch("/api/notifications/preferences", { headers });
       if (!res.ok) return {};
       return res.json();
     },
@@ -106,7 +107,7 @@ function NotificationPreferences() {
       channel: Channel;
       enabled: boolean;
     }) => {
-      const res = await fetch("/api/notifications/preferences", {
+      const res = await authFetch("/api/notifications/preferences", {
         method: "PUT",
         headers,
         body: JSON.stringify({ eventKey, channel, enabled }),

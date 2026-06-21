@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { authFetch } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { BarChart3, TrendingUp, CheckCircle2, Clock, Users, Download, Bookmark, Trash2, Play, Plus, X, Filter, ChevronDown as ChDown } from "lucide-react";
@@ -120,7 +121,7 @@ function ReportsDashboard() {
     queryKey: ["analytics", "tickets-summary", dateFrom, dateTo],
     queryFn: async () => {
       const qs = new URLSearchParams(dateParams).toString();
-      const res = await fetch(`/api/analytics/tickets-summary?${qs}`, {
+      const res = await authFetch(`/api/analytics/tickets-summary?${qs}`, {
         headers: { Authorization: `Bearer ${accessToken}`, "X-Tenant-ID": tenantId ?? "" },
       });
       if (!res.ok) throw new Error("Failed");
@@ -132,7 +133,7 @@ function ReportsDashboard() {
     queryKey: ["analytics", "sla-compliance", dateFrom, dateTo],
     queryFn: async () => {
       const qs = new URLSearchParams(dateParams).toString();
-      const res = await fetch(`/api/analytics/sla-compliance?${qs}`, {
+      const res = await authFetch(`/api/analytics/sla-compliance?${qs}`, {
         headers: { Authorization: `Bearer ${accessToken}`, "X-Tenant-ID": tenantId ?? "" },
       });
       if (!res.ok) throw new Error("Failed");
@@ -144,7 +145,7 @@ function ReportsDashboard() {
     queryKey: ["analytics", "agent-performance", dateFrom, dateTo],
     queryFn: async () => {
       const qs = new URLSearchParams(dateParams).toString();
-      const res = await fetch(`/api/analytics/agent-performance?${qs}`, {
+      const res = await authFetch(`/api/analytics/agent-performance?${qs}`, {
         headers: { Authorization: `Bearer ${accessToken}`, "X-Tenant-ID": tenantId ?? "" },
       });
       if (!res.ok) throw new Error("Failed");
@@ -156,7 +157,7 @@ function ReportsDashboard() {
     queryKey: ["analytics", "task-completion", dateFrom, dateTo],
     queryFn: async () => {
       const qs = new URLSearchParams(dateParams).toString();
-      const res = await fetch(`/api/analytics/task-completion?${qs}`, {
+      const res = await authFetch(`/api/analytics/task-completion?${qs}`, {
         headers: { Authorization: `Bearer ${accessToken}`, "X-Tenant-ID": tenantId ?? "" },
       });
       if (!res.ok) throw new Error("Failed");
@@ -661,7 +662,7 @@ function ReportBuilder() {
         limit,
         filters: JSON.stringify(filters.filter((f) => f.value)),
       }).toString();
-      await fetch(`/api/analytics/custom?${qs}`, {
+      await authFetch(`/api/analytics/custom?${qs}`, {
         headers: {
           Authorization: `Bearer ${accessToken ?? ""}`,
           "X-Tenant-ID": tenantId ?? "",

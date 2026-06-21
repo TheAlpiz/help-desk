@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Plus, X, Pencil, Trash2, Inbox, AlertTriangle, CheckCircle, WifiOff, Zap } from "lucide-react";
 import { useToast } from "@/components/Toast";
-import { api } from "@/lib/api";
+import { api, apiFetch } from "@/lib/api";
 import { useAppStore } from "@/store";
 import { createMailboxSchema, updateMailboxSchema } from "@help-desk/shared";
 import { Button, Input, FormAlert, FormError, fieldErrors } from "@/components/ui";
@@ -42,25 +42,6 @@ type MailboxFormValues = {
   smtpPassword: string;
   smtpSecure: boolean;
 };
-
-// ─── Auth helper ──────────────────────────────────────────────────────────────
-
-function getAuthHeaders() {
-  const state = useAppStore.getState();
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (state.accessToken) headers["Authorization"] = `Bearer ${state.accessToken}`;
-  if (state.tenantId) headers["X-Tenant-ID"] = state.tenantId;
-  return headers;
-}
-
-async function apiFetch(path: string, init: RequestInit = {}) {
-  const res = await fetch(`/api${path}`, {
-    ...init,
-    headers: { ...getAuthHeaders(), ...(init.headers ?? {}) },
-  });
-  const body = await res.json();
-  return { res, body };
-}
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
@@ -485,8 +466,7 @@ function TestConnectionButton({ mailboxId }: { mailboxId: string }) {
   const test = async () => {
     setTesting(true);
     try {
-      const headers = getAuthHeaders();
-      const res = await fetch(`/api/mailboxes/${mailboxId}/test`, { method: "POST", headers });
+      const { res } = await apiFetch(`/mailboxes/${mailboxId}/test`, { method: "POST" });
       if (res.ok) {
         success("Connection successful");
       } else {

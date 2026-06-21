@@ -45,6 +45,10 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: "helpdesk-storage", // unique name for localStorage
+      // SECURITY: only UI preferences are persisted. The access token lives in
+      // memory only (XSS cannot read it from storage), and user/tenant identity is
+      // re-hydrated from the server (GET /auths/me) after a silent refresh on boot.
+      partialize: (state) => ({ theme: state.theme, sidebarOpen: state.sidebarOpen }),
     },
   ),
 );

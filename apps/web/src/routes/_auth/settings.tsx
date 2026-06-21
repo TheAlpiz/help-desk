@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { authFetch } from "@/lib/api";
 import { z } from "zod";
 import { useState } from "react";
 import { Building2, Palette, Shield, Bell, Globe, ChevronRight, Database, Key, Users, AlertTriangle } from "lucide-react";
@@ -45,7 +46,7 @@ function OrgMembersSettings() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["org-members"],
     queryFn: async () => {
-      const res = await fetch("/api/users", { headers: getAuthHeaders() });
+      const res = await authFetch("/api/users", { headers: getAuthHeaders() });
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
@@ -55,7 +56,7 @@ function OrgMembersSettings() {
 
   const deactivateMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const res = await fetch(`/api/users/${userId}`, {
+      const res = await authFetch(`/api/users/${userId}`, {
         method: "PUT",
         headers: getAuthHeaders(),
         body: JSON.stringify({ status: "inactive" }),
@@ -129,7 +130,7 @@ function DangerZoneSettings() {
 
   const deactivateMutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch(`/api/organizations/${tenantId}/deactivate`, {
+      const res = await authFetch(`/api/organizations/${tenantId}/deactivate`, {
         method: "POST",
         headers: getAuthHeaders(),
       });

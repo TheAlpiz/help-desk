@@ -1,6 +1,9 @@
 import { hc } from "hono/client";
-import { useAppStore } from "../store";
+import { authFetch } from "./authFetch";
 import type { ApiResponse } from "@help-desk/backend/src/lib/response";
+
+// Re-export the shared helpers so existing imports can migrate to `@/lib/api`.
+export { apiFetch, authHeaders, authFetch, bootstrapAuth, refreshAccessToken } from "./authFetch";
 
 // ─── Import each router type individually ─────────────────────────────────────
 // This is the correct pattern for large Hono apps: import each sub-router's
@@ -21,30 +24,10 @@ import type mailboxRouter from "@help-desk/backend/src/modules/mailbox/mailbox.r
 import type { analyticsRouter } from "@help-desk/backend/src/modules/analytics/analytics.route";
 
 // ─── Auth-injecting fetch ─────────────────────────────────────────────────────
+// All clients route through the shared authFetch: in-memory Bearer token injection,
+// credentialed cookies (refresh + CSRF), and single-flight refresh-and-retry on 401.
 
-const customFetch = async (input: RequestInfo | URL, requestInit?: RequestInit) => {
-  const state = useAppStore.getState();
-  const headers = new Headers(requestInit?.headers);
-
-  if (state.tenantId) {
-    headers.set("X-Tenant-ID", state.tenantId);
-  }
-  if (state.accessToken) {
-    headers.set("Authorization", `Bearer ${state.accessToken}`);
-  }
-
-  const res = await fetch(input, { ...requestInit, headers });
-
-  if (res.status === 401) {
-    state.logout();
-    const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
-    window.location.href = `/login?returnTo=${returnTo}`;
-  }
-
-  return res;
-};
-
-const opts = { fetch: customFetch };
+const opts = { fetch: authFetch };
 
 // ─── Per-module typed clients ─────────────────────────────────────────────────
 // Each client is individually typed from its own router, giving full autocomplete

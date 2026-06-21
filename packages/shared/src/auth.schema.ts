@@ -5,12 +5,14 @@ export const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+// Refresh/logout tokens are carried in the HttpOnly cookie. The optional body
+// field remains for non-browser API clients that present the token explicitly.
 export const refreshSchema = z.object({
-  refreshToken: z.string().min(1),
+  refreshToken: z.string().min(1).optional(),
 });
 
 export const logoutSchema = z.object({
-  refreshToken: z.string().min(1),
+  refreshToken: z.string().min(1).optional(),
 });
 
 export const forgotPasswordSchema = z.object({

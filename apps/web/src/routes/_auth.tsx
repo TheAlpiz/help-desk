@@ -40,11 +40,18 @@ import { useQuery } from "@tanstack/react-query";
 import { useAppStore } from "../store";
 import { cn } from "@/lib/utils";
 import { RealtimeProvider } from "@/lib/RealtimeProvider";
+import { bootstrapAuth, apiFetch } from "@/lib/api";
 
 
 export const Route = createFileRoute("/_auth")({
   beforeLoad: async ({ location }) => {
-    const user = useAppStore.getState().user;
+    // Access token is memory-only, so after a page refresh the store is empty.
+    // Try a silent cookie-based refresh + /me rehydration before bouncing to login.
+    let user = useAppStore.getState().user;
+    if (!user) {
+      const restored = await bootstrapAuth();
+      user = restored ? useAppStore.getState().user : null;
+    }
     if (!user) {
       throw redirect({
         to: "/login",
@@ -118,16 +125,12 @@ function NotificationBell() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const state = useAppStore.getState();
   const { data } = useQuery({
     queryKey: ["notifications", "unread"],
     queryFn: async () => {
-      const headers: Record<string, string> = {};
-      if (state.accessToken) headers["Authorization"] = `Bearer ${state.accessToken}`;
-      if (state.tenantId) headers["X-Tenant-ID"] = state.tenantId;
-      const res = await fetch("/api/notifications?limit=10&unreadOnly=true", { headers });
+      const { res, body } = await apiFetch("/notifications?limit=10&unreadOnly=true");
       if (!res.ok) return { data: [], total: 0 };
-      return res.json();
+      return body;
     },
     refetchInterval: 30_000,
   });
@@ -235,21 +238,15 @@ function AuthLayout() {
     return () => { window.removeEventListener("online", goOnline); window.removeEventListener("offline", goOffline); };
   }, []);
 
-  // Intercept 401 responses globally → redirect to login preserving returnTo
-  useEffect(() => {
-    const original = window.fetch;
-    window.fetch = async (...args) => {
-      const res = await original(...args);
-      if (res.status === 401) {
-        logout();
-        navigate({ to: "/login", search: { returnTo: window.location.pathname } });
-      }
-      return res;
-    };
-    return () => { window.fetch = original; };
-  }, [logout, navigate]);
+  // 401 handling + token refresh is centralized in authFetch; no global patch needed.
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Revoke the server session + clear cookies, then drop in-memory state.
+    try {
+      await apiFetch("/auths/logout", { method: "POST", body: "{}" });
+    } catch {
+      /* best-effort; clear locally regardless */
+    }
     logout();
     navigate({ to: "/login" });
   };

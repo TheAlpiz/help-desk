@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { authFetch } from "@/lib/api";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
@@ -39,7 +40,7 @@ function OrgStep({ onNext }: { onNext: () => void }) {
   const save = useMutation({
     mutationFn: async () => {
       if (!name.trim()) return;
-      await fetch("/api/organizations", {
+      await authFetch("/api/organizations", {
         method: "PUT",
         headers: getAuthHeaders(),
         body: JSON.stringify({ name, supportEmail }),
@@ -80,7 +81,7 @@ function MailboxStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => voi
 
   const connect = useMutation({
     mutationFn: async () => {
-      const res = await fetch("/api/mailboxes", {
+      const res = await authFetch("/api/mailboxes", {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -133,7 +134,7 @@ function TeamStep({ onNext }: { onNext: () => void }) {
       const valid = emails.filter((e) => e.includes("@"));
       await Promise.allSettled(
         valid.map((email) =>
-          fetch("/api/users/invite", {
+          authFetch("/api/users/invite", {
             method: "POST",
             headers: getAuthHeaders(),
             body: JSON.stringify({ email, globalRole: "AGENT" }),

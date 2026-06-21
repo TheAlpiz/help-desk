@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { authFetch } from "@/lib/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, Building2, User, Shield, Trash2, Ban, CheckCircle } from "lucide-react";
 import { api } from "@/lib/api";
@@ -42,7 +43,7 @@ function TenantDetail() {
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (state.accessToken) headers["Authorization"] = `Bearer ${state.accessToken}`;
       if (state.tenantId) headers["X-Tenant-ID"] = state.tenantId;
-      const res = await fetch(`/api/organizations/${tenantId}`, {
+      const res = await authFetch(`/api/organizations/${tenantId}`, {
         method: "PUT",
         headers,
         body: JSON.stringify({ status }),

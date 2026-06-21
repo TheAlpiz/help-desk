@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { api } from "@/lib/api";
+import { api, apiFetch } from "@/lib/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { parseResponse } from "hono/client";
 import { z } from "zod";
 import { X, Pencil, Trash2, Users, UserCheck, ShieldCheck, UserCog } from "lucide-react";
-import { useAppStore } from "@/store";
 import { Button, Input, FormAlert, FormError, fieldErrors } from "@/components/ui";
 
 type GlobalUser = {
@@ -29,20 +28,6 @@ const ROLE_CLS: Record<string, string> = {
   AGENT: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20",
   REQUESTER: "bg-white/8 text-on-surface-variant border border-white/10",
 };
-
-function getAuthHeaders() {
-  const state = useAppStore.getState();
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (state.accessToken) headers["Authorization"] = `Bearer ${state.accessToken}`;
-  if (state.tenantId) headers["X-Tenant-ID"] = state.tenantId;
-  return headers;
-}
-
-async function apiFetch(path: string, init: RequestInit = {}) {
-  const res = await fetch(`/api${path}`, { ...init, headers: { ...getAuthHeaders(), ...(init.headers ?? {}) } });
-  const body = await res.json();
-  return { res, body };
-}
 
 const selectCls =
   "w-full px-3 py-2 bg-surface-container-high border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors";

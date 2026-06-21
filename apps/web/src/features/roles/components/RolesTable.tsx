@@ -1,23 +1,10 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, X, ShieldCheck, Trash2, Copy, Users } from "lucide-react";
-import { useAppStore } from "@/store";
+import { apiFetch } from "@/lib/api";
 import { PERMISSION_CATALOG, type PermissionEntry } from "@/lib/permissions-catalog";
 import { Button, Input, FormError } from "@/components/ui";
 
-function getAuthHeaders() {
-  const state = useAppStore.getState();
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (state.accessToken) headers["Authorization"] = `Bearer ${state.accessToken}`;
-  if (state.tenantId) headers["X-Tenant-ID"] = state.tenantId;
-  return headers;
-}
-
-async function apiFetch(path: string, init: RequestInit = {}) {
-  const res = await fetch(`/api${path}`, { ...init, headers: { ...getAuthHeaders(), ...(init.headers ?? {}) } });
-  const body = await res.json();
-  return { res, body };
-}
 
 type Role = { id: string; name: string; description: string | null; isSystem: boolean; createdAt: string; };
 type Permission = { id: string; roleId: string; resource: string; action: string; };

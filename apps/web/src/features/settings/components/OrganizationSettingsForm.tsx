@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { authFetch } from "@/lib/api";
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { useState } from "react";
@@ -41,7 +42,7 @@ export function OrganizationSettingsForm() {
         const headers: Record<string, string> = { "Content-Type": "application/json" };
         if (state.accessToken) headers["Authorization"] = `Bearer ${state.accessToken}`;
         if (state.tenantId) headers["X-Tenant-ID"] = state.tenantId;
-        const res = await fetch(`/api/organizations/${tenantId}`, {
+        const res = await authFetch(`/api/organizations/${tenantId}`, {
           method: "PUT",
           headers,
           body: JSON.stringify(value),

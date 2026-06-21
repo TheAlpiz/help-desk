@@ -1,4 +1,4 @@
-import { eq, and, gt, isNull, desc } from "drizzle-orm";
+import { eq, and, isNull, desc } from "drizzle-orm";
 import * as argon2 from "argon2";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
@@ -61,17 +61,18 @@ async function issueSession(
   tx: any,
   u: { id: string; organizationId: string },
   meta: SessionMeta,
-) {
+): Promise<{ token: string; hash: string }> {
   const refreshToken = randomToken();
+  const hash = sha256(refreshToken);
   await tx.insert(session).values({
     organizationId: u.organizationId,
     userId: u.id,
-    tokenHash: sha256(refreshToken),
+    tokenHash: hash,
     userAgent: meta.userAgent?.slice(0, 512),
     ipAddress: meta.ipAddress,
     expiresAt: new Date(Date.now() + REFRESH_TTL_MS),
   });
-  return refreshToken;
+  return { token: refreshToken, hash };
 }
 
 export const AuthService = {
@@ -141,7 +142,7 @@ export const AuthService = {
         departmentId: newUser.departmentId,
         roleIds: [],
       });
-      const refreshToken = await issueSession(tx, newUser, meta);
+      const { token: refreshToken } = await issueSession(tx, newUser, meta);
 
       return {
         accessToken,
@@ -190,7 +191,7 @@ export const AuthService = {
         departmentId: foundUser.departmentId,
         roleIds,
       });
-      const refreshToken = await issueSession(tx, foundUser, meta);
+      const { token: refreshToken } = await issueSession(tx, foundUser, meta);
 
       await tx.update(user).set({ lastLoginAt: new Date() }).where(eq(user.id, foundUser.id));
 
@@ -210,25 +211,49 @@ export const AuthService = {
     });
   },
 
-  // Rotating refresh: the presented token is revoked and a new pair is issued.
+  // Rotating refresh with reuse detection.
+  //
+  // Normal path: the presented (active) token is rotated — revoked and linked to a
+  // freshly minted successor, which is returned.
+  //
+  // Replay path: if the presented token exists but was ALREADY rotated (revoked +
+  // rotatedToTokenHash set), it was stolen and replayed after the legitimate client
+  // already rotated it. We treat this as a breach and revoke the user's entire active
+  // session set, forcing re-authentication everywhere.
   refresh: async (refreshToken: string, meta: SessionMeta = {}) => {
     return await withSuperAdminTransaction(async (tx) => {
       const tokenHash = sha256(refreshToken);
+
+      // Look up WITHOUT the revoked/expiry filter so we can distinguish "unknown
+      // token" from "known-but-already-used token" (the replay signal).
       const [current] = await tx
         .select()
         .from(session)
-        .where(
-          and(
-            eq(session.tokenHash, tokenHash),
-            isNull(session.revokedAt),
-            gt(session.expiresAt, new Date()),
-          ),
-        )
+        .where(eq(session.tokenHash, tokenHash))
         .limit(1);
+
       if (!current) throw new Error("Invalid or expired refresh token");
 
-      // Revoke the used token (rotation) and mint a fresh session.
-      await tx.update(session).set({ revokedAt: new Date() }).where(eq(session.id, current.id));
+      // Reuse/replay: a token that was already rotated is being presented again.
+      if (current.revokedAt && current.rotatedToTokenHash) {
+        await tx
+          .update(session)
+          .set({ revokedAt: new Date() })
+          .where(and(eq(session.userId, current.userId), isNull(session.revokedAt)));
+        await tx
+          .update(session)
+          .set({ reuseDetectedAt: new Date() })
+          .where(eq(session.id, current.id));
+        logger.warn(
+          { userId: current.userId, sessionId: current.id, ip: meta.ipAddress },
+          "[Auth] Refresh token reuse detected — all sessions revoked",
+        );
+        throw new Error("Refresh token reuse detected");
+      }
+
+      // Revoked by logout, or expired: not valid, not a replay.
+      if (current.revokedAt) throw new Error("Invalid or expired refresh token");
+      if (current.expiresAt <= new Date()) throw new Error("Invalid or expired refresh token");
 
       const [u] = await tx.select().from(user).where(eq(user.id, current.userId)).limit(1);
       if (!u || u.status !== "active") throw new Error("User no longer active");
@@ -245,7 +270,13 @@ export const AuthService = {
         departmentId: u.departmentId,
         roleIds: roleRows.map((r: { roleId: string }) => r.roleId),
       });
-      const newRefresh = await issueSession(tx, u, meta);
+
+      // Mint successor first so we can link the rotation chain, then revoke current.
+      const { token: newRefresh, hash: newHash } = await issueSession(tx, u, meta);
+      await tx
+        .update(session)
+        .set({ revokedAt: new Date(), rotatedToTokenHash: newHash })
+        .where(eq(session.id, current.id));
 
       return { accessToken, refreshToken: newRefresh };
     });

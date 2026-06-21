@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { authFetch } from "@/lib/api";
 import { useState } from "react";
 import { Download, FileText, Table2, Package, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 import { useAppStore } from "@/store";
@@ -106,7 +107,7 @@ function ExportCenter() {
       if (dateFrom) params.set("from", dateFrom);
       if (dateTo) params.set("to", dateTo);
 
-      const res = await fetch(`/api/export/${entity}?${params}`, {
+      const res = await authFetch(`/api/export/${entity}?${params}`, {
         headers: getAuthHeaders(),
       });
 

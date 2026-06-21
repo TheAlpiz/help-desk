@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { Plus, X, Pencil, Trash2, Users, CheckSquare, Square, ChevronDown, XCircle, Check } from "lucide-react";
-import { useAppStore } from "@/store";
+import { apiFetch } from "@/lib/api";
 import { inviteUserSchema, updateUserSchema } from "@help-desk/shared";
 import { Button, Input, FormAlert, FormError, fieldErrors } from "@/components/ui";
 
@@ -31,20 +31,6 @@ const ROLE_CLS: Record<string, string> = {
 
 const selectCls =
   "w-full px-3 py-2 bg-surface-container-high border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/60 transition-colors";
-
-function getAuthHeaders() {
-  const state = useAppStore.getState();
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (state.accessToken) headers["Authorization"] = `Bearer ${state.accessToken}`;
-  if (state.tenantId) headers["X-Tenant-ID"] = state.tenantId;
-  return headers;
-}
-
-async function apiFetch(path: string, init: RequestInit = {}) {
-  const res = await fetch(`/api${path}`, { ...init, headers: { ...getAuthHeaders(), ...(init.headers ?? {}) } });
-  const body = await res.json();
-  return { res, body };
-}
 
 function ModalShell({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (

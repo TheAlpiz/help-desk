@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { authFetch } from "@/lib/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useRef, useCallback } from "react";
 import DOMPurify from "dompurify";
@@ -317,7 +318,7 @@ function TicketTags({ ticketId }: { ticketId: string }) {
   const { data: tagsData } = useQuery({
     queryKey: ["ticket-tags", ticketId],
     queryFn: async () => {
-      const res = await fetch(`/api/tickets/${ticketId}/tags`, { headers: tagHeaders });
+      const res = await authFetch(`/api/tickets/${ticketId}/tags`, { headers: tagHeaders });
       if (!res.ok) return [];
       const json = await res.json() as any;
       return (json?.data ?? []) as Array<{ id: string; name: string }>;
@@ -327,7 +328,7 @@ function TicketTags({ ticketId }: { ticketId: string }) {
 
   const addTag = useMutation({
     mutationFn: async (tag: string) => {
-      const res = await fetch(`/api/tickets/${ticketId}/tags`, {
+      const res = await authFetch(`/api/tickets/${ticketId}/tags`, {
         method: "POST",
         headers: tagHeaders,
         body: JSON.stringify({ name: tag }),
@@ -342,7 +343,7 @@ function TicketTags({ ticketId }: { ticketId: string }) {
 
   const removeTag = useMutation({
     mutationFn: async (tagId: string) => {
-      const res = await fetch(`/api/tickets/${ticketId}/tags/${tagId}`, {
+      const res = await authFetch(`/api/tickets/${ticketId}/tags/${tagId}`, {
         method: "DELETE",
         headers: tagHeaders,
       });
@@ -493,7 +494,7 @@ function ApplyMacro({ ticketId }: { ticketId: string }) {
   const { data: macros = [] } = useQuery({
     queryKey: ["macros"],
     queryFn: async () => {
-      const res = await fetch("/api/macros", { headers });
+      const res = await authFetch("/api/macros", { headers });
       const json = await res.json();
       return (json?.data ?? []) as Array<{ id: string; name: string; description?: string; actions: any[] }>;
     },
@@ -502,7 +503,7 @@ function ApplyMacro({ ticketId }: { ticketId: string }) {
 
   const applyMutation = useMutation({
     mutationFn: async (macroId: string) => {
-      const res = await fetch(`/api/macros/${macroId}/apply`, {
+      const res = await authFetch(`/api/macros/${macroId}/apply`, {
         method: "POST",
         headers,
         body: JSON.stringify({ ticketId }),
@@ -675,7 +676,7 @@ function CcFollowers({ ticket, ticketId }: { ticket: any; ticketId: string }) {
 
   const addMutation = useMutation({
     mutationFn: async (ccEmail: string) => {
-      const res = await fetch(`/api/tickets/${ticketId}/cc`, {
+      const res = await authFetch(`/api/tickets/${ticketId}/cc`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(() => {
           const s = useAppStore.getState();
@@ -693,7 +694,7 @@ function CcFollowers({ ticket, ticketId }: { ticket: any; ticketId: string }) {
 
   const removeMutation = useMutation({
     mutationFn: async (ccEmail: string) => {
-      const res = await fetch(`/api/tickets/${ticketId}/cc/${encodeURIComponent(ccEmail)}`, {
+      const res = await authFetch(`/api/tickets/${ticketId}/cc/${encodeURIComponent(ccEmail)}`, {
         method: "DELETE",
         headers: (() => {
           const s = useAppStore.getState();
@@ -887,7 +888,7 @@ function ConvertToTaskButton({ ticket, ticketId }: { ticket: any; ticketId: stri
       const h: Record<string, string> = { "Content-Type": "application/json" };
       if (s.accessToken) h["Authorization"] = `Bearer ${s.accessToken}`;
       if (s.tenantId) h["X-Tenant-ID"] = s.tenantId;
-      const res = await fetch("/api/tasks", {
+      const res = await authFetch("/api/tasks", {
         method: "POST",
         headers: h,
         body: JSON.stringify({
@@ -902,7 +903,7 @@ function ConvertToTaskButton({ ticket, ticketId }: { ticket: any; ticketId: stri
         const b = (await res.json().catch(() => ({}))) as any;
         const newTaskId = b?.data?.id;
         if (newTaskId && ticket.assigneeId) {
-          await fetch(`/api/tasks/${newTaskId}/assign`, {
+          await authFetch(`/api/tasks/${newTaskId}/assign`, {
             method: "PUT",
             headers: h,
             body: JSON.stringify({ assigneeId: ticket.assigneeId }),

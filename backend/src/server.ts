@@ -1,5 +1,6 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { logger } from "./infra/logger";
 import { env } from "./infra/env";
 import { ResponseHandler } from "./lib/response";
@@ -31,6 +32,19 @@ app.use(
   sentry(app, {
     dsn: env.SENTRY_DSN,
     dataCollection: { userInfo: false },
+  }),
+);
+
+// Credentialed CORS: only allow-listed origins may send the refresh/CSRF cookies.
+// `credentials: true` requires an explicit origin echo (never "*").
+const allowedOrigins = env.CORS_ORIGINS.split(",").map((o) => o.trim()).filter(Boolean);
+app.use(
+  "*",
+  cors({
+    origin: (origin) => (allowedOrigins.includes(origin) ? origin : null),
+    credentials: true,
+    allowHeaders: ["Content-Type", "Authorization", "X-Tenant-ID", "X-CSRF-Token"],
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   }),
 );
 

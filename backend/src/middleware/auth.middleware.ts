@@ -21,7 +21,7 @@ export const authMiddleware = () => async (c: Context, next: Next) => {
   const token = authHeader.substring(7);
 
   try {
-    const payload = verify(token, env.JWT_SECRET || "fallback_secret") as JwtPayload;
+    const payload = verify(token, env.JWT_SECRET) as JwtPayload;
 
     // Cross-tenant Token Validation Check
     // Compare the token's organizationId to the context's tenantId extracted by tenantMiddleware

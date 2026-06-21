@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { authFetch } from "@/lib/api";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -408,7 +409,7 @@ function AutomationsPage() {
   const { data: serverRules, isLoading } = useQuery({
     queryKey: ["automations"],
     queryFn: async () => {
-      const res = await fetch("/api/automations", { headers: getHeaders() });
+      const res = await authFetch("/api/automations", { headers: getHeaders() });
       const json = await res.json();
       return ((json?.data ?? []) as any[]).map(normalizeRule);
     },
@@ -426,7 +427,7 @@ function AutomationsPage() {
 
   const toggleMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/automations/${id}/toggle`, { method: "POST", headers: getHeaders() });
+      const res = await authFetch(`/api/automations/${id}/toggle`, { method: "POST", headers: getHeaders() });
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     },
@@ -436,7 +437,7 @@ function AutomationsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/automations/${id}`, { method: "DELETE", headers: getHeaders() });
+      const res = await authFetch(`/api/automations/${id}`, { method: "DELETE", headers: getHeaders() });
       if (!res.ok) throw new Error(await res.text());
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["automations"] }); success("Rule deleted"); },
@@ -445,7 +446,7 @@ function AutomationsPage() {
 
   const createMutation = useMutation({
     mutationFn: async (rule: Omit<AutomationRule, "id" | "runCount">) => {
-      const res = await fetch("/api/automations", {
+      const res = await authFetch("/api/automations", {
         method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({
@@ -466,7 +467,7 @@ function AutomationsPage() {
   const saveAllMutation = useMutation({
     mutationFn: async (ruleList: AutomationRule[]) => {
       await Promise.all(ruleList.map(async (rule) => {
-        const res = await fetch(`/api/automations/${rule.id}`, {
+        const res = await authFetch(`/api/automations/${rule.id}`, {
           method: "PUT",
           headers: getHeaders(),
           body: JSON.stringify({

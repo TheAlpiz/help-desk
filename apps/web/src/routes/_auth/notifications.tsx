@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { authFetch } from "@/lib/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Bell, CheckCheck, Filter } from "lucide-react";
@@ -40,7 +41,7 @@ function NotificationsList() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
-      const res = await fetch("/api/notifications", { headers });
+      const res = await authFetch("/api/notifications", { headers });
       if (!res.ok) throw new Error("Failed to fetch notifications");
       return res.json();
     },
@@ -50,7 +51,7 @@ function NotificationsList() {
 
   const markOneMutation = useMutation({
     mutationFn: async (id: string) => {
-      await fetch(`/api/notifications/${id}/read`, {
+      await authFetch(`/api/notifications/${id}/read`, {
         method: "PATCH",
         headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({ isRead: true }),
@@ -64,7 +65,7 @@ function NotificationsList() {
       const unread = all.filter((n: any) => !n.isRead);
       await Promise.all(
         unread.map((n: any) =>
-          fetch(`/api/notifications/${n.id}/read`, {
+          authFetch(`/api/notifications/${n.id}/read`, {
             method: "PATCH",
             headers: { ...headers, "Content-Type": "application/json" },
             body: JSON.stringify({ isRead: true }),

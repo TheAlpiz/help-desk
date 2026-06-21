@@ -4,7 +4,7 @@ import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { Plus, X, Pencil, Trash2, Building2, Users, CheckCircle, ExternalLink, Flag, ToggleLeft, ToggleRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { useAppStore } from "@/store";
+import { apiFetch } from "@/lib/api";
 import { Button, Input, FormAlert, FormError, fieldErrors } from "@/components/ui";
 
 type Tenant = {
@@ -16,19 +16,6 @@ type Tenant = {
   updatedAt: string | null;
 };
 
-function getAuthHeaders() {
-  const state = useAppStore.getState();
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (state.accessToken) headers["Authorization"] = `Bearer ${state.accessToken}`;
-  if (state.tenantId) headers["X-Tenant-ID"] = state.tenantId;
-  return headers;
-}
-
-async function apiFetch(path: string, init: RequestInit = {}) {
-  const res = await fetch(`/api${path}`, { ...init, headers: { ...getAuthHeaders(), ...(init.headers ?? {}) } });
-  const body = await res.json();
-  return { res, body };
-}
 
 const STATUS_CLS: Record<string, string> = {
   active: "bg-emerald-500/15 text-emerald-300 border-emerald-500/20",

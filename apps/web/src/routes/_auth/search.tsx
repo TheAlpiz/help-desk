@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { z } from "zod";
 import { Search, Ticket, CheckSquare, Users, Building2, FileText, X } from "lucide-react";
 import { useAppStore } from "@/store";
+import { authFetch } from "@/lib/api";
 
 export const Route = createFileRoute("/_auth/search")({
   validateSearch: z.object({ q: z.string().optional() }),
@@ -58,9 +59,7 @@ async function searchEntity(
   mapper: (item: any) => SearchResult,
 ): Promise<SearchResult[]> {
   try {
-    const res = await fetch(`${endpoint}?search=${encodeURIComponent(q)}&limit=5`, {
-      headers: getAuthHeaders(),
-    });
+    const res = await authFetch(`${endpoint}?search=${encodeURIComponent(q)}&limit=5`);
     if (!res.ok) return [];
     const data = await res.json();
     const items: any[] = data?.data?.items ?? data?.data ?? [];

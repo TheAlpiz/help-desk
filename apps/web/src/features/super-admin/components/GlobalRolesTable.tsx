@@ -1,26 +1,12 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, X, ShieldCheck, Trash2 } from "lucide-react";
-import { useAppStore } from "@/store";
 import { PERMISSION_CATALOG, type PermissionEntry } from "@/lib/permissions-catalog";
-import { api } from "@/lib/api";
+import { api, apiFetch, authHeaders } from "@/lib/api";
 import { Button, Input, FormAlert, FormError } from "@/components/ui";
 
 type GlobalRole = { id: string; name: string; description: string | null; isSystem: boolean; createdAt: string; };
 type Permission = { id: string; roleId: string; resource: string; action: string; };
-
-function getAuthHeaders() {
-  const state = useAppStore.getState();
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (state.accessToken) headers["Authorization"] = `Bearer ${state.accessToken}`;
-  return headers;
-}
-
-async function apiFetch(path: string, init: RequestInit = {}) {
-  const res = await fetch(`/api${path}`, { ...init, headers: { ...getAuthHeaders(), ...(init.headers ?? {}) } });
-  const body = await res.json();
-  return { res, body };
-}
 
 function PermissionPicker({ selected, onChange }: { selected: PermissionEntry[]; onChange: (e: PermissionEntry[]) => void }) {
   const isChecked = (resource: string, action: string) => selected.some((e) => e.resource === resource && e.action === action);
@@ -83,7 +69,7 @@ function CreateGlobalRoleModal({ onClose }: { onClose: () => void }) {
       if (!res.ok) throw new Error(roleBody?.error?.message || "Failed to create role");
       const newRole: GlobalRole = roleBody.data;
       if (selectedPermissions.length > 0) {
-        const permRes = await fetch(`/api/permissions/by-role/${newRole.id}`, { method: "PUT", headers: getAuthHeaders(), body: JSON.stringify({ entries: selectedPermissions }) });
+        const permRes = await fetch(`/api/permissions/by-role/${newRole.id}`, { method: "PUT", headers: authHeaders(), credentials: "include", body: JSON.stringify({ entries: selectedPermissions }) });
         if (!permRes.ok) throw new Error("Role created, but permissions failed to save");
       }
       return newRole;
@@ -174,7 +160,7 @@ function RolePermissionsDrawer({ role, onClose }: { role: GlobalRole; onClose: (
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch(`/api/permissions/by-role/${role.id}`, { method: "PUT", headers: getAuthHeaders(), body: JSON.stringify({ entries: effectiveSelected }) });
+      const res = await fetch(`/api/permissions/by-role/${role.id}`, { method: "PUT", headers: authHeaders(), credentials: "include", body: JSON.stringify({ entries: effectiveSelected }) });
       if (!res.ok) throw new Error("Failed to save permissions");
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["global-role-permissions", role.id] }); onClose(); },

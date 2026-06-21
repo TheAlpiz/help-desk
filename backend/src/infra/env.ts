@@ -5,8 +5,17 @@ dotenv.config();
 
 export const env = cleanEnv(process.env, {
   DATABASE_URL: str(),
-  JWT_SECRET: str({ default: "supersecret" }),
+  NODE_ENV: str({ choices: ["development", "test", "production"], default: "development" }),
+  // No production default: a missing secret must fail startup, never fall back to a
+  // predictable value. devDefault keeps local/test ergonomics.
+  JWT_SECRET: str({ devDefault: "dev_only_insecure_secret_change_me" }),
   APP_BASE_URL: str({ default: "http://localhost:5173" }),
+  // Comma-separated list of browser origins allowed to send credentialed requests.
+  // e.g. "https://app.alpis.app,https://admin.alpis.app". devDefault = Vite dev server.
+  CORS_ORIGINS: str({ devDefault: "http://localhost:5173" }),
+  // Cookie scope. Leave empty to default to the request host (host-only cookie).
+  // Set to a parent domain (e.g. ".alpis.app") to share the refresh cookie across subdomains.
+  COOKIE_DOMAIN: str({ default: "" }),
   SENTRY_DSN: str({ default: "" }),
   PORT: port({ default: 3000 }),
   LOG_LEVEL: str({ default: "info" }),

@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { Plus, X, Pencil, Trash2, Timer } from "lucide-react";
-import { useAppStore } from "@/store";
+import { apiFetch } from "@/lib/api";
 import { createSlaSchema, updateSlaSchema } from "@help-desk/shared";
 import { Button, Input, FormAlert, FormError, fieldErrors } from "@/components/ui";
 
@@ -18,19 +18,6 @@ type SlaPolicy = {
   updatedAt: string | null;
 };
 
-function getAuthHeaders() {
-  const state = useAppStore.getState();
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (state.accessToken) headers["Authorization"] = `Bearer ${state.accessToken}`;
-  if (state.tenantId) headers["X-Tenant-ID"] = state.tenantId;
-  return headers;
-}
-
-async function apiFetch(path: string, init: RequestInit = {}) {
-  const res = await fetch(`/api${path}`, { ...init, headers: { ...getAuthHeaders(), ...(init.headers ?? {}) } });
-  const body = await res.json();
-  return { res, body };
-}
 
 function ModalShell({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (

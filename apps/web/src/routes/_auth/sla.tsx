@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { authFetch } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
@@ -253,7 +254,7 @@ function EscalationRuleBuilder() {
   const { data: serverData } = useQuery({
     queryKey: ["sla-escalation-rules"],
     queryFn: async () => {
-      const res = await fetch("/api/sla-escalation-rules", { headers: escalationHeaders() });
+      const res = await authFetch("/api/sla-escalation-rules", { headers: escalationHeaders() });
       if (!res.ok) throw new Error("Failed to load rules");
       const json = await res.json();
       return (json.data ?? []) as any[];
@@ -278,7 +279,7 @@ function EscalationRuleBuilder() {
 
   const createMut = useMutation({
     mutationFn: async (rule: EscalationRule) => {
-      const res = await fetch("/api/sla-escalation-rules", {
+      const res = await authFetch("/api/sla-escalation-rules", {
         method: "POST",
         headers: escalationHeaders(),
         body: JSON.stringify({
@@ -296,7 +297,7 @@ function EscalationRuleBuilder() {
 
   const updateMut = useMutation({
     mutationFn: async (rule: EscalationRule) => {
-      const res = await fetch(`/api/sla-escalation-rules/${rule.id}`, {
+      const res = await authFetch(`/api/sla-escalation-rules/${rule.id}`, {
         method: "PUT",
         headers: escalationHeaders(),
         body: JSON.stringify({
@@ -314,7 +315,7 @@ function EscalationRuleBuilder() {
 
   const deleteMut = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/sla-escalation-rules/${id}`, { method: "DELETE", headers: escalationHeaders() });
+      const res = await authFetch(`/api/sla-escalation-rules/${id}`, { method: "DELETE", headers: escalationHeaders() });
       if (!res.ok) throw new Error("Delete failed");
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["sla-escalation-rules"] }),
@@ -322,7 +323,7 @@ function EscalationRuleBuilder() {
 
   const toggleMut = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/sla-escalation-rules/${id}/toggle`, { method: "POST", headers: escalationHeaders() });
+      const res = await authFetch(`/api/sla-escalation-rules/${id}/toggle`, { method: "POST", headers: escalationHeaders() });
       if (!res.ok) throw new Error("Toggle failed");
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["sla-escalation-rules"] }),

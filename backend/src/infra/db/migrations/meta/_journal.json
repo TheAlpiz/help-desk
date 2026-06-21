@@ -71,6 +71,13 @@
       "when": 1782003502256,
       "tag": "0009_icy_the_renegades",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1782005197168,
+      "tag": "0010_session_reuse_detection",
+      "breakpoints": true
     }
   ]
 }

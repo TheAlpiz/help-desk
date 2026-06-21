@@ -14,6 +14,11 @@ export const session = pgTable("session", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   tokenHash: varchar("token_hash", { length: 64 }).notNull().unique(),
+  // Rotation chain: when this token is rotated, points at the hash of its successor.
+  // If a token that has already been rotated is presented again, that is a replay →
+  // we revoke the whole chain (reuse detection).
+  rotatedToTokenHash: varchar("rotated_to_token_hash", { length: 64 }),
+  reuseDetectedAt: timestamp("reuse_detected_at"),
   userAgent: varchar("user_agent", { length: 512 }),
   ipAddress: varchar("ip_address", { length: 45 }),
   expiresAt: timestamp("expires_at").notNull(),

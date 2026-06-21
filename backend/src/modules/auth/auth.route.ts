@@ -13,18 +13,37 @@ import { AuthService } from "./auth.service";
 import { ResponseHandler } from "../../lib/response";
 import { authMiddleware, JwtPayload } from "../../middleware/auth.middleware";
 import { UserService } from "../user/user.service";
+import {
+  setRefreshCookie,
+  setCsrfCookie,
+  clearAuthCookies,
+  getRefreshToken,
+  verifyCsrf,
+} from "../../lib/auth-cookies";
 
 const clientMeta = (c: any) => ({
   userAgent: c.req.header("user-agent"),
   ipAddress: (c.req.header("x-forwarded-for") || "").split(",")[0].trim() || undefined,
 });
 
+// Move the refresh token out of the JSON body and into cookies; also (re)issue the
+// readable CSRF token. Returns the body-safe payload (access token + user only).
+function establishSession<T extends { accessToken: string; refreshToken: string }>(
+  c: any,
+  result: T,
+) {
+  setRefreshCookie(c, result.refreshToken);
+  setCsrfCookie(c);
+  const { refreshToken, ...safe } = result;
+  return safe;
+}
+
 export const authRouter = new Hono<{ Variables: { tenantId: string; user: JwtPayload } }>()
   .post("/register", zValidator("json", registerSchema), async (c) => {
     const data = c.req.valid("json");
     try {
       const result = await AuthService.register(data, clientMeta(c));
-      return ResponseHandler.created(c, result, "Account created");
+      return ResponseHandler.created(c, establishSession(c, result), "Account created");
     } catch (error: any) {
       return ResponseHandler.badRequest(c, error.message);
     }
@@ -34,24 +53,53 @@ export const authRouter = new Hono<{ Variables: { tenantId: string; user: JwtPay
     const data = c.req.valid("json");
     try {
       const result = await AuthService.login(tenantId, data.email, data.password, clientMeta(c));
-      return ResponseHandler.success(c, result, { message: "Login successful" });
+      return ResponseHandler.success(c, establishSession(c, result), { message: "Login successful" });
     } catch (error: any) {
       return ResponseHandler.unauthorized(c, error.message);
     }
   })
   .post("/refresh", zValidator("json", refreshSchema), async (c) => {
     const data = c.req.valid("json");
+    // Cookie is the source of truth for browsers; body fallback for API clients.
+    const token = getRefreshToken(c) ?? data.refreshToken;
+    if (!token) return ResponseHandler.unauthorized(c, "Missing refresh token");
+    // CSRF: cookie-authenticated state change → require double-submit token.
+    if (getRefreshToken(c) && !verifyCsrf(c)) {
+      return ResponseHandler.forbidden(c, "Invalid CSRF token");
+    }
     try {
-      const result = await AuthService.refresh(data.refreshToken, clientMeta(c));
-      return ResponseHandler.success(c, result, { message: "Token refreshed" });
+      const result = await AuthService.refresh(token, clientMeta(c));
+      const { refreshToken, ...safe } = result;
+      setRefreshCookie(c, refreshToken);
+      setCsrfCookie(c);
+      return ResponseHandler.success(c, safe, { message: "Token refreshed" });
     } catch (error: any) {
+      // On any refresh failure (incl. reuse detection) clear cookies so the client
+      // cannot keep replaying a dead token.
+      clearAuthCookies(c);
       return ResponseHandler.unauthorized(c, error.message);
     }
   })
   .post("/logout", zValidator("json", logoutSchema), async (c) => {
     const data = c.req.valid("json");
+    const token = getRefreshToken(c) ?? data.refreshToken;
+    if (getRefreshToken(c) && !verifyCsrf(c)) {
+      return ResponseHandler.forbidden(c, "Invalid CSRF token");
+    }
     try {
-      const result = await AuthService.logout(data.refreshToken);
+      const result = token ? await AuthService.logout(token) : { success: true };
+      clearAuthCookies(c);
+      return ResponseHandler.ok(c, result);
+    } catch (error: any) {
+      clearAuthCookies(c);
+      return ResponseHandler.badRequest(c, error.message);
+    }
+  })
+  .post("/logout-all", authMiddleware(), async (c) => {
+    const user = c.get("user");
+    try {
+      const result = await AuthService.revokeAllSessions(user.organizationId, user.userId);
+      clearAuthCookies(c);
       return ResponseHandler.ok(c, result);
     } catch (error: any) {
       return ResponseHandler.badRequest(c, error.message);

@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { authFetch } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Paperclip, Upload, Download, FileText, X, Loader2 } from "lucide-react";
 import { useAppStore } from "@/store";
@@ -30,7 +31,7 @@ export function TicketAttachments({ entityType = "TICKET", entityId, ticketId }:
     queryKey: ["attachments", entityType, eid],
     queryFn: async () => {
       const params = new URLSearchParams({ entityType, entityId: eid });
-      const res = await fetch(`/api/attachments?${params}`, {
+      const res = await authFetch(`/api/attachments?${params}`, {
         headers: {
           Authorization: `Bearer ${accessToken ?? ""}`,
           "X-Tenant-ID": tenantId ?? "",
@@ -54,7 +55,7 @@ export function TicketAttachments({ entityType = "TICKET", entityId, ticketId }:
 
       try {
         // Step 1: request presigned URL
-        const reqRes = await fetch("/api/attachments/upload-request", {
+        const reqRes = await authFetch("/api/attachments/upload-request", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -92,7 +93,7 @@ export function TicketAttachments({ entityType = "TICKET", entityId, ticketId }:
         );
 
         // Step 3: confirm
-        const confirmRes = await fetch("/api/attachments/confirm", {
+        const confirmRes = await authFetch("/api/attachments/confirm", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

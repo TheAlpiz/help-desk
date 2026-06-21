@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { authFetch } from "@/lib/api";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Archive, ChevronLeft, ChevronRight, RotateCcw, Search, Filter } from "lucide-react";
@@ -49,7 +50,7 @@ function ArchivedTickets() {
       if (search.trim()) params["search"] = search.trim();
 
       const qs = new URLSearchParams(params).toString();
-      const res = await fetch(`/api/tickets?${qs}`, { headers: getAuthHeaders() });
+      const res = await authFetch(`/api/tickets?${qs}`, { headers: getAuthHeaders() });
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
@@ -57,7 +58,7 @@ function ArchivedTickets() {
 
   const reopenMutation = useMutation({
     mutationFn: async (ticketId: string) => {
-      const res = await fetch(`/api/tickets/${ticketId}/reopen`, {
+      const res = await authFetch(`/api/tickets/${ticketId}/reopen`, {
         method: "POST",
         headers: getAuthHeaders(),
       });

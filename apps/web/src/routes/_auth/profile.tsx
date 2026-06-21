@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { authFetch } from "@/lib/api";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { User, Camera, Save, Moon, Sun, Monitor } from "lucide-react";
@@ -170,7 +171,7 @@ function Profile() {
       if (state.accessToken)
         headers["Authorization"] = `Bearer ${state.accessToken}`;
       if (state.tenantId) headers["X-Tenant-ID"] = state.tenantId;
-      const res = await fetch(`/api/users/${user!.id}`, {
+      const res = await authFetch(`/api/users/${user!.id}`, {
         method: "PUT",
         headers,
         body: JSON.stringify({ firstName, lastName }),

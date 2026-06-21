@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { authFetch } from "@/lib/api";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Zap, Edit2, Trash2, Copy, X } from "lucide-react";
@@ -17,7 +18,7 @@ function getHeaders() {
 }
 
 async function fetchMacros(): Promise<Macro[]> {
-  const res = await fetch("/api/macros", { headers: getHeaders() });
+  const res = await authFetch("/api/macros", { headers: getHeaders() });
   const json = await res.json();
   return (json?.data ?? []) as Macro[];
 }
@@ -166,7 +167,7 @@ function MacrosPage() {
 
   const createMutation = useMutation({
     mutationFn: async (data: Omit<Macro, "id">) => {
-      const res = await fetch("/api/macros", { method: "POST", headers: getHeaders(), body: JSON.stringify(data) });
+      const res = await authFetch("/api/macros", { method: "POST", headers: getHeaders(), body: JSON.stringify(data) });
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     },
@@ -176,7 +177,7 @@ function MacrosPage() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Omit<Macro, "id"> }) => {
-      const res = await fetch(`/api/macros/${id}`, { method: "PUT", headers: getHeaders(), body: JSON.stringify(data) });
+      const res = await authFetch(`/api/macros/${id}`, { method: "PUT", headers: getHeaders(), body: JSON.stringify(data) });
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     },
@@ -186,7 +187,7 @@ function MacrosPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/macros/${id}`, { method: "DELETE", headers: getHeaders() });
+      const res = await authFetch(`/api/macros/${id}`, { method: "DELETE", headers: getHeaders() });
       if (!res.ok) throw new Error(await res.text());
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["macros"] }); success("Macro deleted"); },
@@ -195,7 +196,7 @@ function MacrosPage() {
 
   const duplicateMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/macros/${id}/duplicate`, { method: "POST", headers: getHeaders() });
+      const res = await authFetch(`/api/macros/${id}/duplicate`, { method: "POST", headers: getHeaders() });
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     },

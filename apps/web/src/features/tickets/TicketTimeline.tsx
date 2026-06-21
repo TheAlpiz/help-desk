@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { authFetch } from "@/lib/api";
 import { useAppStore } from "@/store";
 import {
   Clock,
@@ -52,7 +53,7 @@ export function TicketTimeline({ ticketId }: { ticketId: string }) {
       const headers: Record<string, string> = {};
       if (state.accessToken) headers["Authorization"] = `Bearer ${state.accessToken}`;
       if (state.tenantId) headers["X-Tenant-ID"] = state.tenantId;
-      const res = await fetch(`/api/auditLogs/ticket/${ticketId}`, { headers });
+      const res = await authFetch(`/api/auditLogs/ticket/${ticketId}`, { headers });
       if (!res.ok) return { data: [] };
       return res.json();
     },
