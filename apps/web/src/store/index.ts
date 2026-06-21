@@ -49,6 +49,13 @@ export const useAppStore = create<AppState>()(
       // memory only (XSS cannot read it from storage), and user/tenant identity is
       // re-hydrated from the server (GET /auths/me) after a silent refresh on boot.
       partialize: (state) => ({ theme: state.theme, sidebarOpen: state.sidebarOpen }),
+      // v1 migration: discard any pre-refactor blob that contained accessToken/user/
+      // tenantId in localStorage, keeping only the safe UI preferences.
+      version: 1,
+      migrate: (persisted: any) => ({
+        theme: persisted?.theme ?? "system",
+        sidebarOpen: persisted?.sidebarOpen ?? true,
+      }),
     },
   ),
 );
