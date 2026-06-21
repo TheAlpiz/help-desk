@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "global_role" varchar(50) DEFAULT 'REQUESTER' NOT NULL;

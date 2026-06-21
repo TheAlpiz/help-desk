@@ -1,0 +1,1 @@
+ALTER TABLE "ticket" ADD COLUMN "cc_emails" jsonb DEFAULT '[]'::jsonb;

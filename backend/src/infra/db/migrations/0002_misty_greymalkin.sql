@@ -1,0 +1,1 @@
+ALTER TABLE "ticket_message" ADD COLUMN "email_message_id" varchar(512);
