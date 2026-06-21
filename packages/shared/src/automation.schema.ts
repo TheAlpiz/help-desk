@@ -36,6 +36,7 @@ export const AUTOMATION_ACTION_TYPES = [
   "remove_tag",
   "send_email",
   "add_note",
+  "create_task",
 ] as const;
 
 export const automationConditionSchema = z.object({

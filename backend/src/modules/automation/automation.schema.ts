@@ -33,7 +33,8 @@ export type AutomationActionDef =
   | { type: "add_tag"; value: string }
   | { type: "remove_tag"; value: string }
   | { type: "send_email"; value: string }
-  | { type: "add_note"; value: string };
+  | { type: "add_note"; value: string }
+  | { type: "create_task"; value: string };
 
 export type Automation = typeof automation.$inferSelect;
 export type NewAutomation = typeof automation.$inferInsert;

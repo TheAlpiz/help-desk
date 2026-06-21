@@ -4,6 +4,7 @@ import { automation, AutomationCondition, AutomationActionDef } from "./automati
 import { ticket } from "../ticket/ticket.schema";
 import { ticketTag } from "../ticket/ticket-tag.schema";
 import { ticketMessage } from "../ticket/ticket-message.schema";
+import { task } from "../task/task.schema";
 import { auditLog } from "../audit-log/audit-log.schema";
 import { user } from "../user/user.schema";
 import { department } from "../department/department.schema";
@@ -147,6 +148,23 @@ export const AutomationService = {
               case "add_note":
                 if (action.value) await tx.insert(ticketMessage).values({ ticketId, senderId: actorId ?? undefined, content: action.value, type: "INTERNAL_NOTE" });
                 break;
+              case "create_task": {
+                if (!action.value) break;
+                // task.creatorId is NOT NULL → fall back to the rule's author when the
+                // triggering event has no actor (e.g. inbound email created the ticket).
+                const creatorId = actorId ?? rule.createdById;
+                if (!creatorId) { logger.warn({ ruleId: rule.id }, "Automation create_task: no creator available"); break; }
+                const [createdTask] = await tx.insert(task).values({
+                  organizationId: tenantId,
+                  ticketId,
+                  creatorId,
+                  title: action.value.slice(0, 255),
+                  status: "TODO",
+                  priority: "MEDIUM",
+                }).returning();
+                await tx.insert(auditLog).values({ organizationId: tenantId, entityType: "task", entityId: createdTask.id, actorId: actorId ?? "system", action: "created", newValues: { title: createdTask.title, viaAutomation: rule.id } });
+                break;
+              }
               case "send_email":
                 // Email notification is enqueued via notification worker — no-op here for now
                 break;

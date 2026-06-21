@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Plus, Trash2, Zap, ChevronDown, Play, Pause, Copy,
-  Mail, Tag, UserCheck, AlertTriangle, MessageSquare, Building2,
+  Mail, Tag, UserCheck, AlertTriangle, MessageSquare, Building2, ListChecks,
 } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { useAppStore } from "@/store";
@@ -36,7 +36,7 @@ type TriggerType =
 
 type ConditionField = "status" | "priority" | "tag" | "assignee" | "department" | "subject_contains";
 type ConditionOperator = "equals" | "not_equals" | "contains" | "not_contains" | "is_empty" | "is_not_empty";
-type ActionType = "set_status" | "set_priority" | "assign_to" | "set_department" | "add_tag" | "remove_tag" | "send_email" | "add_note";
+type ActionType = "set_status" | "set_priority" | "assign_to" | "set_department" | "add_tag" | "remove_tag" | "send_email" | "add_note" | "create_task";
 
 interface Condition {
   id: string;
@@ -110,6 +110,7 @@ const ACTION_LABELS: Record<ActionType, { label: string; icon: React.ReactNode; 
   remove_tag: { label: "Remove tag", icon: <Tag className="w-3 h-3" />, hasValue: true },
   send_email: { label: "Send email notification", icon: <Mail className="w-3 h-3" />, hasValue: false },
   add_note: { label: "Add internal note", icon: <MessageSquare className="w-3 h-3" />, hasValue: true },
+  create_task: { label: "Create task (title)", icon: <ListChecks className="w-3 h-3" />, hasValue: true },
 };
 
 function normalizeRule(r: any): AutomationRule {
