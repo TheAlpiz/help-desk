@@ -36,10 +36,12 @@ services:
       - SMTP_PORT=465
       - SMTP_SECURE=true
       - SMTP_USER=info@yerliva.com
-      - SMTP_PASS=KMKngM2rQnh2P98HPtjh
+      # Secrets sourced from server env / EasyPanel — never commit real values.
+      - SMTP_PASS=${SMTP_PASS:?set SMTP_PASS in server env}
       - SMTP_FROM=info@yerliva.com
-      - SENTRY_DSN=https://d7a2f3993c2abf5a946497593368cb9a@o4511350922084352.ingest.de.sentry.io/451155490091835
+      - SENTRY_DSN=${SENTRY_DSN:-}
       - LOG_LEVEL=info
+      - EMAIL_INGEST_BLOCKLIST=info@yerliva.com
     depends_on:
       - db
       - redis

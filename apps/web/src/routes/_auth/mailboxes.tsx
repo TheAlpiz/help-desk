@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
-import { Plus, X, Pencil, Trash2, Inbox, AlertTriangle, CheckCircle, WifiOff, Zap } from "lucide-react";
+import { Plus, X, Pencil, Trash2, Inbox, AlertTriangle, CheckCircle, WifiOff, Zap, Power, PowerOff } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/components/Toast";
 import { api } from "@/lib/api";
@@ -496,6 +496,47 @@ function TestConnectionButton({ mailboxId }: { mailboxId: string }) {
   );
 }
 
+function ToggleActiveButton({ mailbox }: { mailbox: Mailbox }) {
+  const { success, error: toastError } = useToast();
+  const queryClient = useQueryClient();
+  const [busy, setBusy] = useState(false);
+
+  const toggle = async () => {
+    setBusy(true);
+    try {
+      const res = await api.mailboxes[":id"].$put({
+        param: { id: mailbox.id },
+        json: { isActive: !mailbox.isActive } as any,
+      });
+      if (res.ok) {
+        success(mailbox.isActive ? "Mailbox deactivated" : "Mailbox activated");
+        queryClient.invalidateQueries({ queryKey: ["mailboxes"] });
+      } else {
+        toastError("Failed to update mailbox");
+      }
+    } catch {
+      toastError("Failed to update mailbox");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={toggle}
+      disabled={busy}
+      title={mailbox.isActive ? "Deactivate" : "Activate"}
+      className={`p-1.5 rounded transition-colors disabled:opacity-40 ${
+        mailbox.isActive
+          ? "text-green-500/70 hover:text-green-500 hover:bg-green-500/10"
+          : "text-on-surface-variant/40 hover:text-on-surface hover:bg-white/5"
+      }`}
+    >
+      {mailbox.isActive ? <Power className="w-3.5 h-3.5" /> : <PowerOff className="w-3.5 h-3.5" />}
+    </button>
+  );
+}
+
 function MailboxesList() {
   const [showConnect, setShowConnect] = useState(false);
   const [editMailbox, setEditMailbox] = useState<Mailbox | null>(null);
@@ -592,6 +633,7 @@ function MailboxesList() {
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <TestConnectionButton mailboxId={mb.id} />
+                        <ToggleActiveButton mailbox={mb} />
                         <button
                           onClick={() => setEditMailbox(mb)}
                           className="p-1.5 rounded text-on-surface-variant/50 hover:text-on-surface hover:bg-white/5 transition-colors"
