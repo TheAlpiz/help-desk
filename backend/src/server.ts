@@ -27,6 +27,9 @@ import { runSeed } from "./infra/db/seed";
 import { initMinio } from "./infra/minio";
 import { wsGateway } from "./ws/gateway";
 import { initRealtimeBridge } from "./ws/events";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
+import { db } from "./infra/db";
+import path from "path";
 
 const app = new Hono<{ Variables: { tenantId: string } }>({ strict: false });
 
@@ -122,6 +125,10 @@ attachmentQueue.add("nightly-sweep", {}, { repeat: { pattern: "0 2 * * *" } }).c
 // Initialize DB Triggers, enforce Row Level Security, then seed.
 // Ordered so RLS policies exist before any tenant traffic is served.
 (async () => {
+  logger.info("Running database migrations...");
+  await migrate(db, { migrationsFolder: path.join(__dirname, "infra/db/migrations") });
+  logger.info("Database migrations completed.");
+  
   await setupDatabaseTriggers();
   await setupRowLevelSecurity();
   await runSeed();

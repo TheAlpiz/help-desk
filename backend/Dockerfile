@@ -23,6 +23,7 @@ COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/backend/dist ./backend/dist
 COPY --from=builder /app/backend/package.json ./backend/package.json
 COPY --from=builder /app/backend/node_modules ./backend/node_modules
+COPY --from=builder /app/backend/src/infra/db/migrations ./backend/dist/infra/db/migrations
 
 WORKDIR /app/backend
 CMD ["node", "dist/server.js"]
