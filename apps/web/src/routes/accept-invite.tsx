@@ -2,7 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { useState } from "react";
-import { Ticket, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
+import { AppLogo } from "@/components/AppLogo";
 import { api } from "../lib/api";
 import { useAppStore } from "../store";
 import { resetPasswordSchema } from "@help-desk/shared";
@@ -79,11 +80,8 @@ function AcceptInvite() {
   return (
     <div className="min-h-[100dvh] bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-sm flex flex-col gap-7">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
-            <Ticket className="w-3.5 h-3.5 text-on-primary" />
-          </div>
-          <span className="font-semibold text-on-surface text-sm">Alpis</span>
+        <Link to="/">
+          <AppLogo className="h-7 w-auto" />
         </Link>
 
         <div>

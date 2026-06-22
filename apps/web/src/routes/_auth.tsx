@@ -45,6 +45,7 @@ import { RealtimeProvider } from "@/lib/RealtimeProvider";
 import { bootstrapAuth, api } from "@/lib/api";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ForcePasswordChangeScreen } from "@/features/users/components/ForcePasswordChangeScreen";
+import { AppLogo } from "@/components/AppLogo";
 
 export const Route = createFileRoute("/_auth")({
   beforeLoad: async ({ location }) => {
@@ -454,14 +455,7 @@ function AuthLayout() {
             />
             <aside className="relative z-10 w-56 flex flex-col border-r border-outline-variant bg-surface-container-low h-full">
               <div className="h-12 flex items-center justify-between px-4 border-b border-outline-variant shrink-0">
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded bg-primary flex items-center justify-center">
-                    <Ticket className="w-3 h-3 text-on-primary" />
-                  </div>
-                  <span className="font-semibold text-on-surface text-sm tracking-tight">
-                    Alpis
-                  </span>
-                </div>
+                <AppLogo className="h-7 w-auto" />
                 <button
                   onClick={() => setMobileSidebarOpen(false)}
                   className="text-on-surface-variant/50 hover:text-on-surface"
@@ -513,13 +507,8 @@ function AuthLayout() {
         {/* ── Sidebar ─────────────────────────────────────────────────── */}
         <aside className="hidden lg:flex w-56 shrink-0 flex-col border-r border-outline-variant bg-surface-container-low">
           {/* Logo */}
-          <div className="h-12 flex items-center gap-2 px-4 border-b border-outline-variant shrink-0">
-            <div className="w-5 h-5 rounded bg-primary flex items-center justify-center">
-              <Ticket className="w-3 h-3 text-on-primary" />
-            </div>
-            <span className="font-semibold text-on-surface text-sm tracking-tight">
-              Alpis
-            </span>
+          <div className="h-12 flex items-center px-4 border-b border-outline-variant shrink-0">
+            <AppLogo className="h-7 w-auto" />
           </div>
 
           {/* Nav */}

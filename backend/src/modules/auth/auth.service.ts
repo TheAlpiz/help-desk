@@ -3,7 +3,11 @@ import * as argon2 from "argon2";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendPlatformEmail } from "../../infra/mailer";
-import { renderEmailTemplate } from "../../lib/email-templates";
+import {
+  EmailLang,
+  renderPasswordResetEmail,
+  renderVerifyEmailEmail,
+} from "../../lib/email-templates";
 import { user } from "../user/user.schema";
 import { userRole } from "../user/user-role.schema";
 import { organization } from "../organization/organization.schema";
@@ -56,26 +60,22 @@ function signAccessToken(u: {
   );
 }
 
-// Transactional email for auth flows (password reset, verification, invites).
-// Delegates to the shared platform mailer (logs instead of sending when SMTP is
-// unconfigured; never throws).
-async function sendAuthEmail(to: string, subject: string, link: string) {
-  const html = renderEmailTemplate(
-    subject,
-    `<p>Hello,</p>
-     <p>Please click the button below to ${subject.toLowerCase()}.</p>
-     <div class="button-container">
-       <a href="${link}" class="button">${subject}</a>
-     </div>
-     <p style="margin-top: 30px; font-size: 14px; color: #6b7280;">If the button doesn't work, you can copy and paste this link into your browser:</p>
-     <p><a href="${link}" class="link">${link}</a></p>`
-  );
-
-  await sendPlatformEmail({
-    to,
-    subject,
-    html,
+async function dispatchPasswordReset(to: string, link: string, lang?: string | null, firstName?: string) {
+  const { subject, html } = renderPasswordResetEmail({
+    link,
+    lang: (lang as EmailLang) ?? "tr",
+    firstName,
   });
+  await sendPlatformEmail({ to, subject, html });
+}
+
+async function dispatchVerifyEmail(to: string, link: string, lang?: string | null, firstName?: string) {
+  const { subject, html } = renderVerifyEmailEmail({
+    link,
+    lang: (lang as EmailLang) ?? "tr",
+    firstName,
+  });
+  await sendPlatformEmail({ to, subject, html });
 }
 
 async function issueSession(
@@ -186,10 +186,11 @@ export const AuthService = {
     // the shared mailer never throws, so a mail failure can't break signup.
     const verifyToken = randomToken();
     await redis.set(`verify:${sha256(verifyToken)}`, result.user.id, { EX: VERIFY_TTL_SECONDS });
-    await sendAuthEmail(
+    await dispatchVerifyEmail(
       result.user.email,
-      "Verify your email",
       `${env.APP_BASE_URL}/verify-email?token=${verifyToken}`,
+      null,
+      result.user.firstName,
     );
 
     return result;
@@ -451,7 +452,12 @@ export const AuthService = {
 
       const token = randomToken();
       await redis.set(`pwreset:${sha256(token)}`, u.id, { EX: RESET_TTL_SECONDS });
-      await sendAuthEmail(u.email, "Reset your password", `${env.APP_BASE_URL}/reset-password?token=${token}`);
+      await dispatchPasswordReset(
+        u.email,
+        `${env.APP_BASE_URL}/reset-password?token=${token}`,
+        u.preferredLanguage,
+        u.firstName,
+      );
     });
     return { success: true };
   },
@@ -548,7 +554,12 @@ export const AuthService = {
 
       const token = randomToken();
       await redis.set(`verify:${sha256(token)}`, u.id, { EX: VERIFY_TTL_SECONDS });
-      await sendAuthEmail(u.email, "Verify your email", `${env.APP_BASE_URL}/verify-email?token=${token}`);
+      await dispatchVerifyEmail(
+        u.email,
+        `${env.APP_BASE_URL}/verify-email?token=${token}`,
+        u.preferredLanguage,
+        u.firstName,
+      );
       return { success: true };
     });
   },

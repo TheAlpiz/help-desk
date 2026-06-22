@@ -2,7 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { Ticket, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { AppLogo } from "@/components/AppLogo";
 import { api } from "../lib/api";
 import { useAppStore } from "../store";
 import { loginSchema } from "@help-desk/shared";
@@ -64,11 +65,8 @@ function Login() {
     <div className="min-h-[100dvh] bg-background flex">
       {/* Left panel - brand */}
       <div className="hidden lg:flex flex-col justify-between w-[420px] shrink-0 border-r border-outline-variant bg-surface-container-low p-10">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded bg-primary flex items-center justify-center">
-            <Ticket className="w-4 h-4 text-on-primary" />
-          </div>
-          <span className="font-semibold text-on-surface tracking-tight">{t("common:app.name")}</span>
+        <Link to="/">
+          <AppLogo className="h-8 w-auto" />
         </Link>
         <div className="flex flex-col gap-3">
           <p className="text-sm text-on-surface-variant leading-relaxed">
@@ -88,11 +86,8 @@ function Login() {
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-sm flex flex-col gap-7">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2 lg:hidden">
-              <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
-                <Ticket className="w-3.5 h-3.5 text-on-primary" />
-              </div>
-              <span className="font-semibold text-on-surface tracking-tight text-sm">{t("common:app.name")}</span>
+            <Link to="/" className="lg:hidden">
+              <AppLogo className="h-7 w-auto" />
             </Link>
             <div className="ml-auto">
               <LanguageSwitcher variant="dropdown" />

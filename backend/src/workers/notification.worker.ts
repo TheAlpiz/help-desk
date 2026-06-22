@@ -6,7 +6,7 @@ import { user } from "../modules/user/user.schema";
 import { CHANNEL_QUEUE } from "../modules/notification/notification.constants";
 import { wsGateway } from "../ws/gateway";
 import { sendPlatformEmail } from "../infra/mailer";
-import { renderEmailTemplate } from "../lib/email-templates";
+import { EmailLang, renderNotificationEmail } from "../lib/email-templates";
 
 interface NotificationJobData {
   userId: string;
@@ -71,23 +71,22 @@ export class NotificationWorker {
   private async processEmail(job: Job<NotificationJobData>) {
     const { userId, title, body, actionUrl } = job.data;
     const [targetUser] = await withSuperAdminTransaction(async (tx) =>
-      tx.select({ email: user.email }).from(user).where(eq(user.id, userId)).limit(1),
+      tx
+        .select({ email: user.email, preferredLanguage: user.preferredLanguage })
+        .from(user)
+        .where(eq(user.id, userId))
+        .limit(1),
     );
     if (!targetUser) return;
-    const link = actionUrl
-      ? `<div class="button-container"><a href="${actionUrl}" class="button">View Details</a></div>`
-      : "";
-      
-    const html = renderEmailTemplate(
-      title,
-      `<p>${body}</p>${link}`
-    );
 
-    await sendPlatformEmail({
-      to: targetUser.email,
-      subject: title,
-      html,
+    const { subject, html } = renderNotificationEmail({
+      title,
+      body,
+      actionUrl,
+      lang: (targetUser.preferredLanguage as EmailLang) ?? "tr",
     });
+
+    await sendPlatformEmail({ to: targetUser.email, subject, html });
   }
 
   private async processStub(channel: string, job: Job<NotificationJobData>) {

@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { AppLogo } from "@/components/AppLogo";
 import {
   Ticket,
   Mail,
@@ -212,13 +213,8 @@ export function Nav() {
   return (
     <nav className="sticky top-0 z-50 flex items-center justify-between px-6 md:px-10 h-14 border-b border-white/8 bg-background/80 backdrop-blur-md">
       <div className="flex items-center gap-8">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
-            <Ticket className="w-3.5 h-3.5 text-on-primary" />
-          </div>
-          <span className="font-semibold text-on-surface tracking-tight text-sm">
-            Alpis
-          </span>
+        <Link to="/">
+          <AppLogo className="h-7 w-auto" />
         </Link>
         <div className="hidden md:flex items-center gap-1">
           {NAV_LINKS.map((item) => (
@@ -721,12 +717,9 @@ export function Footer() {
   return (
     <footer className="border-t border-white/6 px-6 md:px-10 py-10">
       <div className="max-w-[1280px] mx-auto flex flex-col sm:flex-row justify-between gap-6">
-        <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded bg-primary flex items-center justify-center">
-            <Ticket className="w-3 h-3 text-on-primary" />
-          </div>
-          <span className="text-sm font-semibold text-on-surface">Alpis</span>
-          <span className="text-xs text-on-surface-variant ml-2">
+        <div className="flex items-center gap-3">
+          <AppLogo className="h-7 w-auto" />
+          <span className="text-xs text-on-surface-variant">
             {t("footer.tagline")}
           </span>
         </div>

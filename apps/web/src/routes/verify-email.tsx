@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { useEffect, useState } from "react";
-import { Ticket, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { AppLogo } from "@/components/AppLogo";
 import { api } from "../lib/api";
 import { useTranslation } from "react-i18next";
 
@@ -44,11 +45,8 @@ function VerifyEmail() {
   return (
     <div className="min-h-[100dvh] bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-sm flex flex-col gap-6">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
-            <Ticket className="w-3.5 h-3.5 text-on-primary" />
-          </div>
-          <span className="font-semibold text-on-surface text-sm">Alpis</span>
+        <Link to="/">
+          <AppLogo className="h-7 w-auto" />
         </Link>
 
         {state === "pending" && (
