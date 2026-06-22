@@ -38,7 +38,19 @@ export async function sendPlatformEmail(opts: {
     return;
   }
   try {
-    await t.sendMail({ from: env.SMTP_FROM, to: opts.to, subject: opts.subject, html: opts.html });
+    await t.sendMail({
+      from: env.SMTP_FROM,
+      to: opts.to,
+      subject: opts.subject,
+      html: opts.html,
+      // Loop prevention: these are machine-generated. If the recipient is also a
+      // monitored mailbox, the ingestion worker drops mail carrying Auto-Submitted
+      // so it is never turned into a ticket (which would notify → loop forever).
+      headers: {
+        "Auto-Submitted": "auto-generated",
+        "X-Auto-Response-Suppress": "All",
+      },
+    });
   } catch (err) {
     logger.error({ err, to: opts.to, subject: opts.subject }, "[Mailer] Failed to send email");
   }

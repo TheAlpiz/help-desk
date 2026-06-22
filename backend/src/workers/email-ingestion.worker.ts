@@ -8,6 +8,7 @@ import { contact } from "../modules/contact/contact.schema";
 import { mailbox as mailboxTable } from "../modules/mailbox/mailbox.schema";
 import { ticketMessage } from "../modules/ticket/ticket-message.schema";
 import { eq, and } from "drizzle-orm";
+import { env } from "../infra/env";
 
 export class EmailIngestionWorker {
   private client: ImapFlow;
@@ -93,6 +94,24 @@ export class EmailIngestionWorker {
     }
   }
 
+  /**
+   * True when the sender address is the platform from-address or one of this
+   * organization's own monitored mailboxes — i.e. mail the system itself sent.
+   */
+  private async isSelfSender(senderEmail: string): Promise<boolean> {
+    const sender = senderEmail.toLowerCase();
+    if (env.SMTP_FROM && sender === env.SMTP_FROM.toLowerCase()) return true;
+
+    const own = await withSuperAdminTransaction(async (tx) =>
+      tx
+        .select({ emailAddress: mailboxTable.emailAddress })
+        .from(mailboxTable)
+        .where(eq(mailboxTable.organizationId, this.organizationId)),
+    ).catch(() => [] as { emailAddress: string }[]);
+
+    return own.some((m) => m.emailAddress.toLowerCase() === sender);
+  }
+
   private async resolveOrCreateContact(senderEmail: string, senderName: string): Promise<string> {
     const existing = await withTenantTransaction(this.organizationId, async (tx) =>
       tx
@@ -125,8 +144,19 @@ export class EmailIngestionWorker {
     // Auto-responder loop protection
     const autoSubmitted = parsed.headers.get("auto-submitted") as string | undefined;
     const xAutoreply = parsed.headers.get("x-autoreply") as string | undefined;
-    if ((autoSubmitted && autoSubmitted !== "no") || xAutoreply) {
+    const xAutoSuppress = parsed.headers.get("x-auto-response-suppress") as string | undefined;
+    if ((autoSubmitted && autoSubmitted !== "no") || xAutoreply || xAutoSuppress) {
       console.log("EmailIngestionWorker: Ignored auto-responder email.");
+      return;
+    }
+
+    const senderEmail = parsed.from?.value[0]?.address || "unknown@unknown.com";
+
+    // Self-sender loop protection: if the sender is one of our own monitored
+    // mailboxes (or the platform from-address), this is mail the system sent —
+    // ingesting it would create a ticket, fire a notification, and loop forever.
+    if (await this.isSelfSender(senderEmail)) {
+      console.log(`EmailIngestionWorker: Ignored mail from own address ${senderEmail}.`);
       return;
     }
 
@@ -138,7 +168,6 @@ export class EmailIngestionWorker {
       : "";
     const content = safeHtml || parsed.text || "No Content";
 
-    const senderEmail = parsed.from?.value[0]?.address || "unknown@unknown.com";
     const senderName = parsed.from?.value[0]?.name || senderEmail;
     const subject = parsed.subject || "No Subject";
 
