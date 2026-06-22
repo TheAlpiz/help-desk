@@ -22,7 +22,9 @@ services:
       - MAILBOX_ENCRYPTION_KEY=${MAILBOX_ENCRYPTION_KEY:?set MAILBOX_ENCRYPTION_KEY in server env}
       - APP_BASE_URL=https://helpdesk.yerliva.com
       - CORS_ORIGINS=https://helpdesk.yerliva.com
-      - COOKIE_DOMAIN=https://helpdesk.yerliva.com
+      # Bare host or empty (host-only). NEVER a URL — a protocol here makes the
+      # browser drop the auth cookie. Empty = host-only cookie for this domain.
+      - COOKIE_DOMAIN=
       - REDIS_URL=redis://redis:6379
       - REDIS_HOST=redis
       - REDIS_PORT=6379

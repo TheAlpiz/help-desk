@@ -15,9 +15,19 @@ const isProd = env.NODE_ENV === "production";
 // ordinary API requests — it leaves the browser solely for /refresh and /logout.
 const REFRESH_PATH = "/api/auths";
 
+// A cookie Domain must be a bare host (e.g. "app.example.com" or ".example.com"),
+// never a full URL. A misconfigured value like "https://app.example.com" makes the
+// browser reject the Set-Cookie entirely → auth silently breaks on refresh. Strip
+// any protocol/path/port so a sloppy env value still produces a valid Domain.
+function sanitizeCookieDomain(raw: string): string | undefined {
+  const d = raw.trim().replace(/^https?:\/\//i, "").replace(/[/:].*$/, "");
+  return d || undefined;
+}
+const COOKIE_DOMAIN = sanitizeCookieDomain(env.COOKIE_DOMAIN);
+
 const baseCookie = {
   secure: isProd,
-  domain: env.COOKIE_DOMAIN || undefined,
+  domain: COOKIE_DOMAIN,
   sameSite: "Strict" as const,
 };
 
@@ -44,8 +54,8 @@ export function setCsrfCookie(c: Context): string {
 }
 
 export function clearAuthCookies(c: Context) {
-  deleteCookie(c, REFRESH_COOKIE, { path: REFRESH_PATH, domain: env.COOKIE_DOMAIN || undefined });
-  deleteCookie(c, CSRF_COOKIE, { path: "/", domain: env.COOKIE_DOMAIN || undefined });
+  deleteCookie(c, REFRESH_COOKIE, { path: REFRESH_PATH, domain: COOKIE_DOMAIN });
+  deleteCookie(c, CSRF_COOKIE, { path: "/", domain: COOKIE_DOMAIN });
 }
 
 export function getRefreshToken(c: Context): string | undefined {
