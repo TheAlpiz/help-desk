@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Plus, Trash2, Zap, ChevronDown, Play, Pause, Copy,
   Mail, Tag, UserCheck, AlertTriangle, MessageSquare, Building2, ListChecks,
+  Bell, Webhook, CheckCircle, XCircle, CalendarClock,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/components/Toast";
@@ -28,9 +29,16 @@ type TriggerType =
   | "sla_breached"
   | "tag_added";
 
-type ConditionField = "status" | "priority" | "tag" | "assignee" | "department" | "subject_contains";
-type ConditionOperator = "equals" | "not_equals" | "contains" | "not_contains" | "is_empty" | "is_not_empty";
-type ActionType = "set_status" | "set_priority" | "assign_to" | "set_department" | "add_tag" | "remove_tag" | "send_email" | "add_note" | "create_task";
+type ConditionField =
+  | "status" | "priority" | "tag" | "assignee" | "department" | "subject_contains"
+  | "source" | "requester_email" | "has_attachment" | "ticket_age_hours" | "body";
+type ConditionOperator =
+  | "equals" | "not_equals" | "contains" | "not_contains" | "is_empty" | "is_not_empty"
+  | "starts_with" | "ends_with" | "greater_than" | "less_than" | "matches_regex" | "not_matches_regex";
+type ActionType =
+  | "set_status" | "set_priority" | "assign_to" | "set_department" | "add_tag" | "remove_tag"
+  | "send_email" | "add_note" | "create_task"
+  | "notify" | "webhook" | "resolve_ticket" | "close_ticket" | "set_due_date";
 
 interface Condition {
   id: string;
@@ -45,10 +53,12 @@ interface AutoAction {
   id: string;
   type: ActionType;
   value: string;
-  // create_task config
+  // create_task / notify config
   assignee?: string;
   priority?: TaskPriority;
   dueInDays?: number;
+  // send_email config
+  subject?: string;
 }
 
 interface AutomationRule {
@@ -90,6 +100,11 @@ const FIELD_LABELS: Record<ConditionField, string> = {
   assignee: "Assignee",
   department: "Department",
   subject_contains: "Subject",
+  source: "Source",
+  requester_email: "Requester email",
+  has_attachment: "Has attachment",
+  ticket_age_hours: "Ticket age (hours)",
+  body: "Message body",
 };
 
 const OPERATOR_LABELS: Record<ConditionOperator, string> = {
@@ -99,6 +114,12 @@ const OPERATOR_LABELS: Record<ConditionOperator, string> = {
   not_contains: "does not contain",
   is_empty: "is empty",
   is_not_empty: "is not empty",
+  starts_with: "starts with",
+  ends_with: "ends with",
+  greater_than: "greater than",
+  less_than: "less than",
+  matches_regex: "matches regex",
+  not_matches_regex: "does not match regex",
 };
 
 const ACTION_LABELS: Record<ActionType, { label: string; icon: React.ReactNode; hasValue: boolean }> = {
@@ -108,9 +129,14 @@ const ACTION_LABELS: Record<ActionType, { label: string; icon: React.ReactNode; 
   set_department: { label: "Assign to department", icon: <Building2 className="w-3 h-3" />, hasValue: true },
   add_tag: { label: "Add tag", icon: <Tag className="w-3 h-3" />, hasValue: true },
   remove_tag: { label: "Remove tag", icon: <Tag className="w-3 h-3" />, hasValue: true },
-  send_email: { label: "Send email notification", icon: <Mail className="w-3 h-3" />, hasValue: false },
+  send_email: { label: "Send email", icon: <Mail className="w-3 h-3" />, hasValue: true },
   add_note: { label: "Add internal note", icon: <MessageSquare className="w-3 h-3" />, hasValue: true },
   create_task: { label: "Create task (title)", icon: <ListChecks className="w-3 h-3" />, hasValue: true },
+  notify: { label: "Notify user", icon: <Bell className="w-3 h-3" />, hasValue: true },
+  webhook: { label: "Call webhook (URL)", icon: <Webhook className="w-3 h-3" />, hasValue: true },
+  resolve_ticket: { label: "Resolve ticket", icon: <CheckCircle className="w-3 h-3" />, hasValue: false },
+  close_ticket: { label: "Close ticket", icon: <XCircle className="w-3 h-3" />, hasValue: false },
+  set_due_date: { label: "Set due date", icon: <CalendarClock className="w-3 h-3" />, hasValue: false },
 };
 
 function normalizeRule(r: any): AutomationRule {
@@ -131,6 +157,7 @@ function normalizeRule(r: any): AutomationRule {
       assignee: a.assignee,
       priority: a.priority,
       dueInDays: a.dueInDays,
+      subject: a.subject,
     })),
     enabled: r.isActive ?? r.enabled ?? false,
     isActive: r.isActive,
@@ -245,7 +272,14 @@ function ActionRow({
           inputClassName={`${inputCls} w-36`}
           selectClassName={`${selectCls} w-36`}
           ariaLabel="Action value"
-          placeholder={action.type === "create_task" ? "task title" : "value"}
+          placeholder={
+            action.type === "create_task" ? "task title"
+              : action.type === "send_email" ? "email body (HTML)"
+              : action.type === "notify" ? "message"
+              : action.type === "webhook" ? "https://…"
+              : action.type === "add_note" ? "note text"
+              : "value"
+          }
         />
       )}
 
@@ -286,6 +320,52 @@ function ActionRow({
             aria-label="Task due in days"
           />
         </>
+      )}
+
+      {action.type === "send_email" && (
+        <>
+          <input
+            value={action.subject ?? ""}
+            onChange={(e) => onChange({ subject: e.target.value || undefined })}
+            placeholder="subject (optional)"
+            className={`${inputCls} w-40`}
+            aria-label="Email subject"
+          />
+          {/* Recipient — defaults to the ticket requester; pick an agent to override */}
+          <FieldValueInput
+            optionKey="assign_to"
+            value={action.assignee ?? ""}
+            onChange={(v) => onChange({ assignee: v || undefined })}
+            selectClassName={`${selectCls} w-36`}
+            inputClassName={`${inputCls} w-36`}
+            ariaLabel="Email recipient (default: requester)"
+          />
+        </>
+      )}
+
+      {action.type === "notify" && (
+        /* Target — defaults to the ticket assignee; pick an agent to override */
+        <FieldValueInput
+          optionKey="assign_to"
+          value={action.assignee ?? ""}
+          onChange={(v) => onChange({ assignee: v || undefined })}
+          selectClassName={`${selectCls} w-36`}
+          inputClassName={`${inputCls} w-36`}
+          ariaLabel="Notify target (default: assignee)"
+        />
+      )}
+
+      {action.type === "set_due_date" && (
+        <input
+          type="number"
+          min={0}
+          max={365}
+          value={action.dueInDays ?? ""}
+          onChange={(e) => onChange({ dueInDays: e.target.value === "" ? undefined : Number(e.target.value) })}
+          placeholder="due (days)"
+          className={`${inputCls} w-28`}
+          aria-label="Due in days"
+        />
       )}
 
       <button

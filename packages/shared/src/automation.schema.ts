@@ -16,6 +16,12 @@ export const AUTOMATION_CONDITION_FIELDS = [
   "assignee",
   "department",
   "subject_contains",
+  // Expanded fields
+  "source",            // email | portal | api (derived)
+  "requester_email",   // contact/requester email address
+  "has_attachment",    // "true" | "false"
+  "ticket_age_hours",  // numeric, hours since creation
+  "body",              // latest message content
 ] as const;
 
 export const AUTOMATION_CONDITION_OPERATORS = [
@@ -25,6 +31,13 @@ export const AUTOMATION_CONDITION_OPERATORS = [
   "not_contains",
   "is_empty",
   "is_not_empty",
+  // Expanded operators
+  "starts_with",
+  "ends_with",
+  "greater_than",      // numeric (priority rank / ticket_age_hours)
+  "less_than",
+  "matches_regex",
+  "not_matches_regex",
 ] as const;
 
 export const AUTOMATION_ACTION_TYPES = [
@@ -37,6 +50,12 @@ export const AUTOMATION_ACTION_TYPES = [
   "send_email",
   "add_note",
   "create_task",
+  // Expanded actions
+  "notify",            // in-app + email to a user/supervisor
+  "webhook",           // POST ticket payload to an external URL
+  "resolve_ticket",
+  "close_ticket",
+  "set_due_date",      // sets resolution target relative to fire time
 ] as const;
 
 export const automationConditionSchema = z.object({
@@ -51,11 +70,13 @@ export const TASK_PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"] as const;
 export const automationActionSchema = z.object({
   id: z.string().min(1),
   type: z.enum(AUTOMATION_ACTION_TYPES),
+  // Primary payload: task title / email or note body / webhook URL / status value.
   value: z.string().default(""),
-  // Extra config used by create_task (ignored by other action types).
-  assignee: z.string().optional(),          // user UUID or email
+  // Extra config (each consumed only by the relevant action type, ignored otherwise).
+  assignee: z.string().optional(),          // create_task assignee / notify target — UUID or email
   priority: z.enum(TASK_PRIORITIES).optional(),
-  dueInDays: z.number().int().min(0).max(365).optional(), // relative to fire time
+  dueInDays: z.number().int().min(0).max(365).optional(), // create_task + set_due_date, relative to fire time
+  subject: z.string().max(1024).optional(), // send_email subject line
 });
 
 export const createAutomationSchema = z.object({

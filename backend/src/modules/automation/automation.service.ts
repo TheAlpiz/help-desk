@@ -1,4 +1,4 @@
-import { eq, and, isNull } from "drizzle-orm";
+import { eq, and, isNull, inArray, desc } from "drizzle-orm";
 import { withTenantTransaction } from "../../infra/db";
 import { automation, AutomationCondition, AutomationActionDef } from "./automation.schema";
 import { ticket } from "../ticket/ticket.schema";
@@ -7,12 +7,19 @@ import { ticketMessage } from "../ticket/ticket-message.schema";
 import { task } from "../task/task.schema";
 import { auditLog } from "../audit-log/audit-log.schema";
 import { user } from "../user/user.schema";
+import { contact } from "../contact/contact.schema";
+import { attachment } from "../attachment/attachment.schema";
 import { department } from "../department/department.schema";
 import { organization } from "../organization/organization.schema";
 import { logger } from "../../infra/logger";
 import { emitEvent } from "../../infra/events";
 import { addBusinessDays, BusinessHoursConfig } from "../../lib/business-hours";
 import { SlaService } from "../sla/sla.service";
+import { NotificationService } from "../notification/notification.service";
+import { emailDeliveryQueue } from "../../workers/email-delivery.worker";
+
+// Ordinal rank for priority so greater_than / less_than work numerically.
+const PRIORITY_RANK: Record<string, number> = { low: 1, medium: 2, high: 3, critical: 4 };
 
 // Crude UUID check — distinguishes a stored id from a human-readable name/email.
 const isUuid = (v: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
@@ -93,7 +100,11 @@ export const AutomationService = {
 
   // Called by ticket events (ticket_created, ticket_updated, etc.)
   runForEvent: async (tenantId: string, triggerType: string, ticketId: string, actorId: string | null) => {
-    return withTenantTransaction(tenantId, async (tx) => {
+    // External side-effects (email, notify, webhook) are collected here and run
+    // AFTER the transaction commits — never hold the DB tx open on network I/O.
+    const sideEffects: Array<() => Promise<void>> = [];
+
+    await withTenantTransaction(tenantId, async (tx) => {
       // actorId may be a non-UUID sentinel ("EMAIL", "system") for system-originated
       // events. Those must never be written into uuid user-id columns (creator_id,
       // sender_id) — Postgres rejects them with 22P02 and aborts the whole tx.
@@ -106,11 +117,55 @@ export const AutomationService = {
       const [t] = await tx.select().from(ticket).where(eq(ticket.id, ticketId)).limit(1);
       if (!t) return;
 
+      // ── Build the enriched condition-evaluation context once per event ──
+      const tags = (await tx.select({ name: ticketTag.name }).from(ticketTag).where(eq(ticketTag.ticketId, ticketId))).map(r => r.name);
+
+      const messages = await tx.select({ id: ticketMessage.id, content: ticketMessage.content })
+        .from(ticketMessage).where(eq(ticketMessage.ticketId, ticketId)).orderBy(desc(ticketMessage.createdAt));
+      const latestBody = messages[0]?.content ?? "";
+
+      let hasAttachment = false;
+      if (messages.length) {
+        const [att] = await tx.select({ id: attachment.id }).from(attachment)
+          .where(and(eq(attachment.organizationId, tenantId), eq(attachment.entityType, "TICKET_MESSAGE"), inArray(attachment.entityId, messages.map(m => m.id))))
+          .limit(1);
+        hasAttachment = !!att;
+      }
+
+      let requesterEmail = "";
+      if (t.contactId) {
+        const [c] = await tx.select({ email: contact.email }).from(contact).where(eq(contact.id, t.contactId)).limit(1);
+        requesterEmail = c?.email ?? "";
+      } else if (t.requesterId) {
+        const [u] = await tx.select({ email: user.email }).from(user).where(eq(user.id, t.requesterId)).limit(1);
+        requesterEmail = u?.email ?? "";
+      }
+
+      // Heuristic: email tickets carry a contact, portal/API tickets carry a requester user.
+      const source = t.contactId ? "email" : "portal";
+      const ageHours = t.createdAt ? (Date.now() - new Date(t.createdAt).getTime()) / 3_600_000 : 0;
+
+      const ctx: Record<string, any> = {
+        status: t.status,
+        priority: t.priority,
+        subject: t.subject,
+        subject_contains: t.subject,
+        assignee: t.assigneeId ?? "",
+        department: t.departmentId ?? "",
+        tag: tags.join(","),
+        _tags: tags,
+        source,
+        requester_email: requesterEmail,
+        has_attachment: hasAttachment ? "true" : "false",
+        ticket_age_hours: ageHours,
+        body: latestBody,
+      };
+
       for (const rule of rules) {
         const conditions = rule.conditions as AutomationCondition[];
         const match = rule.conditionMatch === "any"
-          ? conditions.length === 0 || conditions.some((c) => evaluateCondition(c, t))
-          : conditions.every((c) => evaluateCondition(c, t));
+          ? conditions.length === 0 || conditions.some((c) => evaluateCondition(c, ctx))
+          : conditions.every((c) => evaluateCondition(c, ctx));
 
         if (!match) continue;
 
@@ -238,9 +293,81 @@ export const AutomationService = {
                 await tx.insert(auditLog).values({ organizationId: tenantId, entityType: "task", entityId: createdTask.id, actorId: actorId ?? "system", action: "created", newValues: { title: createdTask.title, assigneeId, priority, dueDate, viaAutomation: rule.id } });
                 break;
               }
-              case "send_email":
-                // Email notification is enqueued via notification worker — no-op here for now
+              case "send_email": {
+                if (!action.value) break;
+                // Recipient: explicit email in `assignee`, else the ticket requester.
+                const to = action.assignee?.includes("@") ? action.assignee : requesterEmail;
+                if (!to) { logger.warn({ ruleId: rule.id }, "Automation send_email: no recipient"); break; }
+                const emailSubject = (action as any).subject || t.subject;
+                const html = action.value;
+                sideEffects.push(async () => {
+                  await emailDeliveryQueue.add("send-reply", { mailboxId: t.mailboxId, to, subject: emailSubject, html, ticketId });
+                });
                 break;
+              }
+              case "notify": {
+                // Target user: explicit assignee (email/uuid), else the ticket assignee.
+                let targetId: string | null = null;
+                if (action.assignee) {
+                  if (action.assignee.includes("@")) {
+                    const [u] = await tx.select({ id: user.id }).from(user).where(eq(user.email, action.assignee)).limit(1);
+                    targetId = u?.id ?? null;
+                  } else if (isUuid(action.assignee)) {
+                    targetId = action.assignee;
+                  }
+                }
+                targetId = targetId ?? t.assigneeId ?? null;
+                if (!targetId) { logger.warn({ ruleId: rule.id }, "Automation notify: no target user"); break; }
+                const body = action.value || `Automation "${rule.name}" fired on this ticket`;
+                const target = targetId;
+                sideEffects.push(async () => {
+                  await NotificationService.dispatch("automation.notify", target, tenantId, {
+                    title: rule.name,
+                    body,
+                    actionUrl: `/tickets/${ticketId}`,
+                  });
+                });
+                break;
+              }
+              case "webhook": {
+                const url = action.value;
+                if (!url || !/^https?:\/\//i.test(url)) { logger.warn({ ruleId: rule.id, url }, "Automation webhook: invalid URL"); break; }
+                const payload = {
+                  event: triggerType,
+                  ruleId: rule.id,
+                  ruleName: rule.name,
+                  organizationId: tenantId,
+                  firedAt: new Date().toISOString(),
+                  ticket: { id: t.id, subject: t.subject, status: t.status, priority: t.priority, assigneeId: t.assigneeId },
+                };
+                sideEffects.push(async () => {
+                  const ctrl = new AbortController();
+                  const timer = setTimeout(() => ctrl.abort(), 5000);
+                  try {
+                    await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload), signal: ctrl.signal });
+                  } finally {
+                    clearTimeout(timer);
+                  }
+                });
+                break;
+              }
+              case "resolve_ticket":
+                await tx.update(ticket).set({ status: "resolved", resolvedAt: new Date() }).where(eq(ticket.id, ticketId));
+                break;
+              case "close_ticket":
+                await tx.update(ticket).set({ status: "closed" }).where(eq(ticket.id, ticketId));
+                break;
+              case "set_due_date": {
+                const days = action.dueInDays ?? 1;
+                const [orgRow] = await tx.select({ businessHoursConfig: organization.businessHoursConfig })
+                  .from(organization).where(eq(organization.id, tenantId)).limit(1);
+                const bh = orgRow?.businessHoursConfig as BusinessHoursConfig | null | undefined;
+                const due = bh?.timezone && bh?.days
+                  ? addBusinessDays(new Date(), days, bh)
+                  : new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+                await tx.update(ticket).set({ resolutionTargetAt: due }).where(eq(ticket.id, ticketId));
+                break;
+              }
             }
           } catch (actionErr) {
             logger.warn({ actionErr, action, ticketId, ruleId: rule.id }, "Automation action failed, continuing");
@@ -260,26 +387,57 @@ export const AutomationService = {
         await tx.insert(auditLog).values({ organizationId: tenantId, entityType: "ticket", entityId: ticketId, actorId: actorId ?? "system", action: "automation_fired", newValues: { automationId: rule.id, automationName: rule.name } });
       }
     });
+
+    // Fire external side-effects after the tx has committed. One failure never
+    // blocks the others or rolls back the in-DB changes.
+    for (const fx of sideEffects) {
+      try { await fx(); } catch (err) { logger.warn({ err }, "Automation side-effect failed"); }
+    }
   },
 };
 
-const FIELD_MAP: Record<string, string> = {
-  subject_contains: "subject",
-  assignee: "assigneeId",
-  department: "departmentId",
-};
+function toNumber(field: string, v: any): number {
+  if (field === "priority") return PRIORITY_RANK[String(v ?? "").toLowerCase()] ?? 0;
+  const n = parseFloat(String(v ?? ""));
+  return Number.isNaN(n) ? 0 : n;
+}
 
-function evaluateCondition(c: AutomationCondition, t: Record<string, any>): boolean {
-  const dbField = FIELD_MAP[c.field] ?? c.field;
-  const fieldValue = String(t[dbField] ?? "").toLowerCase();
+function safeRegex(pattern: string, value: string): boolean {
+  try { return new RegExp(pattern, "i").test(value); } catch { return false; }
+}
+
+// `ctx` is keyed by condition-field name (built in runForEvent), so no field map
+// is needed — subject_contains/assignee/department are present directly.
+function evaluateCondition(c: AutomationCondition, ctx: Record<string, any>): boolean {
+  // Tags are a set → membership semantics, not string compare.
+  if (c.field === "tag") {
+    const tags: string[] = (ctx._tags ?? []).map((s: string) => s.toLowerCase());
+    const v = String(c.value ?? "").toLowerCase();
+    switch (c.operator) {
+      case "not_equals":
+      case "not_contains": return !tags.includes(v);
+      case "is_empty": return tags.length === 0;
+      case "is_not_empty": return tags.length > 0;
+      default: return tags.includes(v);
+    }
+  }
+
+  const raw = ctx[c.field];
+  const fieldValue = String(raw ?? "").toLowerCase();
   const condValue = String(c.value ?? "").toLowerCase();
   switch (c.operator) {
     case "equals": return fieldValue === condValue;
     case "not_equals": return fieldValue !== condValue;
     case "contains": return fieldValue.includes(condValue);
     case "not_contains": return !fieldValue.includes(condValue);
+    case "starts_with": return fieldValue.startsWith(condValue);
+    case "ends_with": return fieldValue.endsWith(condValue);
     case "is_empty": return !fieldValue;
     case "is_not_empty": return !!fieldValue;
+    case "greater_than": return toNumber(c.field, raw) > toNumber(c.field, c.value);
+    case "less_than": return toNumber(c.field, raw) < toNumber(c.field, c.value);
+    case "matches_regex": return safeRegex(c.value, String(raw ?? ""));
+    case "not_matches_regex": return !safeRegex(c.value, String(raw ?? ""));
     default: return true;
   }
 }

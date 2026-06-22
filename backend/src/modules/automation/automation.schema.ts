@@ -32,7 +32,7 @@ export type AutomationActionDef =
   | { type: "set_department"; value: string }
   | { type: "add_tag"; value: string }
   | { type: "remove_tag"; value: string }
-  | { type: "send_email"; value: string }
+  | { type: "send_email"; value: string; subject?: string; assignee?: string }
   | { type: "add_note"; value: string }
   | {
       type: "create_task";
@@ -40,7 +40,12 @@ export type AutomationActionDef =
       assignee?: string;
       priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
       dueInDays?: number;
-    };
+    }
+  | { type: "notify"; value: string; assignee?: string }
+  | { type: "webhook"; value: string }
+  | { type: "resolve_ticket"; value?: string }
+  | { type: "close_ticket"; value?: string }
+  | { type: "set_due_date"; value?: string; dueInDays?: number };
 
 export type Automation = typeof automation.$inferSelect;
 export type NewAutomation = typeof automation.$inferInsert;

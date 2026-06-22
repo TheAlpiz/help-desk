@@ -23,6 +23,17 @@ export const PRIORITY_OPTIONS: FieldOption[] = [
   { value: "critical", label: "Critical" },
 ];
 
+export const SOURCE_OPTIONS: FieldOption[] = [
+  { value: "email", label: "Email" },
+  { value: "portal", label: "Portal" },
+  { value: "api", label: "API" },
+];
+
+export const BOOL_OPTIONS: FieldOption[] = [
+  { value: "true", label: "Yes" },
+  { value: "false", label: "No" },
+];
+
 function authHeaders() {
   const { accessToken, tenantId } = useAppStore.getState();
   return {
@@ -87,6 +98,10 @@ export function optionsForKey(
     case "department":
     case "set_department":
       return dir.departments;
+    case "source":
+      return SOURCE_OPTIONS;
+    case "has_attachment":
+      return BOOL_OPTIONS;
     default:
       return null;
   }
