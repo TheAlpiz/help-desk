@@ -13,7 +13,10 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/help-desk
-      - JWT_SECRET=2e270779a074c58f892b6834921df57c806eeb448d3c3a36773d8e9b26f05dc68fe8e478aed873d079c1ae74ccdbad3143027983078b6a8192feef404f53c71b
+      # Set in the server environment / EasyPanel secrets — never commit the real
+      # value. Generate with: openssl rand -hex 64  (rotating invalidates all
+      # existing JWTs, forcing every user to log in again).
+      - JWT_SECRET=${JWT_SECRET:?set JWT_SECRET in server env}
       # Set in the server environment / EasyPanel secrets — never commit the real
       # value. Generate once with: openssl rand -hex 32  (stable forever after).
       - MAILBOX_ENCRYPTION_KEY=${MAILBOX_ENCRYPTION_KEY:?set MAILBOX_ENCRYPTION_KEY in server env}
