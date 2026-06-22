@@ -6,6 +6,7 @@ import { user } from "../modules/user/user.schema";
 import { CHANNEL_QUEUE } from "../modules/notification/notification.constants";
 import { wsGateway } from "../ws/gateway";
 import { sendPlatformEmail } from "../infra/mailer";
+import { renderEmailTemplate } from "../lib/email-templates";
 
 interface NotificationJobData {
   userId: string;
@@ -74,12 +75,18 @@ export class NotificationWorker {
     );
     if (!targetUser) return;
     const link = actionUrl
-      ? `<p><a href="${actionUrl}">${actionUrl}</a></p>`
+      ? `<div class="button-container"><a href="${actionUrl}" class="button">View Details</a></div>`
       : "";
+      
+    const html = renderEmailTemplate(
+      title,
+      `<p>${body}</p>${link}`
+    );
+
     await sendPlatformEmail({
       to: targetUser.email,
       subject: title,
-      html: `<p>${body}</p>${link}`,
+      html,
     });
   }
 

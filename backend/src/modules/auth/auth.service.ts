@@ -3,6 +3,7 @@ import * as argon2 from "argon2";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendPlatformEmail } from "../../infra/mailer";
+import { renderEmailTemplate } from "../../lib/email-templates";
 import { user } from "../user/user.schema";
 import { userRole } from "../user/user-role.schema";
 import { organization } from "../organization/organization.schema";
@@ -59,10 +60,21 @@ function signAccessToken(u: {
 // Delegates to the shared platform mailer (logs instead of sending when SMTP is
 // unconfigured; never throws).
 async function sendAuthEmail(to: string, subject: string, link: string) {
+  const html = renderEmailTemplate(
+    subject,
+    `<p>Hello,</p>
+     <p>Please click the button below to ${subject.toLowerCase()}.</p>
+     <div class="button-container">
+       <a href="${link}" class="button">${subject}</a>
+     </div>
+     <p style="margin-top: 30px; font-size: 14px; color: #6b7280;">If the button doesn't work, you can copy and paste this link into your browser:</p>
+     <p><a href="${link}" class="link">${link}</a></p>`
+  );
+
   await sendPlatformEmail({
     to,
     subject,
-    html: `<p>${subject}</p><p><a href="${link}">${link}</a></p>`,
+    html,
   });
 }
 
