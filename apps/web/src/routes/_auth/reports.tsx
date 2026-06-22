@@ -9,6 +9,7 @@ import { useAppStore } from "@/store";
 import { useToast } from "@/components/Toast";
 import { Button } from "@/components/ui";
 import { ComingSoon } from "@/components/ComingSoon";
+import { EmailAnalytics } from "@/features/email/EmailAnalytics";
 
 export const Route = createFileRoute("/_auth/reports")({
   component: ReportsPage,
@@ -451,7 +452,7 @@ export function ReportsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-[15px] font-semibold text-on-surface">{t("title")}</h1>
         <div className="flex items-center gap-1 bg-surface-container border border-outline-variant rounded-lg p-0.5">
-          {["analytics", "builder", "scheduled", "saved"].map((key) => (
+          {["analytics", "email", "builder", "scheduled", "saved"].map((key) => (
             <button
               key={key}
               onClick={() => setActiveTab(key)}
@@ -465,6 +466,17 @@ export function ReportsPage() {
         </div>
       </div>
       {activeTab === "analytics" && <ReportsDashboard />}
+      {activeTab === "email" && (
+        <div className="space-y-4">
+          <div>
+            <h1 className="text-[15px] font-semibold text-on-surface">Email Analytics</h1>
+            <p className="text-xs text-on-surface-variant mt-1">
+              Open and click tracking across all sent emails.
+            </p>
+          </div>
+          <EmailAnalytics />
+        </div>
+      )}
       {activeTab === "builder" && <ReportBuilder />}
       {activeTab === "scheduled" && <ScheduledReports />}
       {activeTab === "saved" && <SavedReports />}

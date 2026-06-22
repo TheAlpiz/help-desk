@@ -85,7 +85,9 @@ function PreferencesSection() {
 
   const apply = () => {
     savePrefs({ theme, locale, timezone });
-    document.documentElement.setAttribute("data-theme", theme);
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const isDark = theme === "dark" || (theme === "system" && prefersDark);
+    document.documentElement.classList.toggle("dark", isDark);
     setSaved2(true);
     setTimeout(() => setSaved2(false), 2000);
     success(t("preferencesSaved"));

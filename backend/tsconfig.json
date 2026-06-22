@@ -4,6 +4,7 @@
     "module": "CommonJS",
     "moduleResolution": "Bundler",
     "ignoreDeprecations": "6.0",
+    "jsx": "react-jsx",
     "rootDir": "src",
     "outDir": "dist"
   },

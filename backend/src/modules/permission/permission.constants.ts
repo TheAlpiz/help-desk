@@ -29,6 +29,9 @@ export const PERMISSIONS = {
   USER_READ: "user.read",
   USER_MANAGE: "user.manage",
   ROLE_MANAGE: "role.manage",
+  // Signatures
+  SIGNATURE_MANAGE_OWN: "signature.manage_own", // personal signature only
+  SIGNATURE_MANAGE: "signature.manage",          // org/dept signatures + rules (admin)
   // Reports / audit
   REPORT_READ: "report.read",
   AUDIT_READ: "audit.read",
@@ -60,6 +63,7 @@ export const SYSTEM_ROLE_MATRIX: Record<SystemRoleName, { description: string; p
       PERMISSIONS.TASK_UPDATE,
       PERMISSIONS.TASK_ASSIGN,
       PERMISSIONS.TASK_REPLY,
+      PERMISSIONS.SIGNATURE_MANAGE_OWN,
     ],
   },
   SUPERVISOR: {
@@ -81,6 +85,7 @@ export const SYSTEM_ROLE_MATRIX: Record<SystemRoleName, { description: string; p
       PERMISSIONS.SLA_MANAGE,
       PERMISSIONS.REPORT_READ,
       PERMISSIONS.USER_READ,
+      PERMISSIONS.SIGNATURE_MANAGE_OWN,
     ],
   },
   ADMIN: {

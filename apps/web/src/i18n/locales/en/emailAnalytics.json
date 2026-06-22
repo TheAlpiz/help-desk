@@ -1,0 +1,23 @@
+{
+  "loading": "Loading analytics...",
+  "stats": {
+    "totalSent": "Total Sent",
+    "uniqueOpens": "Unique Opens",
+    "openRate": "{{rate}}% open rate",
+    "totalClicks": "Total Clicks",
+    "clickRate": "{{rate}}% click rate",
+    "bestPerformer": "Best Performer"
+  },
+  "chart": {
+    "title": "Performance by Template"
+  },
+  "table": {
+    "title": "Recent Sends",
+    "recipient": "Recipient",
+    "template": "Template",
+    "sent": "Sent",
+    "opens": "Opens",
+    "clicks": "Clicks",
+    "empty": "No emails sent yet."
+  }
+}

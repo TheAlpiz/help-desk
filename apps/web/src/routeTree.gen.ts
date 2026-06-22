@@ -46,6 +46,7 @@ import { Route as AuthMacrosRouteImport } from './routes/_auth/macros'
 import { Route as AuthGlobalUsersRouteImport } from './routes/_auth/global-users'
 import { Route as AuthGlobalRolesRouteImport } from './routes/_auth/global-roles'
 import { Route as AuthExportRouteImport } from './routes/_auth/export'
+import { Route as AuthEmailTemplatesRouteImport } from './routes/_auth/email-templates'
 import { Route as AuthDepartmentsRouteImport } from './routes/_auth/departments'
 import { Route as AuthComplianceRouteImport } from './routes/_auth/compliance'
 import { Route as AuthBillingRouteImport } from './routes/_auth/billing'
@@ -242,6 +243,11 @@ const AuthExportRoute = AuthExportRouteImport.update({
   path: '/export',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthEmailTemplatesRoute = AuthEmailTemplatesRouteImport.update({
+  id: '/email-templates',
+  path: '/email-templates',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthDepartmentsRoute = AuthDepartmentsRouteImport.update({
   id: '/departments',
   path: '/departments',
@@ -322,6 +328,7 @@ export interface FileRoutesByFullPath {
   '/billing': typeof AuthBillingRoute
   '/compliance': typeof AuthComplianceRoute
   '/departments': typeof AuthDepartmentsRoute
+  '/email-templates': typeof AuthEmailTemplatesRoute
   '/export': typeof AuthExportRoute
   '/global-roles': typeof AuthGlobalRolesRoute
   '/global-users': typeof AuthGlobalUsersRoute
@@ -370,6 +377,7 @@ export interface FileRoutesByTo {
   '/billing': typeof AuthBillingRoute
   '/compliance': typeof AuthComplianceRoute
   '/departments': typeof AuthDepartmentsRoute
+  '/email-templates': typeof AuthEmailTemplatesRoute
   '/export': typeof AuthExportRoute
   '/global-roles': typeof AuthGlobalRolesRoute
   '/global-users': typeof AuthGlobalUsersRoute
@@ -420,6 +428,7 @@ export interface FileRoutesById {
   '/_auth/billing': typeof AuthBillingRoute
   '/_auth/compliance': typeof AuthComplianceRoute
   '/_auth/departments': typeof AuthDepartmentsRoute
+  '/_auth/email-templates': typeof AuthEmailTemplatesRoute
   '/_auth/export': typeof AuthExportRoute
   '/_auth/global-roles': typeof AuthGlobalRolesRoute
   '/_auth/global-users': typeof AuthGlobalUsersRoute
@@ -470,6 +479,7 @@ export interface FileRouteTypes {
     | '/billing'
     | '/compliance'
     | '/departments'
+    | '/email-templates'
     | '/export'
     | '/global-roles'
     | '/global-users'
@@ -518,6 +528,7 @@ export interface FileRouteTypes {
     | '/billing'
     | '/compliance'
     | '/departments'
+    | '/email-templates'
     | '/export'
     | '/global-roles'
     | '/global-users'
@@ -567,6 +578,7 @@ export interface FileRouteTypes {
     | '/_auth/billing'
     | '/_auth/compliance'
     | '/_auth/departments'
+    | '/_auth/email-templates'
     | '/_auth/export'
     | '/_auth/global-roles'
     | '/_auth/global-users'
@@ -865,6 +877,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthExportRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/email-templates': {
+      id: '/_auth/email-templates'
+      path: '/email-templates'
+      fullPath: '/email-templates'
+      preLoaderRoute: typeof AuthEmailTemplatesRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/departments': {
       id: '/_auth/departments'
       path: '/departments'
@@ -954,6 +973,7 @@ interface AuthRouteChildren {
   AuthBillingRoute: typeof AuthBillingRoute
   AuthComplianceRoute: typeof AuthComplianceRoute
   AuthDepartmentsRoute: typeof AuthDepartmentsRoute
+  AuthEmailTemplatesRoute: typeof AuthEmailTemplatesRoute
   AuthExportRoute: typeof AuthExportRoute
   AuthGlobalRolesRoute: typeof AuthGlobalRolesRoute
   AuthGlobalUsersRoute: typeof AuthGlobalUsersRoute
@@ -988,6 +1008,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthBillingRoute: AuthBillingRoute,
   AuthComplianceRoute: AuthComplianceRoute,
   AuthDepartmentsRoute: AuthDepartmentsRoute,
+  AuthEmailTemplatesRoute: AuthEmailTemplatesRoute,
   AuthExportRoute: AuthExportRoute,
   AuthGlobalRolesRoute: AuthGlobalRolesRoute,
   AuthGlobalUsersRoute: AuthGlobalUsersRoute,

@@ -9,9 +9,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAppStore } from "@/store";
 import { OrganizationSettingsForm } from "@/features/settings/components/OrganizationSettingsForm";
 import { Button, Input, FormAlert, FormError } from "@/components/ui";
-import { EmailSettings } from "@/features/email/EmailSettings";
-import { EmailBrandingConfiguration } from "@/features/email/EmailBrandingConfiguration";
-import { Mail } from "lucide-react";
 
 export const Route = createFileRoute("/_auth/settings")({
   validateSearch: z.object({ tab: z.string().optional() }),
@@ -23,7 +20,6 @@ const inputCls = "w-full px-3 py-2 bg-surface-container border border-outline-va
 const TABS = [
   { key: "general", icon: Building2 },
   { key: "branding", icon: Palette },
-  { key: "email", icon: Mail },
   { key: "members", icon: Users },
   { key: "retention", icon: Database },
   { key: "sso", icon: Key },
@@ -606,19 +602,6 @@ function GlobalSettings() {
               </div>
               <BrandingSettings />
             </div>
-            
-            <div className="space-y-4 pt-4 border-t border-outline-variant">
-              <div>
-                <h1 className="text-[15px] font-semibold text-on-surface">{t("headers.emailTemplates.title")}</h1>
-                <p className="text-xs text-on-surface-variant mt-1">{t("headers.emailTemplates.subtitle")}</p>
-              </div>
-              <EmailBrandingConfiguration />
-            </div>
-          </div>
-        )}
-        {activeTab === "email" && (
-          <div className="space-y-4">
-            <EmailSettings />
           </div>
         )}
         {activeTab === "retention" && (

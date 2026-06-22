@@ -1,0 +1,24 @@
+{
+  "page": {
+    "title": "Email Templates",
+    "subtitle": "Build templates, manage signatures and track delivery analytics.",
+    "signaturesTitle": "My Signature",
+    "signaturesSubtitle": "Build and manage your personal email signature."
+  },
+  "tabs": {
+    "templates": "Templates",
+    "signatures": "Signatures",
+    "approval": "Approval"
+  },
+  "templates": {
+    "title": "Email Templates",
+    "subtitle": "Drag blocks to build, then publish or submit for approval."
+  },
+  "signatures": {
+    "subtitle": "Configure default signatures and conditional override rules."
+  },
+  "approval": {
+    "title": "Approval Queue",
+    "subtitle": "Review and approve pending template versions before they go live."
+  }
+}

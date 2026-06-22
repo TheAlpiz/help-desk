@@ -1,0 +1,23 @@
+{
+  "loading": "Analitik yükleniyor...",
+  "stats": {
+    "totalSent": "Toplam Gönderilen",
+    "uniqueOpens": "Tekil Açılma",
+    "openRate": "%{{rate}} açılma oranı",
+    "totalClicks": "Toplam Tıklama",
+    "clickRate": "%{{rate}} tıklama oranı",
+    "bestPerformer": "En İyi Performans"
+  },
+  "chart": {
+    "title": "Şablona Göre Performans"
+  },
+  "table": {
+    "title": "Son Gönderilenler",
+    "recipient": "Alıcı",
+    "template": "Şablon",
+    "sent": "Gönderildi",
+    "opens": "Açılma",
+    "clicks": "Tıklama",
+    "empty": "Henüz e-posta gönderilmedi."
+  }
+}

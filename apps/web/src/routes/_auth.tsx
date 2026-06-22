@@ -34,6 +34,8 @@ import {
   Zap,
   Download,
   Loader2,
+  Mail,
+  PenTool,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -176,6 +178,11 @@ const ADMIN_NAV: NavItem[] = [
     to: "/audit-logs",
     labelKey: "admin.auditLog",
     icon: <FileText className="w-4 h-4" />,
+  },
+  {
+    to: "/email-templates",
+    labelKey: "admin.emailTemplates",
+    icon: <Mail className="w-4 h-4" />,
   },
   {
     to: "/settings",
@@ -597,6 +604,17 @@ function AuthLayout() {
                     <Key className="w-3.5 h-3.5" />
                     {t("nav:user.apiTokens")}
                   </Link>
+                  {!isAdmin && (
+                    <Link
+                      to="/email-templates"
+                      search={{ tab: "signatures" }}
+                      onClick={() => setUserMenuOpen(false)}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-on-surface-variant hover:bg-white/5 hover:text-on-surface transition-colors"
+                    >
+                      <PenTool className="w-3.5 h-3.5" />
+                      {t("nav:user.mySignature")}
+                    </Link>
+                  )}
                   <Link
                     to="/whatsapp"
                     onClick={() => setUserMenuOpen(false)}

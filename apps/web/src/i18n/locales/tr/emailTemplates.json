@@ -1,0 +1,24 @@
+{
+  "page": {
+    "title": "E-posta Şablonları",
+    "subtitle": "Şablonlar oluşturun, imzaları yönetin ve teslimat analizlerini takip edin.",
+    "signaturesTitle": "İmzam",
+    "signaturesSubtitle": "Kişisel e-posta imzanızı oluşturun ve yönetin."
+  },
+  "tabs": {
+    "templates": "Şablonlar",
+    "signatures": "İmzalar",
+    "approval": "Onay"
+  },
+  "templates": {
+    "title": "E-posta Şablonları",
+    "subtitle": "Blokları sürükleyerek oluşturun, ardından yayınlayın veya onaya gönderin."
+  },
+  "signatures": {
+    "subtitle": "Varsayılan imzaları ve koşullu geçersiz kılma kurallarını yapılandırın."
+  },
+  "approval": {
+    "title": "Onay Kuyruğu",
+    "subtitle": "Bekleyen şablon sürümlerini yayına girmeden önce inceleyin ve onaylayın."
+  }
+}

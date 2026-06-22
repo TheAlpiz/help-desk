@@ -1,7 +1,23 @@
 import { create } from "zustand";
 import { arrayMove } from "@dnd-kit/sortable";
 
-export type BlockType = "TEXT" | "IMAGE" | "DIVIDER" | "SOCIAL_LINKS";
+export type BlockType =
+  | "TEXT"
+  | "HEADING"
+  | "IMAGE"
+  | "DIVIDER"
+  | "BUTTON"
+  | "SOCIAL_LINKS"
+  | "VARIABLE"
+  | "SPACER"
+  | "LINK"
+  | "FEEDBACK"
+  | "COLUMNS"
+  | "SECTION"
+  | "CALLOUT"
+  | "QUOTE"
+  | "LIST"
+  | "HTML";
 
 export interface Block {
   id: string;
@@ -30,6 +46,62 @@ interface EmailBuilderState {
 
 const generateId = () => Math.random().toString(36).substring(2, 9);
 
+const DEFAULT_CONTENT: Partial<Record<BlockType, Record<string, any>>> = {
+  TEXT: { text: "Write your text here..." },
+  HEADING: { text: "Heading", level: "h2" },
+  IMAGE: { url: "", alt: "Image" },
+  DIVIDER: {},
+  BUTTON: { text: "Click Here", url: "https://", backgroundColor: "" },
+  SOCIAL_LINKS: {
+    layout: "flex-row",
+    links: [
+      { label: "Twitter", url: "https://twitter.com" },
+      { label: "LinkedIn", url: "https://linkedin.com" },
+    ],
+  },
+  VARIABLE: { variableName: "ticket_id" },
+  SPACER: { height: "20px" },
+  LINK: { text: "Click here", url: "https://", color: "" },
+  FEEDBACK: {
+    question: "How helpful was this?",
+    type: "stars",
+    scale: 5,
+    baseUrl: "https://",
+  },
+  COLUMNS: {
+    col1: "<p>Column 1 content</p>",
+    col2: "<p>Column 2 content</p>",
+    ratio: "50:50",
+    gap: "16px",
+  },
+  SECTION: {
+    text: "Section content goes here...",
+    backgroundColor: "#f9fafb",
+    borderRadius: 8,
+    borderColor: "#e5e7eb",
+    borderWidth: 1,
+    padding: "24px",
+  },
+  CALLOUT: {
+    text: "Important information for you.",
+    icon: "💡",
+    backgroundColor: "#eff6ff",
+    textColor: "#1e40af",
+    borderColor: "#bfdbfe",
+    borderRadius: 8,
+  },
+  QUOTE: {
+    text: "Insert a memorable quote or customer testimonial here.",
+    attribution: "— Author Name",
+    borderColor: "",
+  },
+  LIST: {
+    items: ["First item", "Second item", "Third item"],
+    ordered: false,
+  },
+  HTML: { html: "<!-- Custom HTML here -->" },
+};
+
 export const useEmailBuilderStore = create<EmailBuilderState>((set) => ({
   blocks: [],
   selectedBlockId: null,
@@ -44,32 +116,17 @@ export const useEmailBuilderStore = create<EmailBuilderState>((set) => ({
       const newBlock: Block = {
         id: generateId(),
         type,
-        content: {},
-        styles: { padding: "10px", margin: "0px" },
+        content: { ...(DEFAULT_CONTENT[type] ?? {}) },
+        styles: { padding: "10px", margin: "0px", textAlign: "left" },
       };
-
-      if (type === "TEXT") {
-        newBlock.content.text = "Write your text here...";
-      } else if (type === "IMAGE") {
-        newBlock.content.url = "https://via.placeholder.com/150";
-        newBlock.content.alt = "Placeholder Image";
-      } else if (type === "SOCIAL_LINKS") {
-        newBlock.content.layout = "flex-row";
-        newBlock.content.links = [
-          { label: "Twitter", url: "https://twitter.com" },
-          { label: "LinkedIn", url: "https://linkedin.com" }
-        ];
-      }
-
       const newBlocks = [...state.blocks];
       newBlocks.splice(index, 0, newBlock);
-
       return { blocks: newBlocks, selectedBlockId: newBlock.id };
     }),
   updateBlock: (id, properties) =>
     set((state) => ({
       blocks: state.blocks.map((block) =>
-        block.id === id ? { ...block, ...properties } : block
+        block.id === id ? { ...block, ...properties } : block,
       ),
     })),
   removeBlock: (id) =>
@@ -82,7 +139,6 @@ export const useEmailBuilderStore = create<EmailBuilderState>((set) => ({
       const oldIndex = state.blocks.findIndex((b) => b.id === activeId);
       const newIndex = state.blocks.findIndex((b) => b.id === overId);
       if (oldIndex === -1 || newIndex === -1) return state;
-
       return { blocks: arrayMove(state.blocks, oldIndex, newIndex) };
     }),
   setSelectedBlockId: (id) => set({ selectedBlockId: id }),

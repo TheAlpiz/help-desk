@@ -21,6 +21,7 @@
     "export": "Dışa Aktar",
     "compliance": "Uyumluluk",
     "auditLog": "Denetim Günlüğü",
+    "emailTemplates": "E-posta Şablonları",
     "settings": "Ayarlar"
   },
   "super": {
@@ -34,6 +35,7 @@
     "accountSecurity": "Hesap Güvenliği",
     "preferences": "Tercihler",
     "apiTokens": "API Anahtarları",
+    "mySignature": "İmzam",
     "billing": "Faturalama",
     "logout": "Çıkış Yap"
   },

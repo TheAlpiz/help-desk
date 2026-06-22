@@ -2,6 +2,7 @@
   "title": "Reports",
   "tabs": {
     "analytics": "Analytics",
+    "email": "Email",
     "builder": "Report Builder",
     "scheduled": "Scheduled",
     "saved": "Saved"

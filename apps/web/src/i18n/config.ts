@@ -28,6 +28,8 @@ import enWhatsapp from "./locales/en/whatsapp.json";
 import enApiTokens from "./locales/en/apiTokens.json";
 import enOnboarding from "./locales/en/onboarding.json";
 import enMessages from "./locales/en/messages.json";
+import enEmailAnalytics from "./locales/en/emailAnalytics.json";
+import enEmailTemplates from "./locales/en/emailTemplates.json";
 
 // ── TR namespaces ─────────────────────────────────────────────────────────────
 import trCommon from "./locales/tr/common.json";
@@ -55,6 +57,8 @@ import trWhatsapp from "./locales/tr/whatsapp.json";
 import trApiTokens from "./locales/tr/apiTokens.json";
 import trOnboarding from "./locales/tr/onboarding.json";
 import trMessages from "./locales/tr/messages.json";
+import trEmailAnalytics from "./locales/tr/emailAnalytics.json";
+import trEmailTemplates from "./locales/tr/emailTemplates.json";
 
 export const SUPPORTED_LANGUAGES = ["tr", "en"] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
@@ -92,6 +96,8 @@ export const NAMESPACES = [
   "apiTokens",
   "onboarding",
   "messages",
+  "emailAnalytics",
+  "emailTemplates",
 ] as const;
 
 export type Namespace = (typeof NAMESPACES)[number];
@@ -127,6 +133,8 @@ i18n
         apiTokens: enApiTokens,
         onboarding: enOnboarding,
         messages: enMessages,
+        emailAnalytics: enEmailAnalytics,
+        emailTemplates: enEmailTemplates,
       },
       tr: {
         common: trCommon,
@@ -154,6 +162,8 @@ i18n
         apiTokens: trApiTokens,
         onboarding: trOnboarding,
         messages: trMessages,
+        emailAnalytics: trEmailAnalytics,
+        emailTemplates: trEmailTemplates,
       },
     },
     defaultNS: "common",

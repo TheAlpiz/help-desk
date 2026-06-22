@@ -1,0 +1,18 @@
+<svg width="210" height="56" viewBox="0 0 210 56" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Alpis Help Desk">
+  <defs>
+    <linearGradient id="alpisMarkD" x1="2" y1="6" x2="46" y2="50" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#818CF8"/>
+      <stop offset="1" stop-color="#4F46E5"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="6" width="44" height="44" rx="11" fill="url(#alpisMarkD)"/>
+  <g transform="translate(2,6) scale(1.375)">
+    <path d="M7 17 A9 9 0 0 1 25 17" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <rect x="5" y="16" width="4.4" height="8" rx="2.2" fill="#FFFFFF"/>
+    <rect x="22.6" y="16" width="4.4" height="8" rx="2.2" fill="#FFFFFF"/>
+    <path d="M24.8 24 V25 Q24.8 28 18.5 28" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+    <circle cx="16.4" cy="28" r="1.9" fill="#34D399"/>
+  </g>
+  <text x="58" y="33" font-family="Geist, system-ui, sans-serif" font-size="25" font-weight="700" fill="#FFFFFF" letter-spacing="-0.5">Alpis</text>
+  <text x="59" y="46" font-family="Geist, system-ui, sans-serif" font-size="9" font-weight="600" fill="#FFFFFF" opacity="0.6" letter-spacing="3.5">HELP DESK</text>
+</svg>

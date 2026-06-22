@@ -218,13 +218,13 @@ export function Nav() {
         </Link>
         <div className="hidden md:flex items-center gap-1">
           {NAV_LINKS.map((item) => (
-            <a
+            <Link
               key={item.href}
-              href={item.href}
+              to={item.href}
               className="px-3 py-1.5 text-sm text-on-surface-variant hover:text-on-surface transition-colors rounded-md hover:bg-surface-container"
             >
               {item.label}
-            </a>
+            </Link>
           ))}
         </div>
       </div>
@@ -337,19 +337,48 @@ function TrustedBy() {
 // ─── Bento feature grid ────────────────────────────────────────────────────────
 
 const FEATURE_META = [
-  { icon: <Ticket className="w-5 h-5" />, size: "large", accent: "text-primary" },
-  { icon: <Shield className="w-5 h-5" />, size: "large", accent: "text-tertiary" },
-  { icon: <Mail className="w-5 h-5" />, size: "small", accent: "text-secondary" },
-  { icon: <Clock className="w-5 h-5" />, size: "small", accent: "text-secondary" },
-  { icon: <Users className="w-5 h-5" />, size: "small", accent: "text-primary" },
-  { icon: <Bell className="w-5 h-5" />, size: "small", accent: "text-tertiary" },
+  {
+    icon: <Ticket className="w-5 h-5" />,
+    size: "large",
+    accent: "text-primary",
+  },
+  {
+    icon: <Shield className="w-5 h-5" />,
+    size: "large",
+    accent: "text-tertiary",
+  },
+  {
+    icon: <Mail className="w-5 h-5" />,
+    size: "small",
+    accent: "text-secondary",
+  },
+  {
+    icon: <Clock className="w-5 h-5" />,
+    size: "small",
+    accent: "text-secondary",
+  },
+  {
+    icon: <Users className="w-5 h-5" />,
+    size: "small",
+    accent: "text-primary",
+  },
+  {
+    icon: <Bell className="w-5 h-5" />,
+    size: "small",
+    accent: "text-tertiary",
+  },
 ];
 
 function FeatureGrid() {
   const { t } = useTranslation("marketing");
-  const featureTexts = t("landing.featureGrid.features", { returnObjects: true }) as { title: string; body: string }[];
+  const featureTexts = t("landing.featureGrid.features", {
+    returnObjects: true,
+  }) as { title: string; body: string }[];
 
-  const features = FEATURE_META.map((meta, i) => ({ ...meta, ...featureTexts[i] }));
+  const features = FEATURE_META.map((meta, i) => ({
+    ...meta,
+    ...featureTexts[i],
+  }));
   const large = features.filter((f) => f.size === "large");
   const small = features.filter((f) => f.size === "small");
 
@@ -424,8 +453,13 @@ const CHANNEL_META = [
 
 function Channels() {
   const { t } = useTranslation("marketing");
-  const channelLabels = t("landing.channels.labels", { returnObjects: true }) as string[];
-  const channels = CHANNEL_META.map((meta, i) => ({ ...meta, label: channelLabels[i] }));
+  const channelLabels = t("landing.channels.labels", {
+    returnObjects: true,
+  }) as string[];
+  const channels = CHANNEL_META.map((meta, i) => ({
+    ...meta,
+    label: channelLabels[i],
+  }));
 
   return (
     <section className="px-6 md:px-10 py-20 border-t border-white/6">
@@ -514,7 +548,9 @@ function Channels() {
 
 function Security() {
   const { t } = useTranslation("marketing");
-  const secItems = t("landing.security.items", { returnObjects: true }) as string[];
+  const secItems = t("landing.security.items", {
+    returnObjects: true,
+  }) as string[];
   const headingLines = t("landing.security.heading").split("\n");
 
   return (
@@ -592,10 +628,17 @@ const PLAN_HIGHLIGHTED = [false, true, false];
 
 function Pricing() {
   const { t } = useTranslation("marketing");
-  type PlanData = { name: string; price: string; period: string; desc: string; cta: string; features: string[] };
-  const plans = (t("landing.pricing.plans", { returnObjects: true }) as PlanData[]).map(
-    (plan, i) => ({ ...plan, highlighted: PLAN_HIGHLIGHTED[i] }),
-  );
+  type PlanData = {
+    name: string;
+    price: string;
+    period: string;
+    desc: string;
+    cta: string;
+    features: string[];
+  };
+  const plans = (
+    t("landing.pricing.plans", { returnObjects: true }) as PlanData[]
+  ).map((plan, i) => ({ ...plan, highlighted: PLAN_HIGHLIGHTED[i] }));
 
   return (
     <section className="px-6 md:px-10 py-20 border-t border-white/6">

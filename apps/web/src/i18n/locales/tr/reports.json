@@ -2,6 +2,7 @@
   "title": "Raporlar",
   "tabs": {
     "analytics": "Analitik",
+    "email": "E-posta",
     "builder": "Rapor Oluşturucu",
     "scheduled": "Zamanlanmış",
     "saved": "Kayıtlı"

@@ -263,7 +263,7 @@ export const TicketService = {
 
   addMessage: async (tenantId: string, ticketId: string, actorId: string | null, input: AddMessageInput) => {
     let outgoing:
-      | { mailboxId: string; to: string; subject: string; html: string; inReplyTo?: string; references?: string }
+      | { mailboxId: string; to: string; subject: string; html: string; senderId?: string | null; inReplyTo?: string; references?: string }
       | null = null;
 
     const result = await withTenantTransaction(tenantId, async (tx) => {
@@ -309,6 +309,7 @@ export const TicketService = {
             to: contactRow[0].email,
             subject: t.subject,
             html: input.content,
+            senderId: actorId,
             inReplyTo: threadId,
             references: threadId,
           };
@@ -319,7 +320,7 @@ export const TicketService = {
     });
 
     const job = outgoing as
-      | { mailboxId: string; to: string; subject: string; html: string; inReplyTo?: string; references?: string }
+      | { mailboxId: string; to: string; subject: string; html: string; senderId?: string | null; inReplyTo?: string; references?: string }
       | null;
     if (job) {
       await emailDeliveryQueue

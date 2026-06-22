@@ -169,6 +169,20 @@
       "when": 1782157371528,
       "tag": "0023_premium_frog_thor",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1782165415094,
+      "tag": "0024_busy_sauron",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1782166981483,
+      "tag": "0025_rich_korath",
+      "breakpoints": true
     }
   ]
 }

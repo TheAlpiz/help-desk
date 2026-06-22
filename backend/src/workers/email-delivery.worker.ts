@@ -2,9 +2,13 @@ import { Worker, Job, Queue } from "bullmq";
 import nodemailer from "nodemailer";
 import { withSuperAdminTransaction } from "../infra/db";
 import { mailbox } from "../modules/mailbox/mailbox.schema";
+import { emailSend } from "../modules/email/email.schema";
 import { eq } from "drizzle-orm";
 import { env } from "../infra/env";
 import { decryptSecret } from "../infra/crypto";
+import { buildVariableMap, interpolate } from "../modules/email/variable-renderer";
+import { resolveSignature, wrapSignature } from "../modules/email/signature-resolver";
+import { injectTracking } from "../modules/email/email-tracking";
 
 export interface EmailDeliveryJobData {
   mailboxId: string;
@@ -12,6 +16,9 @@ export interface EmailDeliveryJobData {
   subject: string;
   html: string;
   ticketId: string;
+  templateType?: string;
+  /** ID of the agent who triggered this send — used to resolve {{agent_*}} variables. */
+  senderId?: string | null;
   inReplyTo?: string;
   references?: string;
 }
@@ -35,7 +42,7 @@ export class EmailDeliveryWorker {
       async (job: Job<EmailDeliveryJobData>) => {
         await this.processJob(job);
       },
-      { connection: redisConfig }
+      { connection: redisConfig },
     );
 
     this.worker.on("completed", (job) => {
@@ -48,19 +55,21 @@ export class EmailDeliveryWorker {
   }
 
   private async processJob(job: Job<EmailDeliveryJobData>) {
-    const { mailboxId, to, subject, html, ticketId, inReplyTo, references } = job.data;
+    const { mailboxId, to, subject, html, ticketId, senderId, templateType, inReplyTo, references } = job.data;
 
-    // Fetch mailbox config (background context → bypass RLS)
-    const mbxResult = await withSuperAdminTransaction(async (tx) =>
-      tx.select().from(mailbox).where(eq(mailbox.id, mailboxId)).limit(1)
-    );
-    const mbx = mbxResult[0];
+    const { mbx, vars, signatureHtml, organizationId } = await withSuperAdminTransaction(async (tx) => {
+      const [mbx] = await tx.select().from(mailbox).where(eq(mailbox.id, mailboxId)).limit(1);
+      if (!mbx) return { mbx: null, vars: {}, signatureHtml: null, organizationId: "" };
+
+      const [vars, signatureHtml] = await Promise.all([
+        buildVariableMap(tx, ticketId, mailboxId, senderId),
+        resolveSignature(tx, mbx.organizationId, senderId, { ticketId, mailboxId }),
+      ]);
+      return { mbx, vars, signatureHtml, organizationId: mbx.organizationId };
+    });
 
     if (!mbx) throw new Error("Mailbox not found");
-
-    if (!mbx.smtpHost) {
-      throw new Error("SMTP configuration missing for mailbox");
-    }
+    if (!mbx.smtpHost) throw new Error("SMTP configuration missing for mailbox");
 
     const transporter = nodemailer.createTransport({
       host: mbx.smtpHost,
@@ -72,21 +81,42 @@ export class EmailDeliveryWorker {
       },
     });
 
-    // Subject Fallback formatting: [TICKET-uuid]
-    const formattedSubject = subject.includes(`[TICKET-${ticketId}]`) 
-      ? subject 
+    const baseSubject = subject.includes(`[TICKET-${ticketId}]`)
+      ? subject
       : `[TICKET-${ticketId}] ${subject}`;
 
-    const mailOptions = {
+    const renderedSubject = interpolate(baseSubject, vars);
+
+    let renderedHtml = interpolate(html, vars);
+    if (signatureHtml) {
+      renderedHtml += wrapSignature(interpolate(signatureHtml, vars));
+    }
+
+    // Insert send record and get trackingId, then inject tracking beacons
+    const [sendRecord] = await withSuperAdminTransaction(async (tx) =>
+      tx
+        .insert(emailSend)
+        .values({
+          organizationId,
+          ticketId,
+          mailboxId,
+          recipientEmail: to,
+          templateType: templateType ?? null,
+          subject: renderedSubject,
+        })
+        .returning({ id: emailSend.id, trackingId: emailSend.trackingId }),
+    );
+
+    const trackedHtml = injectTracking(renderedHtml, sendRecord.trackingId, env.APP_BASE_URL);
+
+    await transporter.sendMail({
       from: `"${mbx.emailAddress}" <${mbx.emailAddress}>`,
       to,
-      subject: formattedSubject,
-      html: html,
+      subject: renderedSubject,
+      html: trackedHtml,
       inReplyTo,
       references,
-    };
-
-    await transporter.sendMail(mailOptions);
+    });
   }
 
   public async close() {

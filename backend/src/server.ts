@@ -56,10 +56,10 @@ app.use(
 app.use("*", tenantMiddleware());
 
 // Initialize Redis
-connectRedis().catch(logger.error);
+connectRedis().catch((err) => logger.error(err));
 
 // Initialize Mailbox Listeners
-MailboxManager.getInstance().initAll().catch(logger.error);
+MailboxManager.getInstance().initAll().catch((err) => logger.error(err));
 
 // Initialize SLA Worker
 new SlaWorker({
@@ -118,9 +118,9 @@ const auditQueue = new Queue("audit-archival", { connection: redisConnection });
 const ticketQueue = new Queue("ticket-archival", { connection: redisConnection });
 const attachmentQueue = new Queue("attachment-archival", { connection: redisConnection });
 
-auditQueue.add("nightly-sweep", {}, { repeat: { pattern: "0 2 * * *" } }).catch(logger.error);
-ticketQueue.add("nightly-sweep", {}, { repeat: { pattern: "0 2 * * *" } }).catch(logger.error);
-attachmentQueue.add("nightly-sweep", {}, { repeat: { pattern: "0 2 * * *" } }).catch(logger.error);
+auditQueue.add("nightly-sweep", {}, { repeat: { pattern: "0 2 * * *" } }).catch((err) => logger.error(err));
+ticketQueue.add("nightly-sweep", {}, { repeat: { pattern: "0 2 * * *" } }).catch((err) => logger.error(err));
+attachmentQueue.add("nightly-sweep", {}, { repeat: { pattern: "0 2 * * *" } }).catch((err) => logger.error(err));
 
 // Initialize DB Triggers, enforce Row Level Security, then seed.
 // Ordered so RLS policies exist before any tenant traffic is served.
@@ -128,14 +128,14 @@ attachmentQueue.add("nightly-sweep", {}, { repeat: { pattern: "0 2 * * *" } }).c
   logger.info("Running database migrations...");
   await migrate(db, { migrationsFolder: path.join(__dirname, "infra/db/migrations") });
   logger.info("Database migrations completed.");
-  
+
   await setupDatabaseTriggers();
   await setupRowLevelSecurity();
   await runSeed();
-})().catch(logger.error);
+})().catch((err) => logger.error(err));
 
 // Initialize MinIO
-initMinio().catch(logger.error);
+initMinio().catch((err) => logger.error(err));
 
 app.notFound((c) => {
   return ResponseHandler.notFound(c);
