@@ -19,13 +19,17 @@ export const db = drizzle(pool, {
  */
 export async function withTenantTransaction<T>(
   tenantId: string,
-  callback: (tx: Parameters<Parameters<typeof db.transaction>[0]>[0]) => Promise<T>
+  callback: (
+    tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+  ) => Promise<T>,
 ): Promise<T> {
   return await db.transaction(async (tx) => {
     // Bind the tenant for this transaction. `true` => SET LOCAL (transaction-scoped),
     // so the GUC is reset automatically when the transaction ends and never leaks
     // onto the next checkout of this pooled connection.
-    await tx.execute(sql`select set_config('app.current_tenant_id', ${tenantId}, true)`);
+    await tx.execute(
+      sql`select set_config('app.current_tenant_id', ${tenantId}, true)`,
+    );
     // Ensure we never run a tenant request with the super-admin bypass left on.
     await tx.execute(sql`select set_config('app.bypass_rls', 'off', true)`);
 
@@ -38,7 +42,9 @@ export async function withTenantTransaction<T>(
  * Used exclusively by background workers, seed scripts, and SUPER_ADMIN global actions.
  */
 export async function withSuperAdminTransaction<T>(
-  callback: (tx: Parameters<Parameters<typeof db.transaction>[0]>[0]) => Promise<T>
+  callback: (
+    tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+  ) => Promise<T>,
 ): Promise<T> {
   return await db.transaction(async (tx) => {
     // Trusted context (workers, seed, cross-tenant super-admin actions).

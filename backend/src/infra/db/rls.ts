@@ -97,7 +97,10 @@ export async function setupRowLevelSecurity() {
       `[RLS] Tenant isolation enforced on ${1 + DIRECT_TENANT_TABLES.length + CHILD_TENANT_TABLES.length} tables.`,
     );
   } catch (error) {
-    logger.error({ error }, "[RLS] Failed to install Row Level Security policies");
+    logger.error(
+      { error },
+      "[RLS] Failed to install Row Level Security policies",
+    );
     throw error;
   }
 }
