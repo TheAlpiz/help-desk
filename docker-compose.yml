@@ -18,11 +18,11 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/help-desk
-      - JWT_SECRET=change_this_secret_in_production
-      - APP_BASE_URL=http://localhost:5173
-      - CORS_ORIGINS=http://localhost:5173
-      - COOKIE_DOMAIN=
+      - DATABASE_URL=postgresql:/helpdesk_app:helpdesk_app@db:5432/help-desk
+      - JWT_SECRET=2e270779a074c58f892b6834921df57c806eeb448d3c3a36773d8e9b26f05dc68fe8e478aed873d079c1ae74ccdbad3143027983078b6a8192feef404f53c71b
+      - APP_BASE_URL=https://gokturkdijital.com.tr
+      - CORS_ORIGINS=https://gokturkdijital.com.tr
+      - COOKIE_DOMAIN=https://gokturkdijital.com.tr
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=
@@ -31,13 +31,13 @@ services:
       - MINIO_ACCESS_KEY=minioadmin
       - MINIO_SECRET_KEY=minioadmin
       - MINIO_USE_SSL=false
-      - SMTP_HOST=
-      - SMTP_PORT=587
-      - SMTP_SECURE=false
-      - SMTP_USER=
-      - SMTP_PASS=
-      - SMTP_FROM=no-reply@alpis.app
-      - SENTRY_DSN=
+      - SMTP_HOST=mail.yerliva.com
+      - SMTP_PORT=465
+      - SMTP_SECURE=true
+      - SMTP_USER=info@yerliva.com
+      - SMTP_PASS=KMKngM2rQnh2P98HPtjh
+      - SMTP_FROM=info@yerliva.com
+      - SENTRY_DSN=https://d7a2f3993c2abf5a946497593368cb9a@o4511350922084352.ingest.de.sentry.io/451155490091835
       - LOG_LEVEL=info
     depends_on:
       - db
