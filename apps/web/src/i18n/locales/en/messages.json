@@ -1,0 +1,17 @@
+{
+  "title": "Messages",
+  "newMessage": "New Message",
+  "noConversations": "No conversations yet",
+  "startFirst": "Start a conversation",
+  "selectConversation": "Select a conversation",
+  "startNew": "Start a new message",
+  "typeMessage": "Type a message…",
+  "send": "Send",
+  "searchUsers": "Search users…",
+  "noUsers": "No users found",
+  "you": "You",
+  "loadMore": "Load earlier messages",
+  "directMessage": "Direct message",
+  "errorSend": "Failed to send message",
+  "errorLoad": "Failed to load messages"
+}

@@ -7,7 +7,8 @@ export type RealtimeEvent =
   | { type: "ticket.reply"; payload: { ticketId: string } }
   | { type: "task.assigned"; payload: { taskId: string; assigneeId: string } }
   | { type: "sla.violation"; payload: { ticketId: string; breachType: string } }
-  | { type: "comment.mention"; payload: { entityType: "ticket" | "task"; entityId: string } };
+  | { type: "comment.mention"; payload: { entityType: "ticket" | "task"; entityId: string } }
+  | { type: "chat.message"; payload: { conversationId: string; messageId: string; senderId: string } };
 
 type Listener = (e: RealtimeEvent) => void;
 

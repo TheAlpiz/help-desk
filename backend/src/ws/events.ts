@@ -49,4 +49,13 @@ export function initRealtimeBridge() {
       payload: { entityType: p.entityType, entityId: p.entityId },
     });
   });
+
+  onEvent("chat.message", (p) => {
+    for (const uid of p.recipientIds) {
+      wsGateway.pushToUser(uid, {
+        type: "chat.message",
+        payload: { conversationId: p.conversationId, messageId: p.messageId, senderId: p.senderId },
+      });
+    }
+  });
 }

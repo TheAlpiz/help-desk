@@ -17,6 +17,7 @@ import { MacroRouter } from "../modules/macro";
 import { AutomationRouter } from "../modules/automation";
 import { ExportRouter } from "../modules/export";
 import { EmailRouter } from "../modules/email";
+import { messagingRouter } from "../modules/messaging";
 
 const router = new Hono({ strict: false })
   .route("/auths", AuthRouter)
@@ -37,6 +38,7 @@ const router = new Hono({ strict: false })
   .route("/macros", MacroRouter)
   .route("/automations", AutomationRouter)
   .route("/exports", ExportRouter)
-  .route("/email", EmailRouter);
+  .route("/email", EmailRouter)
+  .route("/conversations", messagingRouter);
 
 export default router;

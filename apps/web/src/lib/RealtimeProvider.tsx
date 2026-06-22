@@ -82,6 +82,10 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
             qc.invalidateQueries({ queryKey: ["task", e.payload.entityId] });
           }
           break;
+        case "chat.message":
+          qc.invalidateQueries({ queryKey: ["conversations"] });
+          qc.invalidateQueries({ queryKey: ["messages", e.payload.conversationId] });
+          break;
       }
     });
 

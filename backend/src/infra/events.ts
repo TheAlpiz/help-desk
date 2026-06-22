@@ -21,6 +21,13 @@ export type AppEvents = {
     actorId: string | null;
     organizationId: string;
   };
+  "chat.message": {
+    conversationId: string;
+    messageId: string;
+    senderId: string;
+    organizationId: string;
+    recipientIds: string[];
+  };
 };
 
 export function emitEvent<K extends keyof AppEvents>(event: K, payload: AppEvents[K]) {

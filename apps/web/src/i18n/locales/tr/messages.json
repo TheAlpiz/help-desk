@@ -1,0 +1,17 @@
+{
+  "title": "Mesajlar",
+  "newMessage": "Yeni Mesaj",
+  "noConversations": "Henüz konuşma yok",
+  "startFirst": "Bir konuşma başlat",
+  "selectConversation": "Bir konuşma seçin",
+  "startNew": "Yeni mesaj başlat",
+  "typeMessage": "Bir mesaj yazın…",
+  "send": "Gönder",
+  "searchUsers": "Kullanıcı ara…",
+  "noUsers": "Kullanıcı bulunamadı",
+  "you": "Siz",
+  "loadMore": "Önceki mesajları yükle",
+  "directMessage": "Doğrudan mesaj",
+  "errorSend": "Mesaj gönderilemedi",
+  "errorLoad": "Mesajlar yüklenemedi"
+}

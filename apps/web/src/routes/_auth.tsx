@@ -111,6 +111,11 @@ const MAIN_NAV: NavItem[] = [
     icon: <Bell className="w-4 h-4" />,
   },
   {
+    to: "/messages",
+    labelKey: "main.messages",
+    icon: <MessageSquare className="w-4 h-4" />,
+  },
+  {
     to: "/mailboxes",
     labelKey: "main.mailboxes",
     icon: <Inbox className="w-4 h-4" />,
