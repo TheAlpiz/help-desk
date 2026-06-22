@@ -13,6 +13,7 @@ export const createMailboxSchema = z.object({
   smtpUser: z.string().optional(),
   smtpPassword: z.string().optional(),
   smtpSecure: z.boolean().default(true),
+  isActive: z.boolean().optional(),
 });
 
 export const updateMailboxSchema = createMailboxSchema.partial().omit({ organizationId: true });

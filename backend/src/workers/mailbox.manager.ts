@@ -25,7 +25,7 @@ export class MailboxManager {
     console.log("MailboxManager: Initializing all active mailboxes...");
     try {
       const mailboxes = await withSuperAdminTransaction(async (tx) =>
-        tx.select().from(mailbox)
+        tx.select().from(mailbox).where(eq(mailbox.isActive, true))
       );
       for (const mbx of mailboxes) {
         await this.startListener(mbx.id);
@@ -49,6 +49,11 @@ export class MailboxManager {
 
       if (!mbx) {
         throw new Error(`Mailbox ${mailboxId} not found.`);
+      }
+
+      if (!mbx.isActive) {
+        console.log(`MailboxManager: Mailbox ${mailboxId} is inactive. Skipping.`);
+        return;
       }
 
       if (!mbx.imapHost || !mbx.imapUser || !mbx.imapPasswordEncrypted) {
