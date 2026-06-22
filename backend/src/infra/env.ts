@@ -14,6 +14,9 @@ export const env = cleanEnv(process.env, {
   // identical on every instance, or stored secrets become undecryptable. No prod
   // default: a missing key must fail startup rather than silently use a known value.
   MAILBOX_ENCRYPTION_KEY: str({ devDefault: "dev_only_insecure_mailbox_key_change_me" }),
+  // Comma-separated sender addresses whose inbound mail is never turned into a
+  // ticket (e.g. no-reply/notification addresses). Case-insensitive.
+  EMAIL_INGEST_BLOCKLIST: str({ default: "" }),
   APP_BASE_URL: str({ default: "http://localhost:5173" }),
   // Comma-separated list of browser origins allowed to send credentialed requests.
   // e.g. "https://app.alpis.app,https://admin.alpis.app". devDefault = Vite dev server.

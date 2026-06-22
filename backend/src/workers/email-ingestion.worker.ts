@@ -102,6 +102,11 @@ export class EmailIngestionWorker {
     const sender = senderEmail.toLowerCase();
     if (env.SMTP_FROM && sender === env.SMTP_FROM.toLowerCase()) return true;
 
+    const blocklist = env.EMAIL_INGEST_BLOCKLIST.split(",")
+      .map((a) => a.trim().toLowerCase())
+      .filter(Boolean);
+    if (blocklist.includes(sender)) return true;
+
     const own = await withSuperAdminTransaction(async (tx) =>
       tx
         .select({ emailAddress: mailboxTable.emailAddress })
@@ -156,7 +161,7 @@ export class EmailIngestionWorker {
     // mailboxes (or the platform from-address), this is mail the system sent —
     // ingesting it would create a ticket, fire a notification, and loop forever.
     if (await this.isSelfSender(senderEmail)) {
-      console.log(`EmailIngestionWorker: Ignored mail from own address ${senderEmail}.`);
+      console.log(`EmailIngestionWorker: Ignored mail from own/blocked address ${senderEmail}.`);
       return;
     }
 
