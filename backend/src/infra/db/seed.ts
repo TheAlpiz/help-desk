@@ -22,9 +22,9 @@ export async function runSeed() {
       const [platformOrg] = await tx
         .insert(organization)
         .values({
-          domain: "gokturkdijital.com.tr",
-          subdomain: "platform",
-          name: "Gokturk Dijital",
+          domain: "yerliva.com",
+          subdomain: "helpdesk",
+          name: "Yerliva",
           status: "active",
         })
         .returning();
