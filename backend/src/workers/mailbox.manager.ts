@@ -1,6 +1,7 @@
 import { EmailIngestionWorker } from "./email-ingestion.worker";
 import { withSuperAdminTransaction } from "../infra/db";
 import { mailbox } from "../modules/mailbox/mailbox.schema";
+import { decryptSecret } from "../infra/crypto";
 import { eq } from "drizzle-orm";
 
 export class MailboxManager {
@@ -64,7 +65,7 @@ export class MailboxManager {
           secure: mbx.imapSecure !== false,
           auth: {
             user: mbx.imapUser,
-            pass: mbx.imapPasswordEncrypted, // Needs decryption in production
+            pass: decryptSecret(mbx.imapPasswordEncrypted) ?? "",
           },
         },
         mbx.organizationId,

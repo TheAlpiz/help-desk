@@ -4,6 +4,7 @@ import { withSuperAdminTransaction } from "../infra/db";
 import { mailbox } from "../modules/mailbox/mailbox.schema";
 import { eq } from "drizzle-orm";
 import { env } from "../infra/env";
+import { decryptSecret } from "../infra/crypto";
 
 export interface EmailDeliveryJobData {
   mailboxId: string;
@@ -67,7 +68,7 @@ export class EmailDeliveryWorker {
       secure: mbx.smtpSecure || false,
       auth: {
         user: mbx.smtpUser || "",
-        pass: mbx.smtpPasswordEncrypted || "", // In real scenario, decrypt this
+        pass: decryptSecret(mbx.smtpPasswordEncrypted) || "",
       },
     });
 

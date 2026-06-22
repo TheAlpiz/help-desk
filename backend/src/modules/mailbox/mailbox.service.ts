@@ -3,11 +3,34 @@ import { withTenantTransaction } from "../../infra/db";
 import { mailbox, NewMailbox, Mailbox } from "./mailbox.schema";
 import { auditLog } from "../audit-log/audit-log.schema";
 import { MailboxManager } from "../../workers/mailbox.manager";
+import { encryptSecret } from "../../infra/crypto";
 
-// Strip credentials before storing in audit log.
-const omitCredentials = (m: Mailbox) => {
+// Strip credentials before storing in audit log or returning over the API.
+export const omitCredentials = (m: Mailbox) => {
   const { imapPasswordEncrypted: _imap, smtpPasswordEncrypted: _smtp, ...safe } = m;
   return safe;
+};
+
+// The shared contract exposes `imapPassword` / `smtpPassword`, but the DB columns
+// are `imapPasswordEncrypted` / `smtpPasswordEncrypted`. Map them explicitly —
+// otherwise Drizzle silently drops the unknown keys and stores NULL passwords,
+// which makes MailboxManager skip the listener (no IMAP creds -> no tickets).
+const mapCredentials = <T extends { imapPassword?: string; smtpPassword?: string }>(
+  data: T,
+): Omit<T, "imapPassword" | "smtpPassword"> & {
+  imapPasswordEncrypted?: string;
+  smtpPasswordEncrypted?: string;
+} => {
+  const { imapPassword, smtpPassword, ...rest } = data;
+  return {
+    ...rest,
+    ...(imapPassword !== undefined
+      ? { imapPasswordEncrypted: encryptSecret(imapPassword) ?? undefined }
+      : {}),
+    ...(smtpPassword !== undefined
+      ? { smtpPasswordEncrypted: encryptSecret(smtpPassword) ?? undefined }
+      : {}),
+  };
 };
 
 export const MailboxService = {
@@ -28,11 +51,16 @@ export const MailboxService = {
     });
   },
 
-  create: async (tenantId: string, actorId: string, data: Omit<NewMailbox, "organizationId">) => {
+  create: async (
+    tenantId: string,
+    actorId: string,
+    data: Omit<NewMailbox, "organizationId"> & { imapPassword?: string; smtpPassword?: string },
+  ) => {
+    const values = mapCredentials(data);
     const created = await withTenantTransaction(tenantId, async (tx) => {
       const [created] = await tx
         .insert(mailbox)
-        .values({ ...data, organizationId: tenantId })
+        .values({ ...values, organizationId: tenantId })
         .returning();
 
       await tx.insert(auditLog).values({
@@ -51,7 +79,13 @@ export const MailboxService = {
     return created;
   },
 
-  update: async (tenantId: string, id: string, actorId: string, data: Partial<NewMailbox>) => {
+  update: async (
+    tenantId: string,
+    id: string,
+    actorId: string,
+    data: Partial<NewMailbox> & { imapPassword?: string; smtpPassword?: string },
+  ) => {
+    const values = mapCredentials(data);
     const updated = await withTenantTransaction(tenantId, async (tx) => {
       const [before] = await tx
         .select()
@@ -62,7 +96,7 @@ export const MailboxService = {
 
       const [updated] = await tx
         .update(mailbox)
-        .set(data)
+        .set(values)
         .where(and(eq(mailbox.id, id), eq(mailbox.organizationId, tenantId)))
         .returning();
 

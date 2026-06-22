@@ -1,10 +1,11 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import { MailboxService } from "./mailbox.service";
+import { MailboxService, omitCredentials } from "./mailbox.service";
 import { ResponseHandler } from "../../lib/response";
 import { authMiddleware, JwtPayload } from "../../middleware/auth.middleware";
 import { requirePermission } from "../../middleware/permission.middleware";
 import { createMailboxSchema, updateMailboxSchema } from "@help-desk/shared";
+import { decryptSecret } from "../../infra/crypto";
 
 const router = new Hono<{ Variables: { tenantId: string; user: JwtPayload } }>()
   .use("*", authMiddleware())
@@ -12,7 +13,8 @@ const router = new Hono<{ Variables: { tenantId: string; user: JwtPayload } }>()
   .get("/", requirePermission("mailbox.manage"), async (c) => {
     const tenantId = c.get("tenantId");
     try {
-      return ResponseHandler.ok(c, await MailboxService.findAll(tenantId));
+      const rows = await MailboxService.findAll(tenantId);
+      return ResponseHandler.ok(c, rows.map(omitCredentials));
     } catch (err: any) {
       return ResponseHandler.internalServerError(c, err.message);
     }
@@ -24,7 +26,7 @@ const router = new Hono<{ Variables: { tenantId: string; user: JwtPayload } }>()
     try {
       const data = await MailboxService.findById(tenantId, id);
       if (!data) return ResponseHandler.notFound(c);
-      return ResponseHandler.ok(c, data);
+      return ResponseHandler.ok(c, omitCredentials(data));
     } catch (err: any) {
       return ResponseHandler.internalServerError(c, err.message);
     }
@@ -36,7 +38,7 @@ const router = new Hono<{ Variables: { tenantId: string; user: JwtPayload } }>()
     try {
       const body = c.req.valid("json");
       const data = await MailboxService.create(tenantId, user.userId, body);
-      return ResponseHandler.created(c, data);
+      return ResponseHandler.created(c, omitCredentials(data));
     } catch (err: any) {
       return ResponseHandler.badRequest(c, err.message);
     }
@@ -49,7 +51,7 @@ const router = new Hono<{ Variables: { tenantId: string; user: JwtPayload } }>()
     try {
       const body = c.req.valid("json");
       const data = await MailboxService.update(tenantId, id, user.userId, body);
-      return ResponseHandler.ok(c, data);
+      return ResponseHandler.ok(c, omitCredentials(data));
     } catch (err: any) {
       return ResponseHandler.badRequest(c, err.message);
     }
@@ -79,7 +81,7 @@ const router = new Hono<{ Variables: { tenantId: string; user: JwtPayload } }>()
         host: mailbox.imapHost!,
         port: mailbox.imapPort ?? 993,
         secure: (mailbox.imapPort ?? 993) !== 143,
-        auth: { user: mailbox.imapUser ?? mailbox.emailAddress, pass: mailbox.imapPasswordEncrypted ?? "" },
+        auth: { user: mailbox.imapUser ?? mailbox.emailAddress, pass: decryptSecret(mailbox.imapPasswordEncrypted) ?? "" },
         logger: false,
       });
 

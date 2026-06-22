@@ -9,6 +9,11 @@ export const env = cleanEnv(process.env, {
   // No production default: a missing secret must fail startup, never fall back to a
   // predictable value. devDefault keeps local/test ergonomics.
   JWT_SECRET: str({ devDefault: "dev_only_insecure_secret_change_me" }),
+  // Symmetric key used to encrypt mailbox IMAP/SMTP passwords at rest (AES-256-GCM).
+  // Any string — it is hashed to a 32-byte key. Must be stable across restarts and
+  // identical on every instance, or stored secrets become undecryptable. No prod
+  // default: a missing key must fail startup rather than silently use a known value.
+  MAILBOX_ENCRYPTION_KEY: str({ devDefault: "dev_only_insecure_mailbox_key_change_me" }),
   APP_BASE_URL: str({ default: "http://localhost:5173" }),
   // Comma-separated list of browser origins allowed to send credentialed requests.
   // e.g. "https://app.alpis.app,https://admin.alpis.app". devDefault = Vite dev server.
