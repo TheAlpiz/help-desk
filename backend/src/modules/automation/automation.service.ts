@@ -141,8 +141,7 @@ export const AutomationService = {
         requesterEmail = u?.email ?? "";
       }
 
-      // Heuristic: email tickets carry a contact, portal/API tickets carry a requester user.
-      const source = t.contactId ? "email" : "portal";
+      const source = t.source ?? "portal";
       const ageHours = t.createdAt ? (Date.now() - new Date(t.createdAt).getTime()) / 3_600_000 : 0;
 
       const ctx: Record<string, any> = {

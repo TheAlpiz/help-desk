@@ -142,6 +142,7 @@ export const TicketService = {
         subject: input.subject,
         priority: input.priority,
         status: "open",
+        source: (input as any).source ?? "portal",
         requesterId: actorId,
         mailboxId: (input as any).mailboxId,
       }).returning();
@@ -187,6 +188,7 @@ export const TicketService = {
         subject: input.subject,
         priority: input.priority,
         status: "open",
+        source: "email",
         contactId,
         mailboxId: input.mailboxId,
       }).returning();

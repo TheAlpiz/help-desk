@@ -17,6 +17,8 @@ export const ticket = pgTable("ticket", {
   departmentId: uuid("department_id").references(() => department.id),
   slaId: uuid("sla_id").references(() => sla.id),
   subject: varchar("subject", { length: 1024 }).notNull(),
+  // Channel the ticket originated from: email | portal | api. Set at creation.
+  source: varchar("source", { length: 20 }).default("portal").notNull(),
   status: varchar("status", { length: 50 }).default("open").notNull(),
   priority: varchar("priority", { length: 50 }).default("medium").notNull(),
 
