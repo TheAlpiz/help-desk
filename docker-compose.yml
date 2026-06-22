@@ -4,8 +4,6 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-    ports:
-      - "5173:5173"
     environment:
       - NODE_ENV=production
 
@@ -13,8 +11,6 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    ports:
-      - "3000:3000"
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql:/helpdesk_app:helpdesk_app@db:5432/help-desk
