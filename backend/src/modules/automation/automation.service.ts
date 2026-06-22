@@ -94,6 +94,10 @@ export const AutomationService = {
   // Called by ticket events (ticket_created, ticket_updated, etc.)
   runForEvent: async (tenantId: string, triggerType: string, ticketId: string, actorId: string | null) => {
     return withTenantTransaction(tenantId, async (tx) => {
+      // actorId may be a non-UUID sentinel ("EMAIL", "system") for system-originated
+      // events. Those must never be written into uuid user-id columns (creator_id,
+      // sender_id) — Postgres rejects them with 22P02 and aborts the whole tx.
+      const actorUserId = actorId && isUuid(actorId) ? actorId : null;
       const rules = await tx.select().from(automation)
         .where(and(eq(automation.organizationId, tenantId), eq(automation.trigger, triggerType), eq(automation.isActive, true), isNull(automation.deletedAt)));
 
@@ -172,13 +176,14 @@ export const AutomationService = {
                 if (action.value) await tx.delete(ticketTag).where(and(eq(ticketTag.ticketId, ticketId), eq(ticketTag.name, action.value)));
                 break;
               case "add_note":
-                if (action.value) await tx.insert(ticketMessage).values({ ticketId, senderId: actorId ?? undefined, content: action.value, type: "INTERNAL_NOTE" });
+                if (action.value) await tx.insert(ticketMessage).values({ ticketId, senderId: actorUserId ?? undefined, content: action.value, type: "INTERNAL_NOTE" });
                 break;
               case "create_task": {
                 if (!action.value) break;
                 // task.creatorId is NOT NULL → fall back to the rule's author when the
-                // triggering event has no actor (e.g. inbound email created the ticket).
-                const creatorId = actorId ?? rule.createdById;
+                // triggering event has no (valid) actor, e.g. inbound email created the
+                // ticket and actorId is the "EMAIL" sentinel rather than a real user.
+                const creatorId = actorUserId ?? rule.createdById;
                 if (!creatorId) { logger.warn({ ruleId: rule.id }, "Automation create_task: no creator available"); break; }
 
                 // Deduplicate: skip if an open task with the same title already exists
