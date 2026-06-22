@@ -14,8 +14,10 @@ RUN turbo run build --filter=@help-desk/web
 
 # Production image
 FROM nginx:alpine AS runner
+WORKDIR /usr/share/nginx/html
+RUN rm -rf ./*
 # Copy built static files to nginx
-COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
+COPY --from=builder /app/apps/web/dist/ ./
 # Copy nginx configuration for SPA routing
 COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
