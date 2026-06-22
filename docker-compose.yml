@@ -13,11 +13,12 @@ services:
       dockerfile: backend/Dockerfile
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql:/helpdesk_app:helpdesk_app@db:5432/help-desk
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/help-desk
       - JWT_SECRET=2e270779a074c58f892b6834921df57c806eeb448d3c3a36773d8e9b26f05dc68fe8e478aed873d079c1ae74ccdbad3143027983078b6a8192feef404f53c71b
       - APP_BASE_URL=https://gokturkdijital.com.tr
       - CORS_ORIGINS=https://gokturkdijital.com.tr
       - COOKIE_DOMAIN=https://gokturkdijital.com.tr
+      - REDIS_URL=redis://redis:6379
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=
