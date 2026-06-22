@@ -22,9 +22,9 @@ export async function runSeed() {
       const [platformOrg] = await tx
         .insert(organization)
         .values({
-          domain: "helpdesk.com",
+          domain: "gokturkdijital.com.tr",
           subdomain: "platform",
-          name: "Helpdesk Platform",
+          name: "Gokturk Dijital",
           status: "active",
         })
         .returning();
@@ -33,11 +33,11 @@ export async function runSeed() {
       await PermissionService.seedSystemRoles(tx, platformOrg.id);
 
       // 3. Create Super Admin User (globalRole grants wildcard, no org role needed)
-      const passwordHash = await argon2.hash("admin123");
+      const passwordHash = await argon2.hash("eTKbG@3&KyKf5z");
 
       await tx.insert(user).values({
         organizationId: platformOrg.id,
-        email: "admin@helpdesk.com",
+        email: "admin@yerliva.com",
         firstName: "System",
         lastName: "Admin",
         passwordHash,
