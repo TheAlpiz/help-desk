@@ -56,15 +56,15 @@ import trApiTokens from "./locales/tr/apiTokens.json";
 import trOnboarding from "./locales/tr/onboarding.json";
 import trMessages from "./locales/tr/messages.json";
 
-export const SUPPORTED_LANGUAGES = ["en", "tr"] as const;
+export const SUPPORTED_LANGUAGES = ["tr", "en"] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 export const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
-  en: "English",
   tr: "Türkçe",
+  en: "English",
 };
 
-export const DEFAULT_LANGUAGE: SupportedLanguage = "en";
+export const DEFAULT_LANGUAGE: SupportedLanguage = "tr";
 
 export const NAMESPACES = [
   "common",

@@ -42,7 +42,7 @@ export const useAppStore = create<AppState>()(
       accessToken: undefined,
       sidebarOpen: true,
       theme: "system",
-      language: "en",
+      language: "tr",
       notificationSound: true,
 
       setUser: (user) => set({ user }),
@@ -66,12 +66,12 @@ export const useAppStore = create<AppState>()(
         language: state.language,
         notificationSound: state.notificationSound 
       }),
-      // v3 migration: add notificationSound field with default true
-      version: 3,
+      // v4 migration: default language changed to tr
+      version: 4,
       migrate: (persisted: any, version: number) => ({
         theme: persisted?.theme ?? "system",
         sidebarOpen: persisted?.sidebarOpen ?? true,
-        language: (version < 2 ? "en" : persisted?.language) ?? "en",
+        language: (version < 4 ? "tr" : persisted?.language) ?? "tr",
         notificationSound: persisted?.notificationSound ?? true,
       }),
     },
