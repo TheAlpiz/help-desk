@@ -1,5 +1,6 @@
 {
   "globalUsers": {
+    "title": "Global Users",
     "editTitle": "Edit User",
     "deleteTitle": "Delete User",
     "emailReadOnly": "Email (read-only)",
@@ -31,6 +32,7 @@
     "noUsers": "No users found"
   },
   "globalRoles": {
+    "title": "Global Roles",
     "newRole": "New Global Role",
     "systemWideDesc": "System-wide roles shared across all tenants.",
     "loadFailed": "Failed to load global roles.",

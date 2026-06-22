@@ -1,0 +1,39 @@
+{
+  "steps": {
+    "org": "Your org",
+    "mailbox": "Connect mailbox",
+    "team": "Invite team",
+    "done": "All set!"
+  },
+  "org": {
+    "title": "Set up your organization",
+    "subtitle": "Tell us about your support team.",
+    "nameLabel": "Organization name",
+    "namePlaceholder": "Acme Inc.",
+    "emailLabel": "Support email",
+    "emailPlaceholder": "support@acme.com",
+    "continue": "Continue"
+  },
+  "mailbox": {
+    "title": "Connect a mailbox",
+    "subtitle": "Receive customer emails as tickets.",
+    "imapPlaceholder": "IMAP host",
+    "smtpPlaceholder": "SMTP host",
+    "passwordPlaceholder": "App password / credentials",
+    "connect": "Connect & continue",
+    "skip": "Skip for now"
+  },
+  "team": {
+    "title": "Invite your team",
+    "subtitle": "Add agents who'll handle tickets.",
+    "sendInvites": "Send invites",
+    "skip": "Skip for now"
+  },
+  "done": {
+    "title": "You're all set!",
+    "subtitle": "Your help desk is ready. Start handling tickets.",
+    "viewTickets": "View tickets",
+    "dashboard": "Go to dashboard"
+  },
+  "back": "Back"
+}

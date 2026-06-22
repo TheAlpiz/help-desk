@@ -1,0 +1,39 @@
+{
+  "steps": {
+    "org": "Organizasyonunuz",
+    "mailbox": "Posta kutusu bağla",
+    "team": "Ekip davet et",
+    "done": "Hazırsınız!"
+  },
+  "org": {
+    "title": "Organizasyonunuzu kurun",
+    "subtitle": "Destek ekibiniz hakkında bilgi verin.",
+    "nameLabel": "Organizasyon adı",
+    "namePlaceholder": "Örnek A.Ş.",
+    "emailLabel": "Destek e-postası",
+    "emailPlaceholder": "destek@ornek.com",
+    "continue": "Devam"
+  },
+  "mailbox": {
+    "title": "Posta kutusu bağlayın",
+    "subtitle": "Müşteri e-postalarını talep olarak alın.",
+    "imapPlaceholder": "IMAP sunucusu",
+    "smtpPlaceholder": "SMTP sunucusu",
+    "passwordPlaceholder": "Uygulama şifresi / kimlik bilgileri",
+    "connect": "Bağla ve devam et",
+    "skip": "Şimdilik atla"
+  },
+  "team": {
+    "title": "Ekibinizi davet edin",
+    "subtitle": "Talepleri yönetecek temsilcileri ekleyin.",
+    "sendInvites": "Davet gönder",
+    "skip": "Şimdilik atla"
+  },
+  "done": {
+    "title": "Hazırsınız!",
+    "subtitle": "Yardım masanız hazır. Talepleri yönetmeye başlayın.",
+    "viewTickets": "Talepleri görüntüle",
+    "dashboard": "Panoya git"
+  },
+  "back": "Geri"
+}

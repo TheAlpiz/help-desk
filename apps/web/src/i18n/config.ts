@@ -26,6 +26,7 @@ import enBilling from "./locales/en/billing.json";
 import enMarketing from "./locales/en/marketing.json";
 import enWhatsapp from "./locales/en/whatsapp.json";
 import enApiTokens from "./locales/en/apiTokens.json";
+import enOnboarding from "./locales/en/onboarding.json";
 
 // ── TR namespaces ─────────────────────────────────────────────────────────────
 import trCommon from "./locales/tr/common.json";
@@ -51,6 +52,7 @@ import trBilling from "./locales/tr/billing.json";
 import trMarketing from "./locales/tr/marketing.json";
 import trWhatsapp from "./locales/tr/whatsapp.json";
 import trApiTokens from "./locales/tr/apiTokens.json";
+import trOnboarding from "./locales/tr/onboarding.json";
 
 export const SUPPORTED_LANGUAGES = ["en", "tr"] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
@@ -86,6 +88,7 @@ export const NAMESPACES = [
   "marketing",
   "whatsapp",
   "apiTokens",
+  "onboarding",
 ] as const;
 
 export type Namespace = (typeof NAMESPACES)[number];
@@ -119,6 +122,7 @@ i18n
         marketing: enMarketing,
         whatsapp: enWhatsapp,
         apiTokens: enApiTokens,
+        onboarding: enOnboarding,
       },
       tr: {
         common: trCommon,
@@ -144,6 +148,7 @@ i18n
         marketing: trMarketing,
         whatsapp: trWhatsapp,
         apiTokens: trApiTokens,
+        onboarding: trOnboarding,
       },
     },
     defaultNS: "common",

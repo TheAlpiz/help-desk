@@ -1,5 +1,6 @@
 {
   "globalUsers": {
+    "title": "Global Kullanıcılar",
     "editTitle": "Kullanıcıyı Düzenle",
     "deleteTitle": "Kullanıcıyı Sil",
     "emailReadOnly": "E-posta (salt okunur)",
@@ -31,6 +32,7 @@
     "noUsers": "Kullanıcı bulunamadı"
   },
   "globalRoles": {
+    "title": "Global Roller",
     "newRole": "Yeni Global Rol",
     "systemWideDesc": "Tüm kiracılarda paylaşılan sistem genelinde roller.",
     "loadFailed": "Global roller yüklenemedi.",

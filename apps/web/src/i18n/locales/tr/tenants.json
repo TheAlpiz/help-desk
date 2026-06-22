@@ -1,4 +1,21 @@
 {
+  "title": "Organizasyonlar",
+  "detail": {
+    "superAdminOnly": "Yalnızca süper yönetici",
+    "notFound": "Organizasyon bulunamadı",
+    "allOrgs": "Tüm Organizasyonlar",
+    "domain": "Alan Adı",
+    "created": "Oluşturulma",
+    "updated": "Güncellenme",
+    "actions": "İşlemler",
+    "suspend": "Organizasyonu askıya al",
+    "reactivate": "Yeniden etkinleştir",
+    "dangerZone": "Tehlikeli alan — geri alınamaz",
+    "deleteConfirm": "\"{{name}}\" ve tüm verileri silinsin mi? Bu işlem geri alınamaz.",
+    "deleteOrg": "Organizasyonu sil",
+    "statusUpdated": "Organizasyon durumu güncellendi",
+    "deleted": "Organizasyon silindi"
+  },
   "stats": {
     "total": "Toplam Kiracı",
     "active": "Aktif",

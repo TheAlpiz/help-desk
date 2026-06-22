@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { api } from "@/lib/api";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import {
   Building2,
   Inbox,
@@ -18,41 +19,43 @@ export const Route = createFileRoute("/_auth/onboarding")({
   component: Onboarding,
 });
 
-const STEPS = [
-  { id: "org", label: "Your org", icon: Building2 },
-  { id: "mailbox", label: "Connect mailbox", icon: Inbox },
-  { id: "team", label: "Invite team", icon: Users },
-  { id: "done", label: "All set!", icon: CheckCircle },
-] as const;
+function useSteps() {
+  const { t } = useTranslation("onboarding");
+  return [
+    { id: "org", label: t("steps.org"), icon: Building2 },
+    { id: "mailbox", label: t("steps.mailbox"), icon: Inbox },
+    { id: "team", label: t("steps.team"), icon: Users },
+    { id: "done", label: t("steps.done"), icon: CheckCircle },
+  ] as const;
+}
 
 
 
 function OrgStep({ onNext }: { onNext: () => void }) {
+  const { t } = useTranslation("onboarding");
   const [name, setName] = useState("");
   const [supportEmail, setSupportEmail] = useState("");
 
   const save = useMutation({
     mutationFn: async () => {
       if (!name.trim()) return;
-      
+
       const tenantId = useAppStore.getState().tenantId!;
-      
-      // 1. Update org name
+
       const resOrg = await api.organizations[":id"].$put({
         param: { id: tenantId },
         json: { name } as any,
       });
       if (!resOrg.ok) throw new Error("Failed to update org");
 
-      // 2. Update support email via branding endpoint
       if (supportEmail.trim()) {
         const currentRes = await (api.organizations as any).branding.$get();
         const currentBranding = currentRes.ok ? (await currentRes.json())?.data || {} : {};
-        
+
         const resBranding = await (api.organizations as any).branding.$put({
-          json: { 
+          json: {
             ...currentBranding,
-            supportEmail: supportEmail.trim() 
+            supportEmail: supportEmail.trim()
           } as any,
         });
         if (!resBranding.ok) throw new Error("Failed to update support email");
@@ -65,27 +68,28 @@ function OrgStep({ onNext }: { onNext: () => void }) {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-bold text-on-surface">Set up your organization</h2>
-        <p className="text-sm text-on-surface-variant mt-1">Tell us about your support team.</p>
+        <h2 className="text-lg font-bold text-on-surface">{t("org.title")}</h2>
+        <p className="text-sm text-on-surface-variant mt-1">{t("org.subtitle")}</p>
       </div>
       <div className="space-y-3">
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-on-surface">Organization name</label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Acme Inc." />
+          <label className="text-sm font-medium text-on-surface">{t("org.nameLabel")}</label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("org.namePlaceholder")} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-on-surface">Support email</label>
-          <Input value={supportEmail} onChange={(e) => setSupportEmail(e.target.value)} placeholder="support@acme.com" type="email" />
+          <label className="text-sm font-medium text-on-surface">{t("org.emailLabel")}</label>
+          <Input value={supportEmail} onChange={(e) => setSupportEmail(e.target.value)} placeholder={t("org.emailPlaceholder")} type="email" />
         </div>
       </div>
       <Button fullWidth onClick={() => save.mutate()} disabled={!name.trim() || save.isPending} loading={save.isPending}>
-        Continue <ChevronRight className="w-4 h-4" />
+        {t("org.continue")} <ChevronRight className="w-4 h-4" />
       </Button>
     </div>
   );
 }
 
 function MailboxStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {
+  const { t } = useTranslation("onboarding");
   const [email, setEmail] = useState("");
   const [imapHost, setImapHost] = useState("");
   const [smtpHost, setSmtpHost] = useState("");
@@ -114,29 +118,30 @@ function MailboxStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => voi
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-bold text-on-surface">Connect a mailbox</h2>
-        <p className="text-sm text-on-surface-variant mt-1">Receive customer emails as tickets.</p>
+        <h2 className="text-lg font-bold text-on-surface">{t("mailbox.title")}</h2>
+        <p className="text-sm text-on-surface-variant mt-1">{t("mailbox.subtitle")}</p>
       </div>
       <div className="space-y-3">
         <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="support@company.com" type="email" />
         <div className="grid grid-cols-2 gap-3">
-          <Input value={imapHost} onChange={(e) => setImapHost(e.target.value)} placeholder="IMAP host" />
-          <Input value={smtpHost} onChange={(e) => setSmtpHost(e.target.value)} placeholder="SMTP host" />
+          <Input value={imapHost} onChange={(e) => setImapHost(e.target.value)} placeholder={t("mailbox.imapPlaceholder")} />
+          <Input value={smtpHost} onChange={(e) => setSmtpHost(e.target.value)} placeholder={t("mailbox.smtpPlaceholder")} />
         </div>
-        <Input value={imapPassword} onChange={(e) => setImapPassword(e.target.value)} placeholder="App password / credentials" type="password" />
+        <Input value={imapPassword} onChange={(e) => setImapPassword(e.target.value)} placeholder={t("mailbox.passwordPlaceholder")} type="password" />
       </div>
       <FormError>{connect.error ? (connect.error as Error).message : undefined}</FormError>
       <Button fullWidth onClick={() => connect.mutate()} disabled={!email || !imapHost || !smtpHost || connect.isPending} loading={connect.isPending}>
-        Connect & continue <ChevronRight className="w-4 h-4" />
+        {t("mailbox.connect")} <ChevronRight className="w-4 h-4" />
       </Button>
       <button onClick={onSkip} className="w-full text-sm text-on-surface-variant/50 hover:text-on-surface-variant transition-colors py-1">
-        Skip for now
+        {t("mailbox.skip")}
       </button>
     </div>
   );
 }
 
 function TeamStep({ onNext }: { onNext: () => void }) {
+  const { t } = useTranslation("onboarding");
   const [emails, setEmails] = useState(["", "", ""]);
 
   const invite = useMutation({
@@ -157,8 +162,8 @@ function TeamStep({ onNext }: { onNext: () => void }) {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-bold text-on-surface">Invite your team</h2>
-        <p className="text-sm text-on-surface-variant mt-1">Add agents who'll handle tickets.</p>
+        <h2 className="text-lg font-bold text-on-surface">{t("team.title")}</h2>
+        <p className="text-sm text-on-surface-variant mt-1">{t("team.subtitle")}</p>
       </div>
       <div className="space-y-2">
         {emails.map((email, i) => (
@@ -172,16 +177,17 @@ function TeamStep({ onNext }: { onNext: () => void }) {
         ))}
       </div>
       <Button fullWidth onClick={() => invite.mutate()} disabled={invite.isPending} loading={invite.isPending}>
-        Send invites <ChevronRight className="w-4 h-4" />
+        {t("team.sendInvites")} <ChevronRight className="w-4 h-4" />
       </Button>
       <button onClick={onNext} className="w-full text-sm text-on-surface-variant/50 hover:text-on-surface-variant transition-colors py-1">
-        Skip for now
+        {t("team.skip")}
       </button>
     </div>
   );
 }
 
 function DoneStep() {
+  const { t } = useTranslation("onboarding");
   const navigate = useNavigate();
   return (
     <div className="text-center space-y-5">
@@ -189,16 +195,16 @@ function DoneStep() {
         <CheckCircle className="w-8 h-8 text-emerald-400" />
       </div>
       <div>
-        <h2 className="text-lg font-bold text-on-surface">You're all set!</h2>
-        <p className="text-sm text-on-surface-variant mt-1">Your help desk is ready. Start handling tickets.</p>
+        <h2 className="text-lg font-bold text-on-surface">{t("done.title")}</h2>
+        <p className="text-sm text-on-surface-variant mt-1">{t("done.subtitle")}</p>
       </div>
       <div className="flex flex-col gap-2">
         <Button fullWidth onClick={() => navigate({ to: "/tickets" })}>
           <Ticket className="w-4 h-4" />
-          View tickets
+          {t("done.viewTickets")}
         </Button>
         <Button fullWidth variant="secondary" onClick={() => navigate({ to: "/dashboard" })}>
-          Go to dashboard
+          {t("done.dashboard")}
         </Button>
       </div>
     </div>
@@ -206,8 +212,9 @@ function DoneStep() {
 }
 
 function Onboarding() {
+  const { t } = useTranslation("onboarding");
+  const STEPS = useSteps();
   const [step, setStep] = useState(0);
-  const currentStep = STEPS[step];
 
   return (
     <div className="min-h-[calc(100dvh-6rem)] flex items-center justify-center p-6">
@@ -247,7 +254,7 @@ function Onboarding() {
               className="flex items-center gap-1 text-xs text-on-surface-variant/50 hover:text-on-surface-variant transition-colors"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
-              Back
+              {t("back")}
             </button>
           )}
         </div>

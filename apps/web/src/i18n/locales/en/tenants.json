@@ -1,4 +1,21 @@
 {
+  "title": "Organizations",
+  "detail": {
+    "superAdminOnly": "Super admin only",
+    "notFound": "Organization not found",
+    "allOrgs": "All Organizations",
+    "domain": "Domain",
+    "created": "Created",
+    "updated": "Updated",
+    "actions": "Actions",
+    "suspend": "Suspend organization",
+    "reactivate": "Reactivate",
+    "dangerZone": "Danger zone — irreversible",
+    "deleteConfirm": "Delete \"{{name}}\" and all its data? This cannot be undone.",
+    "deleteOrg": "Delete organization",
+    "statusUpdated": "Organization status updated",
+    "deleted": "Organization deleted"
+  },
   "stats": {
     "total": "Total Tenants",
     "active": "Active",
