@@ -270,11 +270,11 @@ function ConnectMailboxModal({ onClose }: { onClose: () => void }) {
         if (value.imapHost) payload.imapHost = value.imapHost;
         if (value.imapPort) payload.imapPort = value.imapPort;
         if (value.imapUser) payload.imapUser = value.imapUser;
-        if (value.imapPassword) payload.imapPasswordEncrypted = value.imapPassword;
+        if (value.imapPassword) payload.imapPassword = value.imapPassword;
         if (value.smtpHost) payload.smtpHost = value.smtpHost;
         if (value.smtpPort) payload.smtpPort = value.smtpPort;
         if (value.smtpUser) payload.smtpUser = value.smtpUser;
-        if (value.smtpPassword) payload.smtpPasswordEncrypted = value.smtpPassword;
+        if (value.smtpPassword) payload.smtpPassword = value.smtpPassword;
 
         const res = await api.mailboxes.index.$post({ json: payload as any });
         const body = await res.json() as any;
@@ -346,11 +346,11 @@ function EditMailboxModal({ mailbox, onClose }: { mailbox: Mailbox; onClose: () 
         if (value.imapHost) payload.imapHost = value.imapHost;
         if (value.imapPort) payload.imapPort = value.imapPort;
         if (value.imapUser) payload.imapUser = value.imapUser;
-        if (value.imapPassword) payload.imapPasswordEncrypted = value.imapPassword;
+        if (value.imapPassword) payload.imapPassword = value.imapPassword;
         if (value.smtpHost) payload.smtpHost = value.smtpHost;
         if (value.smtpPort) payload.smtpPort = value.smtpPort;
         if (value.smtpUser) payload.smtpUser = value.smtpUser;
-        if (value.smtpPassword) payload.smtpPasswordEncrypted = value.smtpPassword;
+        if (value.smtpPassword) payload.smtpPassword = value.smtpPassword;
 
         const res = await api.mailboxes[":id"].$put({ param: { id: mailbox.id }, json: payload as any });
         const body = await res.json() as any;
