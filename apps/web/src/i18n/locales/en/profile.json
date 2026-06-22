@@ -1,0 +1,69 @@
+{
+  "title": "Profile",
+  "subtitle": "Manage your personal information.",
+  "sections": {
+    "personalInfo": "Personal information",
+    "preferences": "Preferences",
+    "language": "Language",
+    "theme": "Theme",
+    "timezone": "Timezone",
+    "locale": "Locale"
+  },
+  "fields": {
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email address",
+    "phone": "Phone",
+    "avatar": "Avatar",
+    "bio": "Bio",
+    "preferredLanguage": "Preferred language",
+    "timezone": "Timezone",
+    "role": "Role",
+    "locale": "Locale"
+  },
+  "emailHint": "Email changes require verification — contact your admin.",
+  "save": "Save profile",
+  "saved": "Profile saved",
+  "saveChanges": "Save changes",
+  "savedChanges": "Saved!",
+  "savePreferences": "Save preferences",
+  "savedPreferences": "Saved!",
+  "preferencesSaved": "Preferences saved",
+  "profileUpdated": "Profile updated",
+  "profileUpdateFailed": "Failed to save changes",
+  "languageSaved": "Language preference saved",
+  "theme": {
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "links": {
+    "changePassword": "Change password",
+    "notificationPreferences": "Notification preferences",
+    "apiTokens": "API tokens"
+  },
+  "changePassword": {
+    "title": "Change password",
+    "current": "Current password",
+    "new": "New password",
+    "confirm": "Confirm new password",
+    "submit": "Update password",
+    "success": "Password updated successfully.",
+    "minLength": "Password must be at least 8 characters",
+    "mismatch": "Passwords do not match",
+    "currentRequired": "Enter your current password",
+    "failed": "Could not update password"
+  },
+  "security": {
+    "title": "Account Security",
+    "subtitle": "Manage your password and active sessions.",
+    "twoFactor": "Two-factor authentication",
+    "activeSessions": "Active sessions",
+    "revokeAll": "Revoke all sessions",
+    "signOutAll": "Sign out all",
+    "noSessions": "No active sessions found",
+    "unknownDevice": "Unknown device",
+    "sessionRevoked": "Session revoked",
+    "sessionsLoadError": "Could not load sessions. Please try again."
+  }
+}

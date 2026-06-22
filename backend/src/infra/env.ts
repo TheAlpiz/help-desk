@@ -17,6 +17,15 @@ export const env = cleanEnv(process.env, {
   // Set to a parent domain (e.g. ".alpis.app") to share the refresh cookie across subdomains.
   COOKIE_DOMAIN: str({ default: "" }),
   SENTRY_DSN: str({ default: "" }),
+  // Platform transactional email (auth flows: password reset, verification, invites).
+  // Leave SMTP_HOST empty in local dev — sendAuthEmail then logs the link instead of
+  // sending, keeping flows testable end-to-end without a real mailserver.
+  SMTP_HOST: str({ default: "" }),
+  SMTP_PORT: port({ default: 587 }),
+  SMTP_SECURE: bool({ default: false }),
+  SMTP_USER: str({ default: "" }),
+  SMTP_PASS: str({ default: "" }),
+  SMTP_FROM: str({ default: "no-reply@alpis.app" }),
   PORT: port({ default: 3000 }),
   LOG_LEVEL: str({ default: "info" }),
   REDIS_URL: str({ default: "redis://localhost:6379" }),

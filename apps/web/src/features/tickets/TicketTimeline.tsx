@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { authFetch } from "@/lib/api";
+import { useTranslation } from "react-i18next";
+import { api } from "@/lib/api";
 import { useAppStore } from "@/store";
 import {
   Clock,
@@ -9,6 +10,7 @@ import {
   MessageSquare,
   ArrowRight,
   ShieldCheck,
+  Zap,
 } from "lucide-react";
 
 type TimelineEntry = {
@@ -21,41 +23,27 @@ type TimelineEntry = {
 };
 
 const ACTION_ICONS: Record<string, React.ReactNode> = {
-  "ticket.created": <MessageSquare className="w-3 h-3 text-primary" />,
-  "ticket.assigned": <UserCheck className="w-3 h-3 text-violet-400" />,
-  "ticket.status_changed": <ArrowRight className="w-3 h-3 text-amber-400" />,
-  "ticket.priority_changed": <ShieldCheck className="w-3 h-3 text-orange-400" />,
-  "ticket.tag_added": <Tag className="w-3 h-3 text-emerald-400" />,
-  "ticket.tag_removed": <Tag className="w-3 h-3 text-red-400" />,
-  "ticket.message_added": <MessageSquare className="w-3 h-3 text-blue-400" />,
-  "ticket.attachment_added": <Paperclip className="w-3 h-3 text-on-surface-variant" />,
-  "ticket.merged": <ArrowRight className="w-3 h-3 text-red-400" />,
-};
-
-const ACTION_LABELS: Record<string, (e: TimelineEntry) => string> = {
-  "ticket.created": () => "Ticket created",
-  "ticket.assigned": (e) => `Assigned to ${e.after?.assigneeName ?? "agent"}`,
-  "ticket.status_changed": (e) => `Status → ${e.after?.status ?? ""}`,
-  "ticket.priority_changed": (e) => `Priority → ${e.after?.priority ?? ""}`,
-  "ticket.tag_added": (e) => `Tag added: ${e.after?.tag ?? ""}`,
-  "ticket.tag_removed": (e) => `Tag removed: ${e.before?.tag ?? ""}`,
-  "ticket.message_added": (e) =>
-    e.after?.type === "INTERNAL_NOTE" ? "Internal note added" : "Reply sent",
-  "ticket.attachment_added": () => "Attachment uploaded",
-  "ticket.merged": (e) => `Merged into ${e.after?.targetTicketId ?? "ticket"}`,
+  created: <MessageSquare className="w-3 h-3 text-primary" />,
+  assigned: <UserCheck className="w-3 h-3 text-violet-400" />,
+  status_changed: <ArrowRight className="w-3 h-3 text-amber-400" />,
+  priority_changed: <ShieldCheck className="w-3 h-3 text-orange-400" />,
+  tag_added: <Tag className="w-3 h-3 text-emerald-400" />,
+  tag_removed: <Tag className="w-3 h-3 text-red-400" />,
+  message_added: <MessageSquare className="w-3 h-3 text-blue-400" />,
+  attachment_added: <Paperclip className="w-3 h-3 text-on-surface-variant" />,
+  merged: <ArrowRight className="w-3 h-3 text-red-400" />,
+  automation_fired: <Zap className="w-3 h-3 text-primary" />,
 };
 
 export function TicketTimeline({ ticketId }: { ticketId: string }) {
+  const { t } = useTranslation("tickets");
   const { data, isLoading } = useQuery({
     queryKey: ["ticket-audit", ticketId],
     queryFn: async () => {
-      const state = useAppStore.getState();
-      const headers: Record<string, string> = {};
-      if (state.accessToken) headers["Authorization"] = `Bearer ${state.accessToken}`;
-      if (state.tenantId) headers["X-Tenant-ID"] = state.tenantId;
-      const res = await authFetch(`/api/auditLogs/ticket/${ticketId}`, { headers });
+      const res = await api.auditLogs[":entityType"][":entityId"].$get({ param: { entityType: "ticket", entityId: ticketId } });
+      const body = await res.json() as any;
       if (!res.ok) return { data: [] };
-      return res.json();
+      return body;
     },
   });
 
@@ -91,7 +79,17 @@ export function TicketTimeline({ ticketId }: { ticketId: string }) {
               const icon = ACTION_ICONS[entry.action] ?? (
                 <Clock className="w-3 h-3 text-on-surface-variant/40" />
               );
-              const label = ACTION_LABELS[entry.action]?.(entry) ?? entry.action;
+              let label = entry.action;
+              if (entry.action === "created") label = t("timeline.created");
+              else if (entry.action === "status_changed") label = t(`timeline.status_changed`, { status: t(`statuses.${entry.after?.status ?? ""}`) || entry.after?.status });
+              else if (entry.action === "assigned") label = t("timeline.assigned", { name: entry.after?.assigneeName ?? "agent" });
+              else if (entry.action === "priority_changed") label = t("timeline.priority_changed", { priority: t(`priorities.${entry.after?.priority ?? ""}`) || entry.after?.priority });
+              else if (entry.action === "tag_added") label = t("timeline.tag_added", { tag: entry.after?.tag ?? "" });
+              else if (entry.action === "tag_removed") label = t("timeline.tag_removed", { tag: entry.before?.tag ?? "" });
+              else if (entry.action === "message_added") label = entry.after?.type === "INTERNAL_NOTE" ? t("timeline.message_added_note") : t("timeline.message_added_reply");
+              else if (entry.action === "attachment_added") label = t("timeline.attachment_added");
+              else if (entry.action === "merged") label = t("timeline.merged", { target: entry.after?.targetTicketId ?? "ticket" });
+              else if (entry.action === "automation_fired") label = t("timeline.automation_fired");
               return (
                 <div key={entry.id} className="flex gap-2.5 items-start relative">
                   <div className="w-5 h-5 rounded-full bg-surface-container-high border border-outline-variant flex items-center justify-center shrink-0 z-10">

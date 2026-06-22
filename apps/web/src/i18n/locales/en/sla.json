@@ -1,0 +1,159 @@
+{
+  "title": "SLA",
+  "new": "New SLA Policy",
+  "edit": "Edit SLA Policy",
+  "count_one": "{{count}} policy",
+  "count_other": "{{count}} policies",
+  "tabs": {
+    "policies": "Policies",
+    "breach": "Breach Dashboard",
+    "hours": "Business Hours",
+    "escalation": "Escalation Rules"
+  },
+  "priorities": {
+    "any": "Any priority",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical"
+  },
+  "fields": {
+    "name": "Name",
+    "firstResponseHours": "First response (hours)",
+    "resolutionHours": "Resolution (hours)",
+    "department": "Department",
+    "priority": "Priority",
+    "businessHours": "Business hours only"
+  },
+  "table": {
+    "intro": "Define response and resolution time targets.",
+    "newPolicy": "New Policy",
+    "loadError": "Failed to load SLA policies.",
+    "policyName": "Policy Name",
+    "firstResponse": "First Response",
+    "resolution": "Resolution",
+    "department": "Department",
+    "priority": "Priority",
+    "status": "Status",
+    "actions": "Actions",
+    "any": "Any",
+    "active": "Active",
+    "inactive": "Inactive",
+    "edit": "Edit",
+    "delete": "Delete",
+    "emptyTitle": "No SLA policies yet",
+    "createFirst": "Create first policy"
+  },
+  "duration": {
+    "min": "{{count}} min",
+    "hours": "{{count}}h",
+    "hoursMins": "{{hours}}h {{mins}}m"
+  },
+  "modal": {
+    "createTitle": "New SLA Policy",
+    "editTitle": "Edit SLA Policy",
+    "deleteTitle": "Delete SLA Policy",
+    "policyName": "Policy Name *",
+    "policyNamePlaceholder": "e.g. Standard SLA",
+    "firstResponseMin": "First Response (min) *",
+    "resolutionMin": "Resolution (min) *",
+    "departmentOptional": "Department (optional)",
+    "anyDepartment": "Any department",
+    "priorityOptional": "Priority (optional)",
+    "catchAllHint": "Leave department/priority empty for a catch-all policy. More specific policies take precedence.",
+    "activePolicy": "Active policy",
+    "cancel": "Cancel",
+    "createPolicy": "Create Policy",
+    "saveChanges": "Save Changes",
+    "deleteConfirmPre": "Delete",
+    "deleteConfirmPost": "? Cannot be undone.",
+    "delete": "Delete",
+    "errors": {
+      "nameRequired": "Name is required",
+      "minMinute": "Min 1 minute",
+      "createFailed": "Failed to create SLA policy",
+      "updateFailed": "Failed to update SLA policy",
+      "deleteFailed": "Failed to delete",
+      "generic": "An error occurred"
+    }
+  },
+  "breach": {
+    "title": "SLA Breach Dashboard",
+    "breached": "Breached",
+    "atRisk": "At Risk",
+    "atRiskWindow": "At risk (< 2h)",
+    "totalActive": "Total active",
+    "healthy": "Healthy",
+    "noBreaches": "No breached SLAs",
+    "atRiskTickets": "At-risk tickets",
+    "resolution": "Resolution",
+    "firstResponse": "First response",
+    "allWithinTitle": "All tickets within SLA",
+    "allWithinSubtitle": "No tickets are at risk of breaching SLA"
+  },
+  "businessHours": {
+    "title": "Business Hours",
+    "description": "Configure when your SLA clock runs. Outside these hours, SLA timers pause.",
+    "timezone": "Timezone",
+    "colDay": "Day",
+    "colOn": "On",
+    "colStart": "Start",
+    "colEnd": "End",
+    "save": "Save schedule",
+    "saved": "Business hours saved",
+    "saveFailed": "Save failed",
+    "days": {
+      "Monday": "Monday",
+      "Tuesday": "Tuesday",
+      "Wednesday": "Wednesday",
+      "Thursday": "Thursday",
+      "Friday": "Friday",
+      "Saturday": "Saturday",
+      "Sunday": "Sunday"
+    }
+  },
+  "escalation": {
+    "intro": "Rules fire automatically when SLA conditions are met.",
+    "addRule": "Add rule",
+    "empty": "No escalation rules. Add one to get started.",
+    "newRule": "New rule",
+    "ruleName": "Rule name",
+    "deleteRule": "Delete rule",
+    "enableRule": "Enable rule",
+    "disableRule": "Disable rule",
+    "when": "When",
+    "threshold": "Threshold (minutes)",
+    "thenDo": "Then do",
+    "save": "Save rules",
+    "loadError": "Failed to load rules",
+    "createFailed": "Create failed",
+    "updateFailed": "Update failed",
+    "deleteFailed": "Delete failed",
+    "toggleFailed": "Toggle failed",
+    "saved": "Escalation rules saved",
+    "needsAction": "Rule \"{{name}}\" needs at least one action",
+    "conditions": {
+      "breach_imminent": "SLA breach imminent (within threshold)",
+      "first_breach": "First SLA breach",
+      "repeated_breach": "Repeated SLA breach",
+      "no_response": "No agent response within threshold"
+    },
+    "actions": {
+      "notify_agent": "Notify assigned agent",
+      "notify_manager": "Notify team manager",
+      "reassign": "Reassign to available agent",
+      "add_tag": "Add escalated tag",
+      "increase_priority": "Increase ticket priority"
+    }
+  },
+  "empty": {
+    "title": "No SLA policies",
+    "subtitle": "Create policies to track response and resolution times."
+  },
+  "countdown": {
+    "met": "{{label}} met",
+    "closed": "Ticket closed",
+    "noSla": "No SLA",
+    "breached": "Breached {{duration}} ago"
+  }
+}

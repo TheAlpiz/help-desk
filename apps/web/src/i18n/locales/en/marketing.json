@@ -1,0 +1,381 @@
+{
+  "nav": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "docs": "Docs",
+    "changelog": "Changelog",
+    "signIn": "Sign in",
+    "getStarted": "Get started"
+  },
+  "features": {
+    "hero": {
+      "title": "Built for speed.\nDesigned for scale.",
+      "subtitle": "Discover how Alpis empowers IT teams to resolve issues faster, automate the mundane, and deliver exceptional support across the entire organization.",
+      "startTrial": "Start your free trial"
+    },
+    "sections": {
+      "omnichannel": {
+        "title": "Omnichannel Ticketing",
+        "description": "One unified inbox for every single request.",
+        "features": [
+          "Ingest tickets from email, web portal, API, and chat integrations.",
+          "Automatic thread parsing for pristine conversation views.",
+          "Smart collision detection prevents multiple agents replying at once.",
+          "Custom ticket forms with conditional logic for the portal."
+        ]
+      },
+      "automation": {
+        "title": "Intelligent Automation",
+        "description": "Put your most common workflows on autopilot.",
+        "features": [
+          "Time-based and event-based trigger rules.",
+          "Auto-assign tickets based on workload, skill set, or department.",
+          "One-click macro execution for common responses.",
+          "Automated SLA breach escalations via SMS or PagerDuty."
+        ]
+      },
+      "security": {
+        "title": "Enterprise Security",
+        "description": "Bank-grade security built directly into the database.",
+        "features": [
+          "Row-Level Security (RLS) ensures absolute tenant data isolation.",
+          "Attribute-Based Access Control (ABAC) for granular viewing permissions.",
+          "Comprehensive audit logs tracking every state mutation.",
+          "SOC2 compliance ready architecture."
+        ]
+      },
+      "analytics": {
+        "title": "Advanced Analytics",
+        "description": "Insights that drive your team's performance.",
+        "features": [
+          "Real-time dashboards for queue health and agent performance.",
+          "Custom report builder with CSV/PDF exports.",
+          "Deep dive into SLA achievement rates and resolution bottlenecks.",
+          "CSAT tracking and automated feedback collection."
+        ]
+      }
+    },
+    "cta": {
+      "title": "Ready to transform your service desk?",
+      "subtitle": "Join hundreds of forward-thinking IT teams already using Alpis.",
+      "btn": "Get Started Now"
+    }
+  },
+  "pricing": {
+    "hero": {
+      "title": "Pricing that scales with you",
+      "subtitle": "Start for free, upgrade when you need advanced features. No hidden fees, no per-ticket overages."
+    },
+    "mostPopular": "Most Popular",
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "tagline": "Perfect for small teams and startups.",
+        "price": "$0",
+        "period": "/ forever",
+        "cta": "Get Started",
+        "includesLabel": "Includes:",
+        "features": [
+          "Up to 3 agents",
+          "1 connected mailbox",
+          "500 tickets/month",
+          "Standard support",
+          "Community forum access"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "tagline": "For growing IT teams needing automation.",
+        "price": "$49",
+        "period": "/ mo per 5 agents",
+        "cta": "Start 14-day free trial",
+        "includesLabel": "Everything in Starter, plus:",
+        "features": [
+          "Unlimited tickets",
+          "10 connected mailboxes",
+          "SLA management rules",
+          "Automated workflows",
+          "Role-based access control",
+          "Priority email support"
+        ]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "tagline": "Advanced security and compliance.",
+        "price": "Custom",
+        "cta": "Contact Sales",
+        "includesLabel": "Everything in Pro, plus:",
+        "features": [
+          "Self-hosted deployment",
+          "SAML SSO / SCIM",
+          "Unlimited mailboxes",
+          "Custom integration support",
+          "Dedicated success manager",
+          "99.99% uptime SLA"
+        ]
+      }
+    },
+    "compare": {
+      "title": "Compare Plans",
+      "featureCol": "Feature",
+      "rows": [
+        { "label": "Agents included", "s": "3", "p": "5 (base)", "e": "Custom" },
+        { "label": "Monthly tickets", "s": "500", "p": "Unlimited", "e": "Unlimited" },
+        { "label": "Mailboxes", "s": "1", "p": "10", "e": "Unlimited" },
+        { "label": "SLA Management" },
+        { "label": "Automations" },
+        { "label": "Custom Domains" },
+        { "label": "RBAC & ABAC" },
+        { "label": "SSO (SAML)" },
+        { "label": "Self-hosting" }
+      ]
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Still have questions?",
+      "contactLink": "Contact our team.",
+      "items": [
+        {
+          "q": "Do I need a credit card to sign up?",
+          "a": "No! You can sign up and use our Starter plan entirely for free without entering any payment information. You only need a card if you decide to upgrade to Pro."
+        },
+        {
+          "q": "How does the 'per 5 agents' pricing work?",
+          "a": "Our Pro plan is billed in blocks of 5 agents. If you have 1-5 agents, it's $49/mo. For 6-10 agents, it's $98/mo. This simplifies billing and avoids micromanaging licenses."
+        },
+        {
+          "q": "Can I self-host Alpis?",
+          "a": "Yes, self-hosting is available on our Enterprise plan. We provide Docker images and Helm charts for deployment on your own infrastructure. Contact sales for details."
+        },
+        {
+          "q": "What constitutes a 'mailbox'?",
+          "a": "A mailbox is an email address you connect via IMAP/SMTP (e.g., support@yourcompany.com). The Starter plan includes 1 mailbox, Pro includes 10."
+        }
+      ]
+    }
+  },
+  "security": {
+    "hero": {
+      "title": "Security by Design",
+      "subtitle": "Security isn't an afterthought at Alpis. It's woven into the fabric of our architecture, ensuring your data remains isolated, encrypted, and compliant."
+    },
+    "cards": {
+      "dbIsolation": {
+        "title": "Database-Level Isolation",
+        "p1": "Unlike legacy SaaS platforms that rely on flawed application-level filtering, Alpis leverages <strong>PostgreSQL Row Level Security (RLS)</strong>.",
+        "p2": "Every query is cryptographically scoped to the current tenant at the database engine level. A bug in application code cannot leak data."
+      },
+      "encryption": {
+        "title": "End-to-End Encryption",
+        "p1": "<strong>In Transit:</strong> All data transmitted between your browser and our API is encrypted using TLS 1.3 with strict HSTS policies enforced.",
+        "p2": "<strong>At Rest:</strong> Databases, automated backups, and file storage volumes are encrypted at rest using industry-standard AES-256 encryption."
+      },
+      "auth": {
+        "title": "Authentication & Access",
+        "items": [
+          "SSO via SAML and OpenID Connect (Enterprise)",
+          "Passwords hashed using Argon2id algorithms",
+          "Short-lived signed JWT session tokens",
+          "Strict Role-Based Access Control (RBAC)",
+          "Attribute-Based Access Control (ABAC) scopes"
+        ]
+      },
+      "infra": {
+        "title": "Infrastructure & Compliance",
+        "p1": "Alpis is hosted on SOC 2 compliant infrastructure (AWS). We conduct regular penetration testing and vulnerability scanning.",
+        "badge": "SOC 2 Type II Pending"
+      }
+    },
+    "disclosure": {
+      "title": "Vulnerability Disclosure",
+      "subtitle": "We believe in working closely with the security research community. If you've found a vulnerability, please disclose it responsibly.",
+      "cta": "Report via security@alpis.io"
+    }
+  },
+  "contact": {
+    "hero": {
+      "title": "Get in touch",
+      "subtitle": "Whether you have questions about pricing, features, or need help setting up a custom integration, our team is here for you."
+    },
+    "channels": {
+      "sales": {
+        "title": "Chat with sales",
+        "subtitle": "Speak directly to our sales team about Enterprise plans."
+      },
+      "support": {
+        "title": "Customer support",
+        "subtitle": "Need technical assistance with your instance?"
+      },
+      "hq": {
+        "title": "Global Headquarters",
+        "address": "100 Innovation Drive\nSuite 400\nSan Francisco, CA 94111"
+      }
+    },
+    "form": {
+      "title": "Send us a message",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "workEmail": "Work email",
+      "message": "How can we help?",
+      "messagePlaceholder": "Tell us about your team's needs...",
+      "submit": "Send Message",
+      "privacyPrefix": "By submitting this form, you agree to our",
+      "privacyLink": "Privacy Policy"
+    }
+  },
+  "landing": {
+    "hero": {
+      "headline1": "Service desk built for",
+      "headline2": "teams that scale.",
+      "subtitle": "Multi-tenant ticketing, email ingestion, SLA enforcement, and real-time notifications - in one platform for MSPs and IT teams.",
+      "startFree": "Start for free",
+      "howItWorks": "See how it works",
+      "badges": ["No credit card required", "Free 14-day trial", "SOC 2 ready"]
+    },
+    "trustedBy": "Trusted by IT teams at",
+    "featureGrid": {
+      "heading1": "Everything your team needs.",
+      "heading2": "Nothing it doesn't.",
+      "features": [
+        { "title": "Unified ticket engine", "body": "Email, portal, and API - all channels flow into one queue. Status, priority, SLA, assignee, tags, and full history on every ticket." },
+        { "title": "Row-level security", "body": "Postgres RLS enforces tenant isolation at the database layer. No application-level filtering that can be bypassed." },
+        { "title": "IMAP/SMTP mailboxes", "body": "Connect unlimited mailboxes per org. STARTTLS, OAuth, RFC-compliant threading." },
+        { "title": "SLA policies", "body": "Define response and resolution targets per priority. Breach alerts auto-escalate." },
+        { "title": "RBAC + ABAC", "body": "Four system roles with granular permissions. ABAC scoping limits what agents can see." },
+        { "title": "Channel notifications", "body": "In-app, email, push, and SMS fan-out. Per-user preferences per event type." }
+      ]
+    },
+    "channels": {
+      "heading": "Every channel, one queue.",
+      "subtitle": "Tickets arrive from email, web portal, API, and - soon - WhatsApp and Telegram. The engine doesn't care about source. Your agents get one unified view.",
+      "labels": ["Email via IMAP/SMTP", "Web portal & API", "WhatsApp Business", "Telegram"],
+      "live": "Live",
+      "soon": "Soon"
+    },
+    "security": {
+      "badge": "Security architecture",
+      "heading": "Tenant isolation\nenforced at the DB.",
+      "body": "Postgres Row Level Security policies run at the database layer. No tenant data ever leaks through a missed WHERE clause in application code.",
+      "items": [
+        "Every org gets its own RLS context via SET LOCAL GUC",
+        "Background workers use bypass_rls=on super-admin context",
+        "Subdomain-based tenant resolution with 60s cache",
+        "Rotating JWT refresh tokens, SHA-256 hashed in DB",
+        "Full audit log on every state change"
+      ]
+    },
+    "pricing": {
+      "heading": "Simple, transparent pricing.",
+      "subtitle": "No per-ticket fees. No surprise overage charges.",
+      "mostPopular": "Most popular",
+      "plans": [
+        { "name": "Starter", "price": "$0", "period": "/mo", "desc": "For small teams getting started.", "cta": "Start free", "features": ["3 agents", "1 mailbox", "500 tickets/mo", "Email channel", "Community support"] },
+        { "name": "Pro", "price": "$49", "period": "/mo per 5 agents", "desc": "For growing IT teams and MSPs.", "cta": "Start trial", "features": ["Unlimited agents", "10 mailboxes", "Unlimited tickets", "SLA management", "RBAC + ABAC", "Audit logs", "Priority support"] },
+        { "name": "Enterprise", "price": "Custom", "period": "", "desc": "For large organizations with compliance needs.", "cta": "Contact sales", "features": ["Everything in Pro", "Self-hosted option", "SSO / SAML", "Dedicated support", "SLA guarantee", "Custom integrations"] }
+      ]
+    },
+    "cta": {
+      "heading": "Ready to modernize your service desk?",
+      "subtitle": "Set up in minutes. No infrastructure to manage.",
+      "startFree": "Start for free",
+      "talkToSales": "Talk to sales"
+    }
+  },
+  "footer": {
+    "tagline": "Enterprise service desk.",
+    "links": [
+      { "label": "Features", "href": "/features" },
+      { "label": "Pricing", "href": "/pricing" },
+      { "label": "Docs", "href": "/docs" },
+      { "label": "Security", "href": "/security" },
+      { "label": "Privacy", "href": "/privacy" },
+      { "label": "Terms", "href": "/terms" }
+    ]
+  },
+  "changelog": {
+    "hero": {
+      "badge": "Product Updates",
+      "title": "Changelog",
+      "subtitle": "Stay up to date with the latest features, improvements, and bug fixes in Alpis."
+    },
+    "releases": [
+      {
+        "version": "v1.2.0",
+        "date": "June 20, 2026",
+        "title": "Advanced SLAs and Custom Business Hours",
+        "description": "This release focuses on giving enterprise teams more control over their Service Level Agreements. You can now define custom business hours per department and set multi-tier escalation policies.",
+        "changes": [
+          { "type": "feature", "text": "Added support for custom business hours in SLA policies." },
+          { "type": "feature", "text": "Introduced multi-tier escalation rules for SLA breaches." },
+          { "type": "improvement", "text": "Optimized ticket list rendering for queues with >10,000 active tickets." },
+          { "type": "bug", "text": "Fixed a bug with email thread reply parsing on Outlook clients." }
+        ]
+      },
+      {
+        "version": "v1.1.0",
+        "date": "May 15, 2026",
+        "title": "ABAC Release & Webhooks",
+        "description": "Granular control is here. We've rolled out Attribute-Based Access Control (ABAC), allowing you to restrict agent visibility based on department, tag, or custom attributes.",
+        "changes": [
+          { "type": "feature", "text": "Launched Attribute-Based Access Control (ABAC)." },
+          { "type": "feature", "text": "Added outgoing Webhook integrations for ticket lifecycle events." },
+          { "type": "improvement", "text": "Redesigned the macro execution menu for faster access." },
+          { "type": "bug", "text": "Fixed an issue where CC'd users weren't receiving initial notifications." }
+        ]
+      },
+      {
+        "version": "v1.0.0",
+        "date": "April 02, 2026",
+        "title": "Public Beta Launch",
+        "description": "The initial public release of Alpis Service Desk. A massive thank you to our early alpha testers for their invaluable feedback over the last six months.",
+        "changes": [
+          { "type": "feature", "text": "Core ticketing engine with email and portal ingestion." },
+          { "type": "feature", "text": "Tenant isolation via Postgres Row-Level Security." },
+          { "type": "feature", "text": "Basic SLA management and RBAC roles." }
+        ]
+      }
+    ]
+  },
+  "docs": {
+    "header": "Alpis Documentation",
+    "searchPlaceholder": "Search documentation... (Press '/')",
+    "sidebar": {
+      "gettingStarted": {
+        "title": "Getting Started",
+        "links": ["Introduction", "Quickstart", "Installation", "Core Concepts"]
+      },
+      "configuration": {
+        "title": "Configuration",
+        "links": ["Mailboxes (IMAP/SMTP)", "Departments", "SLA Policies", "Routing Rules"]
+      },
+      "security": {
+        "title": "Security & Users",
+        "links": ["RBAC Roles", "ABAC Scopes", "SSO Configuration", "Audit Logs"]
+      },
+      "api": {
+        "title": "Developer API",
+        "links": ["Authentication", "REST Endpoints", "Webhooks", "Rate Limits"]
+      }
+    },
+    "content": {
+      "category": "Getting Started",
+      "title": "Introduction to Alpis",
+      "intro": "Alpis is a high-performance, developer-friendly IT service desk. This documentation covers everything from initial setup to advanced API integrations.",
+      "quickstart": {
+        "title": "Quickstart Guide",
+        "subtitle": "Get your service desk running in under 5 minutes.",
+        "cta": "Read guide"
+      },
+      "api": {
+        "title": "API Reference",
+        "subtitle": "Interact programmatically with tickets and users.",
+        "cta": "View API"
+      },
+      "architectureTitle": "Core Architecture",
+      "architectureBody": "Alpis is built on a multi-tenant PostgreSQL database using Row-Level Security (RLS) to guarantee data isolation. The backend leverages Node.js with tRPC for end-to-end type safety, while the frontend is a React SPA powered by Vite and TanStack Router.",
+      "helpTitle": "Getting Help",
+      "helpBody": "If you get stuck, check out our <communityLink>Community Forums</communityLink> or reach out to <contactLink>Support</contactLink>. Enterprise customers have access to a dedicated Slack channel and a Technical Account Manager.",
+      "nextBtn": "Next: Quickstart"
+    }
+  }
+}

@@ -1,0 +1,242 @@
+{
+  "title": "Ayarlar",
+  "tabs": {
+    "general": "Genel",
+    "branding": "Marka",
+    "members": "Üyeler",
+    "retention": "Veri Saklama",
+    "sso": "SSO / SCIM",
+    "danger": "Tehlikeli Alan",
+    "security": "Güvenlik",
+    "notifications": "Bildirimler",
+    "email": "Email Şablonları"
+  },
+  "headers": {
+    "general": {
+      "title": "Genel Ayarlar",
+      "subtitle": "Organizasyon adı ve alan adı."
+    },
+    "branding": {
+      "title": "Marka",
+      "subtitle": "Logo, renkler ve destek iletişimi."
+    },
+    "retention": {
+      "title": "Veri Saklama",
+      "subtitle": "Arşivleme ve silme politikalarını yapılandırın."
+    },
+    "sso": {
+      "title": "SSO / SCIM",
+      "subtitle": "Tek Oturum Açma ve kullanıcı sağlama."
+    },
+    "members": {
+      "title": "Üyeler",
+      "subtitle": "Organizasyon üyelerini görüntüleyin ve yönetin."
+    },
+    "danger": {
+      "title": "Tehlikeli Alan",
+      "subtitle": "Geri alınamaz işlemler — dikkatli olun."
+    },
+    "emailTemplates": {
+      "title": "E-posta Şablonları",
+      "subtitle": "Otomatik giden e-postalar için genel stil ve logoları yapılandırın."
+    }
+  },
+  "general": {
+    "title": "Organizasyon ayarları",
+    "name": "Organizasyon adı",
+    "domain": "Alan adı",
+    "timezone": "Saat dilimi",
+    "save": "Değişiklikleri kaydet",
+    "saved": "Kaydedildi ✓"
+  },
+  "form": {
+    "savedSuccess": "Ayarlar başarıyla kaydedildi.",
+    "name": "Organizasyon Adı *",
+    "domain": "Özel Alan Adı *",
+    "status": "Durum",
+    "statusManaged": "Durum süper yöneticiler tarafından yönetilir.",
+    "save": "Değişiklikleri Kaydet",
+    "nameRequired": "Ad gereklidir",
+    "domainRequired": "Alan adı gereklidir",
+    "loadError": "Organizasyon ayarları yüklenirken hata oluştu."
+  },
+  "branding": {
+    "title": "Marka",
+    "intro": "Çalışma alanınızın ekibinize ve müşterilerinize nasıl göründüğünü özelleştirin.",
+    "logo": "Logo",
+    "primaryColor": "Ana renk",
+    "uploadLogo": "Logo yükle",
+    "logoHint": "PNG, SVG, en fazla 2MB",
+    "supportEmail": "Destek e-posta adresi",
+    "supportEmailHint": "Müşterilere e-postalarda ve portalda gösterilir",
+    "brandColor": "Marka rengi",
+    "save": "Markayı kaydet",
+    "remove": "Kaldır",
+    "colorInvalid": "#rrggbb onaltılık renk olmalı",
+    "preview": "Önizleme"
+  },
+  "retention": {
+    "title": "Veri saklama",
+    "intro": "Verilerin otomatik arşivleme veya silmeden önce ne kadar saklanacağını yapılandırın. Değişiklikler backend worker desteği gerektirir.",
+    "auditDays": "Denetim günlüğü saklama süresi (gün)",
+    "auditHint": "Bundan eski günlükler sıkıştırılır ve arşivlenir",
+    "ticketDays": "Talep saklama süresi (gün)",
+    "ticketHint": "Bundan eski kapalı talepler soğuk depolamaya taşınır",
+    "attachmentDays": "Ek saklama süresi (gün)",
+    "attachmentHint": "Dosya ekleri bu süreden sonra silinir",
+    "autoDelete": "Süresi dolan verileri otomatik sil",
+    "autoDeleteHint": "Saklama süresi dolduğunda verileri kalıcı olarak sil (geri alınamaz)",
+    "enableAutoDelete": "Otomatik silmeyi etkinleştir",
+    "disableAutoDelete": "Otomatik silmeyi devre dışı bırak",
+    "autoDeleteWarning": "Otomatik silme etkin. Veriler saklama süresinden sonra kalıcı olarak silinecek. Bu geri alınamaz.",
+    "save": "Saklama politikasını kaydet",
+    "saved": "Kaydedildi ✓",
+    "stub": "Backend saklama worker'ı her gece çalışır — bağlanana kadar yapılandırma yerel olarak saklanır"
+  },
+  "sso": {
+    "title": "SSO / SCIM",
+    "description": "Tek Oturum Açma için Kimlik Sağlayıcınızı bağlayın ve SCIM ile kullanıcı sağlamayı otomatikleştirin.",
+    "provider": "SSO Sağlayıcısı",
+    "noSso": "SSO yok (yerel kimlik doğrulama)",
+    "issuerUrl": "Yayıncı / Keşif URL'si",
+    "clientId": "İstemci Kimliği",
+    "clientSecret": "İstemci Gizli Anahtarı",
+    "callbackUrl": "Geri Çağırma URL'si (IdP'ye kopyalayın)",
+    "scim": "SCIM Sağlama",
+    "scimDescription": "Kullanıcıları IdP'nizden otomatik olarak sağlayın/kaldırın",
+    "scimBaseUrl": "SCIM Temel URL'si",
+    "scimToken": "SCIM Bearer Token",
+    "save": "SSO yapılandırmasını kaydet",
+    "features": {
+      "ssoLabel": "Tek Oturum Açma",
+      "ssoDesc": "Okta, Google Workspace, Microsoft Azure AD ve genel SAML 2.0 desteği.",
+      "scimLabel": "SCIM sağlama",
+      "scimDesc": "Kullanıcıları doğrudan IdP'nizden otomatik olarak sağlayın ve kaldırın.",
+      "jitLabel": "Anlık sağlama",
+      "jitDesc": "Yeni kullanıcılar ilk girişte oluşturulur — manuel davet gerekmez."
+    }
+  },
+  "members": {
+    "count_one": "Bu organizasyonda {{count}} üye",
+    "count_other": "Bu organizasyonda {{count}} üye",
+    "loadError": "Üyeler yüklenemedi.",
+    "name": "Ad",
+    "role": "Rol",
+    "status": "Durum",
+    "actions": "İşlemler",
+    "deactivate": "Devre dışı bırak",
+    "inactive": "Pasif"
+  },
+  "danger": {
+    "title": "Tehlikeli Alan",
+    "deleteOrg": "Organizasyonu sil",
+    "deleteOrgWarning": "Bu işlem geri alınamaz. Tüm veriler kalıcı olarak silinecektir.",
+    "confirmDelete": "Onaylamak için organizasyon adını yazın",
+    "deactivateOrg": "Organizasyonu devre dışı bırak",
+    "deactivateOrgDesc": "Tüm üyelerin erişimini askıya alın. Veriler korunur. Bir süper yönetici tarafından yeniden etkinleştirilebilir.",
+    "deactivate": "Devre dışı bırak",
+    "deactivateWarning": "Bu, tüm organizasyon üyelerinin erişimini hemen askıya alacak.",
+    "typeToConfirmPre": "Onaylamak için",
+    "typeToConfirmPost": "yazın:",
+    "cancel": "İptal",
+    "deactivating": "Devre dışı bırakılıyor...",
+    "confirmDeactivation": "Devre dışı bırakmayı onayla",
+    "exportTitle": "Tüm verileri dışa aktar",
+    "exportDesc": "Tüm organizasyon verilerinin tam dışa aktarımını ZIP arşivi olarak indirin.",
+    "goToExport": "Dışa Aktarmaya Git"
+  },
+  "emailSignatures": {
+    "title": "E-posta İmzaları",
+    "description": "Organizasyonunuz ve temsilcileriniz için e-posta imzaları oluşturun ve yönetin.",
+    "create": "İmza Oluştur",
+    "defaultBadge": "Varsayılan",
+    "globalSignature": "Global İmza",
+    "edit": "Düzenle",
+    "noSignatures": "Henüz imza yapılandırılmadı.",
+    "editTitle": "İmzayı Düzenle: {{name}}",
+    "cancel": "İptal",
+    "saving": "Kaydediliyor...",
+    "save": "İmzayı Kaydet"
+  },
+  "emailBranding": {
+    "title": "E-posta Şablonu Markası",
+    "description": "Organizasyonunuz tarafından gönderilen tüm otomatik bildirimler ve e-postaların görünümünü özelleştirin.",
+    "fontFamily": "Yazı Tipi",
+    "fontFamilyHint": "E-postalarınızda kullanılan varsayılan yazı tipi.",
+    "removeHelpdeskBranding": "Helpdesk Markasını Kaldır",
+    "removeHelpdeskBrandingHint": "E-posta altbilgilerinden \"Powered by Helpdesk\" ifadesini kaldırın.",
+    "saving": "Kaydediliyor...",
+    "save": "E-posta Markasını Kaydet"
+  },
+  "businessHours": {
+    "title": "Çalışma Saatleri",
+    "timezone": "Saat dilimi",
+    "enabled": "Etkin",
+    "start": "Başlangıç",
+    "end": "Bitiş",
+    "save": "Çalışma saatlerini kaydet",
+    "saved": "Çalışma saatleri kaydedildi"
+  },
+  "language": {
+    "title": "Dil ve Bölge",
+    "systemLanguage": "Sistem dili",
+    "userLanguage": "Diliniz"
+  },
+  "roles": {
+    "pageTitle": "İzinler ve Roller",
+    "manageSubtitle": "Organizasyonunuz için rolleri yönetin.",
+    "newRole": "Yeni Rol",
+    "colName": "Ad",
+    "colDescription": "Açıklama",
+    "colType": "Tür",
+    "colActions": "İşlemler",
+    "typeSystem": "Sistem",
+    "typeCustom": "Özel",
+    "noRoles": "Henüz rol yok",
+    "createFirst": "İlk rolü oluştur",
+    "failedLoad": "Roller yüklenemedi.",
+    "whoHasRole": "Bu role sahip olanlar",
+    "cloneRole": "Rolü klonla",
+    "editPermissions": "İzinleri Düzenle",
+    "delete": "Sil",
+    "createModal": {
+      "stepDetails": "Rol Detayları",
+      "stepPermissions": "İzinler",
+      "titleCreate": "Rol Oluştur",
+      "titlePermissions": "İzinleri Ayarla — \"{{name}}\"",
+      "nameLabel": "Rol Adı *",
+      "descriptionLabel": "Açıklama",
+      "descriptionPlaceholder": "Bu rolün sorumluluklarını açıklayın...",
+      "selectPermissions": "Bu rolün sahip olması gereken izinleri seçin.",
+      "permissionsSelected_one": "{{count}} izin seçildi",
+      "permissionsSelected_other": "{{count}} izin seçildi",
+      "cancel": "İptal",
+      "back": "Geri",
+      "next": "Sonraki: İzinler →",
+      "createRole": "Rol Oluştur",
+      "failedCreate": "Rol oluşturulamadı",
+      "failedPermissions": "Rol oluşturuldu, ancak izinler kaydedilemedi"
+    },
+    "editDrawer": {
+      "title": "İzinleri Düzenle",
+      "subtitle": "Şu rol için izinleri yönetin:",
+      "selected": "{{count}} seçildi",
+      "cancel": "İptal",
+      "save": "İzinleri Kaydet",
+      "failedSave": "İzinler kaydedilemedi"
+    },
+    "deleteModal": {
+      "title": "Rolü Sil",
+      "confirm": "\"{{name}}\" silinsin mi? İlişkili tüm izinler de kaldırılacak. Geri alınamaz.",
+      "cancel": "İptal",
+      "delete": "Sil",
+      "failedDelete": "Rol silinemedi"
+    },
+    "whoHasDrawer": {
+      "memberCount_one": "{{count}} kullanıcı",
+      "memberCount_other": "{{count}} kullanıcı",
+      "noMembers": "Bu role sahip kullanıcı yok",
+      "close": "Kapat"
+    }
+  }
+}

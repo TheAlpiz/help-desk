@@ -9,9 +9,11 @@ import {
   resetPasswordSchema,
   verifyEmailSchema,
 } from "@help-desk/shared";
+import { z } from "zod";
 import { AuthService } from "./auth.service";
 import { ResponseHandler } from "../../lib/response";
 import { authMiddleware, JwtPayload } from "../../middleware/auth.middleware";
+import { rateLimit } from "../../middleware/rate-limit.middleware";
 import { UserService } from "../user/user.service";
 import {
   setRefreshCookie,
@@ -39,7 +41,7 @@ function establishSession<T extends { accessToken: string; refreshToken: string 
 }
 
 export const authRouter = new Hono<{ Variables: { tenantId: string; user: JwtPayload } }>()
-  .post("/register", zValidator("json", registerSchema), async (c) => {
+  .post("/register", rateLimit({ windowSec: 60, max: 5, prefix: "register" }), zValidator("json", registerSchema), async (c) => {
     const data = c.req.valid("json");
     try {
       const result = await AuthService.register(data, clientMeta(c));
@@ -48,7 +50,7 @@ export const authRouter = new Hono<{ Variables: { tenantId: string; user: JwtPay
       return ResponseHandler.badRequest(c, error.message);
     }
   })
-  .post("/login", zValidator("json", loginSchema), async (c) => {
+  .post("/login", rateLimit({ windowSec: 60, max: 10, prefix: "login" }), zValidator("json", loginSchema), async (c) => {
     const tenantId = c.get("tenantId");
     const data = c.req.valid("json");
     try {
@@ -105,14 +107,14 @@ export const authRouter = new Hono<{ Variables: { tenantId: string; user: JwtPay
       return ResponseHandler.badRequest(c, error.message);
     }
   })
-  .post("/forgot-password", zValidator("json", forgotPasswordSchema), async (c) => {
+  .post("/forgot-password", rateLimit({ windowSec: 60, max: 5, prefix: "forgot" }), zValidator("json", forgotPasswordSchema), async (c) => {
     const tenantId = c.get("tenantId");
     const data = c.req.valid("json");
     // Always 200 — never reveal whether the email exists.
     const result = await AuthService.requestPasswordReset(data.email, tenantId);
     return ResponseHandler.ok(c, result);
   })
-  .post("/reset-password", zValidator("json", resetPasswordSchema), async (c) => {
+  .post("/reset-password", rateLimit({ windowSec: 60, max: 10, prefix: "reset" }), zValidator("json", resetPasswordSchema), async (c) => {
     const data = c.req.valid("json");
     try {
       const result = await AuthService.resetPassword(data.token, data.password);
@@ -121,7 +123,16 @@ export const authRouter = new Hono<{ Variables: { tenantId: string; user: JwtPay
       return ResponseHandler.badRequest(c, error.message);
     }
   })
-  .post("/verify-email", zValidator("json", verifyEmailSchema), async (c) => {
+  .post("/accept-invite", rateLimit({ windowSec: 60, max: 10, prefix: "invite" }), zValidator("json", resetPasswordSchema), async (c) => {
+    const data = c.req.valid("json");
+    try {
+      const result = await AuthService.acceptInvite(data.token, data.password, clientMeta(c));
+      return ResponseHandler.success(c, establishSession(c, result), { message: "Invite accepted" });
+    } catch (error: any) {
+      return ResponseHandler.badRequest(c, error.message);
+    }
+  })
+  .post("/verify-email", rateLimit({ windowSec: 60, max: 20, prefix: "verify" }), zValidator("json", verifyEmailSchema), async (c) => {
     const data = c.req.valid("json");
     try {
       const result = await AuthService.verifyEmail(data.token);
@@ -136,6 +147,19 @@ export const authRouter = new Hono<{ Variables: { tenantId: string; user: JwtPay
     try {
       const result = await AuthService.requestEmailVerification(user.organizationId, user.userId);
       return ResponseHandler.ok(c, result);
+    } catch (error: any) {
+      return ResponseHandler.badRequest(c, error.message);
+    }
+  })
+  .post("/change-password", authMiddleware(), zValidator("json", z.object({ newPassword: z.string().min(8) })), async (c) => {
+    const user = c.get("user");
+    const { newPassword } = c.req.valid("json");
+    try {
+      const result = await AuthService.changePassword(user.organizationId, user.userId, newPassword);
+      const { refreshToken, ...safe } = result;
+      setRefreshCookie(c, refreshToken);
+      setCsrfCookie(c);
+      return ResponseHandler.success(c, safe, { message: "Password updated successfully" });
     } catch (error: any) {
       return ResponseHandler.badRequest(c, error.message);
     }
@@ -163,6 +187,9 @@ export const authRouter = new Hono<{ Variables: { tenantId: string; user: JwtPay
     const user = c.get("user");
     try {
       const result = await AuthService.revokeAllSessions(user.organizationId, user.userId);
+      // Revoking all sessions includes the current one — clear cookies too so the
+      // refresh token isn't left set (mirrors POST /logout-all).
+      clearAuthCookies(c);
       return ResponseHandler.ok(c, result);
     } catch (error: any) {
       return ResponseHandler.badRequest(c, error.message);

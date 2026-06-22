@@ -1,0 +1,58 @@
+{
+  "title": "Dashboard",
+  "stats": {
+    "openTickets": "Open tickets",
+    "resolvedToday": "Resolved today",
+    "avgResolution": "Avg resolution",
+    "slaCompliance": "SLA compliance",
+    "activeAgents": "Active agents",
+    "pendingTasks": "Pending tasks"
+  },
+  "charts": {
+    "ticketsByStatus": "Tickets by status",
+    "ticketsByPriority": "Tickets by priority",
+    "ticketVolume": "Ticket volume",
+    "agentPerformance": "Agent performance",
+    "resolutionTrend": "Resolution trend"
+  },
+  "recentTickets": "Recent tickets",
+  "topAgents": "Top agents",
+  "noData": "No data available for this period.",
+  "viewAll": "View all",
+  "noTickets": "No tickets yet.",
+  "noTicketData": "No ticket data yet.",
+  "newTicket": "New Ticket",
+  "newRequest": "New Request",
+  "ticketBreakdown": "Ticket breakdown",
+  "admin": {
+    "title": "Overview",
+    "openTickets": "Open Tickets",
+    "openTicketsTrend": "All active, non-closed tickets",
+    "critical": "Critical",
+    "criticalTrend": "Require immediate attention",
+    "unassigned": "Unassigned",
+    "unassignedTrend": "Need agent assignment",
+    "activeUsers": "Active Users",
+    "slaPolicies_one": "{{count}} SLA policy active",
+    "slaPolicies_other": "{{count}} SLA policies active"
+  },
+  "supervisor": {
+    "title": "Department Overview",
+    "unassigned": "Unassigned",
+    "openTickets": "Open Tickets",
+    "resolved24h": "Resolved (24h)",
+    "teamMembers": "Team Members"
+  },
+  "agent": {
+    "title": "My Workspace",
+    "myOpenTickets": "My Open Tickets",
+    "pendingTasks": "Pending Tasks",
+    "resolved": "Resolved"
+  },
+  "requester": {
+    "title": "My Requests",
+    "open": "Open",
+    "resolved": "Resolved",
+    "total": "Total"
+  }
+}

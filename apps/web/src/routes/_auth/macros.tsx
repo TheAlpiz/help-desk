@@ -1,26 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { authFetch } from "@/lib/api";
+import { api } from "@/lib/api";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Zap, Edit2, Trash2, Copy, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useToast } from "@/components/Toast";
-import { useAppStore } from "@/store";
 import { FieldValueInput } from "@/lib/fieldOptions";
 import { Button, Input } from "@/components/ui";
 
-function getHeaders() {
-  const { accessToken, tenantId } = useAppStore.getState();
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${accessToken}`,
-    "X-Tenant-ID": tenantId ?? "",
-  };
-}
-
-async function fetchMacros(): Promise<Macro[]> {
-  const res = await authFetch("/api/macros", { headers: getHeaders() });
-  const json = await res.json();
-  return (json?.data ?? []) as Macro[];
+async function fetchMacros() {
+  const res = await api.macros.index.$get();
+  const body = await res.json() as any;
+  return (body?.data ?? []) as Macro[];
 }
 
 export const Route = createFileRoute("/_auth/macros")({
@@ -42,16 +33,8 @@ type MacroAction =
   | { type: "send_reply"; value: string }
   | { type: "add_note"; value: string };
 
-const ACTION_LABELS: Record<string, string> = {
-  set_status: "Set status",
-  set_priority: "Set priority",
-  add_tag: "Add tag",
-  send_reply: "Send reply",
-  add_note: "Add internal note",
-};
-
-
 function ActionChip({ action }: { action: MacroAction }) {
+  const { t } = useTranslation("automations");
   const colors: Record<string, string> = {
     set_status: "bg-blue-500/10 text-blue-300 border-blue-500/20",
     set_priority: "bg-orange-500/10 text-orange-300 border-orange-500/20",
@@ -61,7 +44,7 @@ function ActionChip({ action }: { action: MacroAction }) {
   };
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium border ${colors[action.type]}`}>
-      {ACTION_LABELS[action.type]}{action.value ? `: ${action.value.slice(0, 20)}${action.value.length > 20 ? "…" : ""}` : ""}
+      {t(`actions_list.${action.type}`)}{action.value ? `: ${action.value.slice(0, 20)}${action.value.length > 20 ? "…" : ""}` : ""}
     </span>
   );
 }
@@ -71,6 +54,8 @@ function MacroFormModal({ macro, onSave, onClose }: {
   onSave: (m: Omit<Macro, "id">) => void;
   onClose: () => void;
 }) {
+  const { t } = useTranslation("automations");
+  const { t: tCommon } = useTranslation("common");
   const [name, setName] = useState(macro?.name ?? "");
   const [description, setDescription] = useState(macro?.description ?? "");
   const [actions, setActions] = useState<MacroAction[]>(macro?.actions ?? []);
@@ -95,20 +80,20 @@ function MacroFormModal({ macro, onSave, onClose }: {
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-lg bg-surface-container border border-outline-variant rounded-2xl p-6 space-y-4 shadow-2xl">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-on-surface">{macro ? "Edit macro" : "New macro"}</h3>
+          <h3 className="text-sm font-semibold text-on-surface">{macro ? t("macros.edit") : t("macros.new")}</h3>
           <button onClick={onClose} className="text-on-surface-variant/40 hover:text-on-surface transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
 
         <div className="space-y-3">
-          <Input dense value={name} onChange={(e) => setName(e.target.value)} placeholder="Macro name" autoFocus />
-          <Input dense value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description (optional)" />
+          <Input dense value={name} onChange={(e) => setName(e.target.value)} placeholder={t("fields.name")} autoFocus />
+          <Input dense value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t("macros.descriptionPlaceholder")} />
         </div>
 
         {/* Actions list */}
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-on-surface">Actions ({actions.length})</p>
+          <p className="text-xs font-semibold text-on-surface">{t("fields.actions")} ({actions.length})</p>
           {actions.map((a, i) => (
             <div key={i} className="flex items-center gap-2">
               <ActionChip action={a} />
@@ -118,7 +103,7 @@ function MacroFormModal({ macro, onSave, onClose }: {
             </div>
           ))}
           {actions.length === 0 && (
-            <p className="text-[11px] text-on-surface-variant/40">No actions yet</p>
+            <p className="text-[11px] text-on-surface-variant/40">{t("macros.noActionsYet")}</p>
           )}
         </div>
 
@@ -129,7 +114,7 @@ function MacroFormModal({ macro, onSave, onClose }: {
             onChange={(e) => setNewActionType(e.target.value)}
             className="px-2.5 py-2 bg-surface-container-high border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none transition-colors"
           >
-            {Object.entries(ACTION_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            {(["set_status","set_priority","add_tag","send_reply","add_note"] as const).map((k) => <option key={k} value={k}>{t(`actions_list.${k}`)}</option>)}
           </select>
           <div className="flex-1 min-w-0">
             <FieldValueInput
@@ -137,7 +122,7 @@ function MacroFormModal({ macro, onSave, onClose }: {
               value={newActionValue}
               onChange={setNewActionValue}
               onKeyDown={(e) => e.key === "Enter" && addAction()}
-              placeholder="Value…"
+              placeholder={t("macros.valuePlaceholder")}
               ariaLabel="Action value"
               wrapperClassName="relative w-full"
               inputClassName="w-full px-2.5 py-2 bg-surface-container-high border border-outline-variant rounded-lg text-xs text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors"
@@ -150,8 +135,8 @@ function MacroFormModal({ macro, onSave, onClose }: {
         </div>
 
         <div className="flex gap-2 justify-end pt-2">
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button onClick={save} disabled={!name.trim()}>{macro ? "Save changes" : "Create macro"}</Button>
+          <Button variant="secondary" onClick={onClose}>{tCommon("actions.cancel")}</Button>
+          <Button onClick={save} disabled={!name.trim()}>{macro ? tCommon("actions.save") : t("macros.create")}</Button>
         </div>
       </div>
     </div>
@@ -159,6 +144,8 @@ function MacroFormModal({ macro, onSave, onClose }: {
 }
 
 function MacrosPage() {
+  const { t } = useTranslation("automations");
+  const { t: tCommon } = useTranslation("common");
   const qc = useQueryClient();
   const { success, error: showError } = useToast();
   const [editing, setEditing] = useState<Macro | "new" | null>(null);
@@ -167,40 +154,40 @@ function MacrosPage() {
 
   const createMutation = useMutation({
     mutationFn: async (data: Omit<Macro, "id">) => {
-      const res = await authFetch("/api/macros", { method: "POST", headers: getHeaders(), body: JSON.stringify(data) });
+      const res = await api.macros.index.$post({ json: data as any });
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["macros"] }); success("Macro created"); setEditing(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["macros"] }); success(t("macros.created")); setEditing(null); },
     onError: (e: any) => showError(e.message),
   });
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Omit<Macro, "id"> }) => {
-      const res = await authFetch(`/api/macros/${id}`, { method: "PUT", headers: getHeaders(), body: JSON.stringify(data) });
+      const res = await api.macros[":id"].$put({ param: { id }, json: data as any });
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["macros"] }); success("Macro saved"); setEditing(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["macros"] }); success(t("macros.saved")); setEditing(null); },
     onError: (e: any) => showError(e.message),
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await authFetch(`/api/macros/${id}`, { method: "DELETE", headers: getHeaders() });
+      const res = await api.macros[":id"].$delete({ param: { id } });
       if (!res.ok) throw new Error(await res.text());
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["macros"] }); success("Macro deleted"); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["macros"] }); success(t("macros.deleted")); },
     onError: (e: any) => showError(e.message),
   });
 
   const duplicateMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await authFetch(`/api/macros/${id}/duplicate`, { method: "POST", headers: getHeaders() });
+      const res = await api.macros[":id"].duplicate.$post({ param: { id } });
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["macros"] }); success("Macro duplicated"); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["macros"] }); success(t("macros.duplicated")); },
     onError: (e: any) => showError(e.message),
   });
 
@@ -224,25 +211,23 @@ function MacrosPage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[15px] font-semibold text-on-surface">Macros</h1>
-          <p className="text-xs text-on-surface-variant mt-1">
-            Automate repetitive ticket actions with one click.
-          </p>
+          <h1 className="text-[15px] font-semibold text-on-surface">{t("macros.title")}</h1>
+          <p className="text-xs text-on-surface-variant mt-1">{t("macros.subtitle")}</p>
         </div>
         <Button onClick={() => setEditing("new")}>
           <Plus className="w-3.5 h-3.5" />
-          New macro
+          {t("macros.new")}
         </Button>
       </div>
 
       <div className="bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
         {isLoading ? (
-          <div className="p-8 text-center text-xs text-on-surface-variant/40">Loading…</div>
+          <div className="p-8 text-center text-xs text-on-surface-variant/40">{tCommon("actions.loading")}</div>
         ) : macros.length === 0 ? (
           <div className="p-12 text-center">
             <Zap className="w-8 h-8 text-on-surface-variant/20 mx-auto mb-3" />
-            <p className="text-sm font-medium text-on-surface">No macros yet</p>
-            <p className="text-xs text-on-surface-variant/40 mt-1">Create macros to automate common workflows</p>
+            <p className="text-sm font-medium text-on-surface">{t("empty.title")}</p>
+            <p className="text-xs text-on-surface-variant/40 mt-1">{t("empty.subtitle")}</p>
           </div>
         ) : (
           <div className="divide-y divide-outline-variant">

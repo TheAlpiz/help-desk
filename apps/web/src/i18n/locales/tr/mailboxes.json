@@ -1,0 +1,33 @@
+{
+  "title": "Posta Kutuları",
+  "new": "Yeni Posta Kutusu",
+  "edit": "Posta Kutusunu Düzenle",
+  "connect": "Posta kutusu bağla",
+  "fields": {
+    "name": "Ad",
+    "email": "E-posta adresi",
+    "imapHost": "IMAP sunucusu",
+    "imapPort": "IMAP portu",
+    "smtpHost": "SMTP sunucusu",
+    "smtpPort": "SMTP portu",
+    "username": "Kullanıcı adı",
+    "password": "Şifre",
+    "useSSL": "SSL/TLS kullan",
+    "status": "Durum"
+  },
+  "status": {
+    "connected": "Bağlı",
+    "disconnected": "Bağlantı Kesildi",
+    "error": "Bağlantı hatası",
+    "connecting": "Bağlanıyor…"
+  },
+  "actions": {
+    "test": "Bağlantıyı test et",
+    "reconnect": "Yeniden bağlan",
+    "disconnect": "Bağlantıyı kes"
+  },
+  "empty": {
+    "title": "Posta kutusu yok",
+    "subtitle": "Talep almaya başlamak için bir e-posta hesabı bağlayın."
+  }
+}

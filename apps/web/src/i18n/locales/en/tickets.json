@@ -1,0 +1,239 @@
+{
+  "title": "Tickets",
+  "new": "New Ticket",
+  "create": "Create Ticket",
+  "edit": "Edit Ticket",
+  "count_one": "{{count}} ticket",
+  "count_other": "{{count}} tickets",
+  "fields": {
+    "subject": "Subject",
+    "description": "Description",
+    "status": "Status",
+    "priority": "Priority",
+    "assignee": "Assignee",
+    "department": "Department",
+    "mailbox": "Mailbox",
+    "tags": "Tags",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "resolvedAt": "Resolved",
+    "closedAt": "Closed",
+    "requester": "Requester",
+    "source": "Source",
+    "sla": "SLA"
+  },
+  "statuses": {
+    "open": "Open",
+    "assigned": "Assigned",
+    "in_progress": "In Progress",
+    "waiting_customer": "Waiting",
+    "resolved": "Resolved",
+    "closed": "Closed",
+    "reopened": "Reopened",
+    "archived": "Archived"
+  },
+  "priorities": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical"
+  },
+  "views": {
+    "all": "All tickets",
+    "open": "Open",
+    "mine": "My tickets",
+    "unassigned": "Unassigned",
+    "critical": "Critical",
+    "waiting": "Waiting",
+    "resolved": "Resolved"
+  },
+  "sources": {
+    "email": "Email",
+    "portal": "Portal",
+    "api": "API",
+    "whatsapp": "WhatsApp",
+    "telegram": "Telegram",
+    "chat": "Chat"
+  },
+  "actions": {
+    "assign": "Assign ticket",
+    "close": "Close ticket",
+    "reopen": "Reopen ticket",
+    "resolve": "Mark resolved",
+    "reply": "Reply",
+    "addNote": "Add internal note",
+    "merge": "Merge tickets",
+    "transfer": "Transfer"
+  },
+  "sla": {
+    "firstResponse": "First response",
+    "resolution": "Resolution",
+    "breached": "SLA breached",
+    "warning": "At risk",
+    "onTrack": "On track"
+  },
+  "list": {
+    "searchPlaceholder": "Search tickets...",
+    "allStatuses": "All statuses",
+    "newTicket": "New Ticket",
+    "colSubject": "Subject",
+    "colStatus": "Status",
+    "colCreated": "Created",
+    "deselectAll": "Deselect all tickets",
+    "selectAll": "Select all tickets",
+    "noResults": "0 results",
+    "pagination": "{{from}}–{{to}} of {{total}}",
+    "noSearch": "No tickets match your search",
+    "noStatus": "No {{status}} tickets",
+    "empty": "No tickets yet",
+    "createFirst": "Create the first ticket",
+    "fetchError": "Failed to fetch tickets"
+  },
+  "modal": {
+    "createTitle": "Create Ticket",
+    "templates": "Templates",
+    "subjectLabel": "Subject *",
+    "subjectPlaceholder": "Brief description of the issue",
+    "messageLabel": "Message *",
+    "messagePlaceholder": "Describe the issue in detail...",
+    "priorityLabel": "Priority",
+    "macroOptional": "Apply macro after creation (optional)",
+    "macroNone": "None",
+    "macroEmpty": "No macros defined yet",
+    "cancel": "Cancel",
+    "createTicket": "Create Ticket",
+    "createAndApply": "Create & Apply Macro",
+    "closeDialog": "Close dialog",
+    "errors": {
+      "subjectRequired": "Subject is required",
+      "messageRequired": "Message is required",
+      "createFailed": "Failed to create ticket",
+      "generic": "An error occurred"
+    }
+  },
+  "bulk": {
+    "selected": "{{count}} selected",
+    "resolve": "Resolve",
+    "close": "Close",
+    "wait": "Wait",
+    "deselect": "Deselect"
+  },
+  "templates": {
+    "passwordReset": "Password reset",
+    "accountAccess": "Account access",
+    "bugReport": "Bug report",
+    "featureRequest": "Feature request",
+    "billingInquiry": "Billing inquiry"
+  },
+  "filters": {
+    "all": "All tickets",
+    "mine": "My tickets",
+    "unassigned": "Unassigned",
+    "byStatus": "By status",
+    "byPriority": "By priority",
+    "byDepartment": "By department"
+  },
+  "timeline": {
+    "created": "Ticket created",
+    "status_changed": "Status → {{status}}",
+    "assigned": "Assigned to {{name}}",
+    "priority_changed": "Priority → {{priority}}",
+    "tag_added": "Tag added: {{tag}}",
+    "tag_removed": "Tag removed: {{tag}}",
+    "message_added_note": "Internal note added",
+    "message_added_reply": "Reply sent",
+    "attachment_added": "Attachment uploaded",
+    "merged": "Merged into {{target}}",
+    "automation_fired": "Automation fired"
+  },
+  "archived": {
+    "title": "Archived Tickets",
+    "subtitle": "Closed and resolved tickets older than 30 days.",
+    "empty": "No archived tickets."
+  },
+  "empty": {
+    "title": "No tickets yet",
+    "subtitle": "Tickets will appear here once submitted.",
+    "create": "Create the first ticket"
+  },
+  "detail": {
+    "requester": "Requester",
+    "viewContactProfile": "View contact profile",
+    "properties": "Properties",
+    "unassigned": "Unassigned",
+    "noDepartment": "No department",
+    "slaFirstResponse": "First response",
+    "saving": "Saving...",
+    "notFound": "Ticket not found.",
+    "backToTickets": "Tickets",
+    "noMessages": "No messages yet.",
+    "agent": "Agent",
+    "internalBadge": "Internal",
+    "reply": "Reply",
+    "internalNote": "Internal Note",
+    "replyPlaceholder": "Type your reply...",
+    "notePlaceholder": "Write an internal note...",
+    "sending": "Sending...",
+    "sendReply": "Send Reply",
+    "addNote": "Add Note"
+  },
+  "tags": {
+    "title": "Tags",
+    "noTags": "No tags",
+    "addPlaceholder": "Add tag…",
+    "add": "Add"
+  },
+  "merge": {
+    "button": "Merge ticket",
+    "title": "Merge into ticket",
+    "description": "This ticket will be closed and its messages moved to the target ticket.",
+    "placeholder": "Target ticket ID…",
+    "cancel": "Cancel",
+    "merging": "Merging…",
+    "merge": "Merge",
+    "failed": "Failed to merge"
+  },
+  "macro": {
+    "button": "Apply macro",
+    "title": "Apply macro",
+    "noMacros": "No macros defined yet",
+    "cancel": "Cancel",
+    "applying": "Applying…",
+    "apply": "Apply",
+    "applied_one": "Applied {{count}} action",
+    "applied_other": "Applied {{count}} actions"
+  },
+  "slaTimeline": {
+    "title": "SLA Timeline",
+    "created": "Created",
+    "firstResponse": "First response",
+    "resolution": "Resolution",
+    "overdue": "Overdue",
+    "due": "Due {{date}}"
+  },
+  "cc": {
+    "title": "CC / Followers",
+    "add": "+ Add",
+    "noFollowers": "No followers"
+  },
+  "convert": {
+    "button": "→ Task",
+    "converted": "Converted",
+    "title": "Convert to task?",
+    "description": "Creates a new task titled \"{{subject}}\" with the same priority. The original ticket remains open.",
+    "cancel": "Cancel",
+    "converting": "Converting…",
+    "convert": "Convert",
+    "failed": "Failed to convert",
+    "tooltip": "Convert to task"
+  },
+  "errors": {
+    "failedToFetch": "Failed to fetch ticket",
+    "failedMessages": "Failed to fetch messages",
+    "failedStatus": "Failed to update status",
+    "failedPriority": "Failed to update priority",
+    "failedAssign": "Failed to assign ticket",
+    "transferFailed": "Transfer failed",
+    "failedSend": "Failed to send reply"
+  }
+}

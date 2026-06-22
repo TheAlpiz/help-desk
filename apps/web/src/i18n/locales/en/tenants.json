@@ -1,0 +1,129 @@
+{
+  "stats": {
+    "total": "Total Tenants",
+    "active": "Active",
+    "inactive": "Inactive / Suspended"
+  },
+  "subtitle": "Manage all tenant organizations.",
+  "provisionBtn": "Provision Tenant",
+  "table": {
+    "organization": "Organization",
+    "domain": "Domain",
+    "status": "Status",
+    "created": "Created",
+    "actions": "Actions"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "suspended": "Suspended"
+  },
+  "actions": {
+    "featureFlags": "Feature flags",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "empty": {
+    "title": "No tenants yet",
+    "cta": "Provision first tenant"
+  },
+  "error": {
+    "load": "Failed to load tenants."
+  },
+  "provision": {
+    "title": "Provision New Tenant",
+    "steps": {
+      "org": "Organization",
+      "admin": "Admin User",
+      "review": "Review"
+    },
+    "org": {
+      "nameLabel": "Organization Name *",
+      "namePlaceholder": "Acme Corp",
+      "domainLabel": "Domain *",
+      "domainPlaceholder": "acme.example.com",
+      "nextBtn": "Next: Admin User →"
+    },
+    "admin": {
+      "firstNameLabel": "First Name *",
+      "lastNameLabel": "Last Name *",
+      "emailLabel": "Email *",
+      "emailPlaceholder": "admin@acme.com",
+      "passwordLabel": "Temporary Password *",
+      "backBtn": "Back",
+      "nextBtn": "Next: Review →"
+    },
+    "review": {
+      "orgSection": "Organization",
+      "adminSection": "Admin User",
+      "nameField": "Name",
+      "domainField": "Domain",
+      "emailField": "Email",
+      "roleField": "Role",
+      "backBtn": "Back",
+      "createBtn": "Create Tenant"
+    },
+    "errors": {
+      "failed": "Failed to provision tenant"
+    },
+    "validation": {
+      "required": "Required",
+      "invalidEmail": "Invalid email",
+      "minPassword": "Min 8 chars"
+    }
+  },
+  "edit": {
+    "title": "Edit Tenant",
+    "nameLabel": "Organization Name",
+    "domainLabel": "Domain",
+    "statusLabel": "Status",
+    "cancelBtn": "Cancel",
+    "saveBtn": "Save Changes",
+    "errors": {
+      "failed": "Failed to update",
+      "generic": "An error occurred"
+    }
+  },
+  "delete": {
+    "title": "Delete Tenant",
+    "confirm": "Permanently delete <strong>{{name}}</strong>? All data will be lost. Cannot be undone.",
+    "cancelBtn": "Cancel",
+    "deleteBtn": "Delete Tenant"
+  },
+  "flags": {
+    "title": "Feature Flags",
+    "savedBtn": "Saved!",
+    "saveBtn": "Save flags",
+    "toggle": "Toggle {{label}}",
+    "items": {
+      "whatsapp": {
+        "label": "WhatsApp integration",
+        "description": "Enable WhatsApp channel for this tenant"
+      },
+      "api_tokens": {
+        "label": "API tokens",
+        "description": "Allow agents to create personal API tokens"
+      },
+      "sla_escalation": {
+        "label": "SLA escalation rules",
+        "description": "Advanced SLA escalation builder"
+      },
+      "custom_domains": {
+        "label": "Custom domains",
+        "description": "Allow tenant to set custom subdomain"
+      },
+      "data_export": {
+        "label": "Data export",
+        "description": "Enable bulk data export center"
+      },
+      "sso": {
+        "label": "SSO / SCIM",
+        "description": "Single sign-on and SCIM provisioning"
+      },
+      "ai_assist": {
+        "label": "AI assist (beta)",
+        "description": "AI-powered reply suggestions and triage"
+      }
+    }
+  }
+}

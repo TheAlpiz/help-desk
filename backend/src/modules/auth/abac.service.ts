@@ -1,4 +1,4 @@
-import { and, eq, or, SQL } from "drizzle-orm";
+import { eq, or, inArray, SQL } from "drizzle-orm";
 import { ticket } from "../ticket/ticket.schema";
 
 /**
@@ -15,7 +15,7 @@ import { ticket } from "../ticket/ticket.schema";
 
 export type TicketActor = {
   userId: string;
-  departmentId: string | null;
+  departmentIds: string[];
   permissions: string[];
 };
 
@@ -34,8 +34,8 @@ export function ticketVisibilityFilter(actor: TicketActor): SQL | undefined {
     eq(ticket.requesterId, actor.userId),
     eq(ticket.assigneeId, actor.userId),
   ];
-  if (actor.departmentId) {
-    clauses.push(eq(ticket.departmentId, actor.departmentId));
+  if (actor.departmentIds.length > 0) {
+    clauses.push(inArray(ticket.departmentId, actor.departmentIds));
   }
   return or(...clauses);
 }
@@ -48,6 +48,6 @@ export function canViewTicket(
   if (hasOrgWideTicketRead(actor)) return true;
   if (t.requesterId === actor.userId) return true;
   if (t.assigneeId === actor.userId) return true;
-  if (actor.departmentId && t.departmentId === actor.departmentId) return true;
+  if (t.departmentId && actor.departmentIds.includes(t.departmentId)) return true;
   return false;
 }

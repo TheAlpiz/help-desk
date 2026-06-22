@@ -3,24 +3,25 @@ import ReactDOM from 'react-dom/client';
 // @ts-ignore
 import './globals.css';
 
+// i18n must be imported before any component that uses `useTranslation`
+import './i18n/config';
+
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { routeTree } from './routeTree.gen';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from './components/Toast';
+import { I18nProvider } from './i18n/I18nProvider';
 
 
 const queryClient = new QueryClient();
 
-// Set up a Router instance
 const router = createRouter({
   routeTree,
   context: {
     queryClient,
   },
   defaultPreload: 'intent',
-  // Since we're using React Query, we don't want loader calls to ever be stale
-  // This will ensure that the loader is always called when the route is preloaded or visited
   defaultPreloadStaleTime: 0,
 });
 
@@ -34,7 +35,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <RouterProvider router={router} />
+        <I18nProvider>
+          <RouterProvider router={router} />
+        </I18nProvider>
       </ToastProvider>
     </QueryClientProvider>
   </React.StrictMode>

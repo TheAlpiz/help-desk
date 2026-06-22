@@ -4,6 +4,7 @@ import { z } from "zod";
 import { Search, Ticket, CheckSquare, Users, Building2, FileText, X } from "lucide-react";
 import { useAppStore } from "@/store";
 import { authFetch } from "@/lib/api";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/_auth/search")({
   validateSearch: z.object({ q: z.string().optional() }),
@@ -37,13 +38,16 @@ const ENTITY_COLOR: Record<EntityType, string> = {
   audit: "text-slate-400 bg-slate-400/10",
 };
 
-const ENTITY_LABEL: Record<EntityType, string> = {
-  ticket: "Ticket",
-  task: "Task",
-  user: "User",
-  department: "Department",
-  audit: "Audit log",
-};
+function useEntityLabel(): Record<EntityType, string> {
+  const { t } = useTranslation("common");
+  return {
+    ticket: t("search.entities.ticket"),
+    task: t("search.entities.task"),
+    user: t("search.entities.user"),
+    department: t("search.entities.department"),
+    audit: t("search.entities.audit"),
+  };
+}
 
 function getAuthHeaders(): Record<string, string> {
   const state = useAppStore.getState();
@@ -62,7 +66,16 @@ async function searchEntity(
     const res = await authFetch(`${endpoint}?search=${encodeURIComponent(q)}&limit=5`);
     if (!res.ok) return [];
     const data = await res.json();
-    const items: any[] = data?.data?.items ?? data?.data ?? [];
+    
+    let items: any[] = [];
+    if (Array.isArray(data?.data)) {
+      items = data.data;
+    } else if (Array.isArray(data?.data?.data)) {
+      items = data.data.data;
+    } else if (Array.isArray(data?.data?.items)) {
+      items = data.data.items;
+    }
+    
     return items.map(mapper);
   } catch {
     return [];
@@ -108,6 +121,7 @@ async function runSearch(q: string): Promise<SearchResult[]> {
 }
 
 function ResultCard({ result }: { result: SearchResult }) {
+  const entityLabel = useEntityLabel();
   return (
     <Link
       to={result.href as any}
@@ -132,7 +146,7 @@ function ResultCard({ result }: { result: SearchResult }) {
         )}
       </div>
       <span className={`text-[10px] shrink-0 px-1.5 py-0.5 rounded mt-0.5 ${ENTITY_COLOR[result.type]}`}>
-        {ENTITY_LABEL[result.type]}
+        {entityLabel[result.type]}
       </span>
     </Link>
   );
@@ -141,6 +155,8 @@ function ResultCard({ result }: { result: SearchResult }) {
 function GlobalSearch() {
   const { q = "" } = Route.useSearch();
   const navigate = useNavigate();
+  const { t } = useTranslation("common");
+  const entityLabel = useEntityLabel();
   const [input, setInput] = useState(q);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -184,8 +200,8 @@ function GlobalSearch() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-[15px] font-semibold text-on-surface">Global Search</h1>
-        <p className="text-xs text-on-surface-variant mt-1">Search across tickets, tasks, users, and departments.</p>
+        <h1 className="text-[15px] font-semibold text-on-surface">{t("search.title")}</h1>
+        <p className="text-xs text-on-surface-variant mt-1">{t("search.subtitle")}</p>
       </div>
 
       {/* Search input */}
@@ -195,14 +211,14 @@ function GlobalSearch() {
           autoFocus
           value={input}
           onChange={(e) => handleInput(e.target.value)}
-          placeholder="Search everything…"
+          placeholder={t("search.placeholder")}
           className="w-full pl-10 pr-9 py-3 bg-surface-container border border-outline-variant rounded-xl text-sm text-on-surface placeholder:text-on-surface-variant/35 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/60 transition-colors"
-          aria-label="Global search"
+          aria-label={t("search.title")}
         />
         {input && (
           <button
             onClick={clearSearch}
-            aria-label="Clear search"
+            aria-label={t("search.clearSearch")}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/40 hover:text-on-surface-variant transition-colors"
           >
             <X className="w-4 h-4" />
@@ -217,7 +233,7 @@ function GlobalSearch() {
             onClick={() => setFilter("all")}
             className={`px-2.5 py-1 text-xs rounded-lg border transition-colors ${filter === "all" ? "bg-primary/15 border-primary/30 text-primary" : "border-outline-variant text-on-surface-variant hover:border-primary/30"}`}
           >
-            All ({results.length})
+            {t("search.all")} ({results.length})
           </button>
           {(Object.keys(byType) as EntityType[]).map((type) => (
             <button
@@ -226,7 +242,7 @@ function GlobalSearch() {
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg border transition-colors ${filter === type ? `${ENTITY_COLOR[type]} border-current` : "border-outline-variant text-on-surface-variant hover:border-primary/30"}`}
             >
               {ENTITY_ICON[type]}
-              {ENTITY_LABEL[type]}s ({byType[type]})
+              {entityLabel[type]}s ({byType[type]})
             </button>
           ))}
         </div>
@@ -244,8 +260,8 @@ function GlobalSearch() {
       {!loading && searched && filtered.length === 0 && (
         <div className="text-center py-12">
           <Search className="w-8 h-8 text-on-surface-variant/20 mx-auto mb-3" />
-          <p className="text-sm text-on-surface-variant/40">No results for "{q}"</p>
-          <p className="text-xs text-on-surface-variant/25 mt-1">Try different keywords or check spelling</p>
+          <p className="text-sm text-on-surface-variant/40">{t("search.noResults", { query: q })}</p>
+          <p className="text-xs text-on-surface-variant/25 mt-1">{t("search.tryDifferent")}</p>
         </div>
       )}
 
@@ -260,8 +276,8 @@ function GlobalSearch() {
       {!loading && !searched && !q && (
         <div className="text-center py-12">
           <Search className="w-10 h-10 text-on-surface-variant/15 mx-auto mb-3" />
-          <p className="text-sm text-on-surface-variant/35">Start typing to search</p>
-          <p className="text-xs text-on-surface-variant/20 mt-1">Searches tickets, tasks, users, and departments</p>
+          <p className="text-sm text-on-surface-variant/35">{t("search.startTyping")}</p>
+          <p className="text-xs text-on-surface-variant/20 mt-1">{t("search.searchesAcross")}</p>
         </div>
       )}
     </div>

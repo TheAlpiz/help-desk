@@ -20,10 +20,17 @@ export const taskRouter = new Hono<{
     const tenantId = c.get("tenantId");
     if (!tenantId) return ResponseHandler.unauthorized(c, "Tenant ID required");
     try {
+      const query = c.req.query();
+      const limit = Math.min(Number(query.limit) || 25, 100);
+      const offset = Number(query.offset) || 0;
+      
       const tasks = await TaskService.findAll(tenantId, {
-        ticketId: c.req.query("ticketId"),
-        assigneeId: c.req.query("assigneeId"),
-        standalone: c.req.query("standalone") === "true",
+        ticketId: query.ticketId,
+        assigneeId: query.assigneeId,
+        standalone: query.standalone === "true",
+        search: query.search,
+        limit,
+        offset,
       });
       return ResponseHandler.ok(c, tasks);
     } catch (err: any) {

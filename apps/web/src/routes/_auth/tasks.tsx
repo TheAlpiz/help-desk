@@ -5,12 +5,15 @@ import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import {
   Plus, X, AlertCircle, AlertTriangle, Minus, ListChecks, MessageSquare, Send,
-  CheckSquare, Square, LayoutList, Kanban, Trash2, ChevronDown,
+  CheckSquare, Square, LayoutList, Kanban, Trash2, ChevronDown, Clock, CalendarDays, BarChartHorizontal
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import { EntityAttachments } from "@/features/tickets/TicketAttachments";
 import { createTaskSchema, updateTaskStatusSchema } from "@help-desk/shared";
 import { Button, Input, FormAlert, FormError, fieldErrors } from "@/components/ui";
+import { TaskCalendar } from "@/features/tasks/TaskCalendar";
+import { TaskGantt } from "@/features/tasks/TaskGantt";
 
 export const Route = createFileRoute("/_auth/tasks")({
   component: TasksList,
@@ -46,17 +49,55 @@ const PRIORITY_CONFIG: Record<string, { icon: React.ReactNode; cls: string }> = 
 };
 
 const COLUMNS = [
-  { key: "TODO", label: "To Do", accent: "text-on-surface-variant" },
-  { key: "IN_PROGRESS", label: "In Progress", accent: "text-primary" },
-  { key: "BLOCKED", label: "Blocked", accent: "text-red-400" },
-  { key: "REVIEW", label: "Review", accent: "text-amber-400" },
-  { key: "DONE", label: "Done", accent: "text-emerald-400" },
+  { key: "TODO", labelKey: "columns.todo", accent: "text-on-surface-variant" },
+  { key: "IN_PROGRESS", labelKey: "columns.in_progress", accent: "text-primary" },
+  { key: "BLOCKED", labelKey: "columns.blocked", accent: "text-red-400" },
+  { key: "REVIEW", labelKey: "columns.review", accent: "text-amber-400" },
+  { key: "DONE", labelKey: "columns.done", accent: "text-emerald-400" },
 ];
 
 const TASK_STATUSES = ["TODO", "IN_PROGRESS", "BLOCKED", "REVIEW", "DONE", "CANCELED"] as const;
 
 const textareaCls =
   "w-full px-3 py-2 bg-surface-container-high border border-outline-variant rounded-lg text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/60 transition-colors";
+
+const DONE_STATUSES = new Set(["DONE", "CANCELED"]);
+
+function DueDateBadge({ dueDate, status }: { dueDate?: string | null; status: string }) {
+  const { t } = useTranslation("tasks");
+
+  if (!dueDate) return null;
+  if (DONE_STATUSES.has(status)) return null;
+
+  const due = new Date(dueDate);
+  const now = Date.now();
+  const diffMs = due.getTime() - now;
+  const diffMins = Math.floor(Math.abs(diffMs) / 60000);
+  const overdue = diffMs < 0;
+
+  const fmt = (mins: number) => {
+    if (mins < 60) return `${mins}m`;
+    if (mins < 1440) return `${Math.floor(mins / 60)}h`;
+    return `${Math.floor(mins / 1440)}d`;
+  };
+
+  const label = overdue
+    ? t("dueDate.overdue", { time: fmt(diffMins) })
+    : t("dueDate.dueIn", { time: fmt(diffMins) });
+
+  const cls = overdue
+    ? "bg-red-500/15 text-red-300 border-red-500/20"
+    : diffMs < 2 * 60 * 60 * 1000
+      ? "bg-amber-500/15 text-amber-300 border-amber-500/20"
+      : "bg-white/6 text-on-surface-variant/60 border-white/10";
+
+  return (
+    <span className={`inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded border ${cls}`}>
+      <Clock className="w-2.5 h-2.5" />
+      {label}
+    </span>
+  );
+}
 
 const selectCls =
   "w-full px-3 py-2 bg-surface-container-high border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/60 transition-colors";
@@ -104,6 +145,8 @@ const TASK_TEMPLATES: Array<{ label: string; title: string; description: string;
 // ─── Create task modal ────────────────────────────────────────────────────────
 
 function CreateTaskModal({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation("tasks");
+  const { t: tCommon } = useTranslation("common");
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [templateOpen, setTemplateOpen] = useState(false);
@@ -123,7 +166,7 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
       // re-validated server-side against the real datetime schema.
       onChange: createTaskSchema
         .omit({ ticketId: true, parentTaskId: true })
-        .extend({ dueDate: z.string().optional() }),
+        .extend({ dueDate: z.string().optional() }) as any,
     },
     onSubmit: async ({ value }) => {
       setError(null);
@@ -138,19 +181,19 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
         const res = await api.tasks.index.$post({ json: payload as any });
         if (!res.ok) {
           const body = (await res.json()) as any;
-          setError(body?.error?.message || body?.message || "Failed to create task");
+          setError(body?.error?.message || body?.message || tCommon("errors.saveFailed"));
           return;
         }
         queryClient.invalidateQueries({ queryKey: ["tasks"] });
         onClose();
       } catch (err: any) {
-        setError(err.message || "An error occurred");
+        setError(err.message || tCommon("errors.generic"));
       }
     },
   });
 
   return (
-    <ModalShell title="Create Task" onClose={onClose}>
+    <ModalShell title={t("create")} onClose={onClose}>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -194,10 +237,10 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
 
         <form.Field
           name="title"
-          validators={{ onChange: z.string().min(1, "Title is required") }}
+          validators={{ onChange: z.string().min(1, tCommon("errors.requiredField")) }}
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-on-surface">Title *</label>
+              <label className="text-xs font-medium text-on-surface">{t("fields.title")} *</label>
               <Input
                 dense
                 autoFocus
@@ -215,7 +258,7 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
           name="description"
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-on-surface">Description</label>
+              <label className="text-xs font-medium text-on-surface">{t("fields.description")}</label>
               <textarea
                 className={textareaCls}
                 rows={3}
@@ -233,7 +276,7 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
             name="priority"
             children={(field) => (
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-on-surface">Priority</label>
+                <label className="text-xs font-medium text-on-surface">{t("fields.priority")}</label>
                 <select
                   className={selectCls}
                   value={field.state.value}
@@ -244,10 +287,10 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
                     )
                   }
                 >
-                  <option value="LOW">Low</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="HIGH">High</option>
-                  <option value="URGENT">Urgent</option>
+                  <option value="LOW">{tCommon("priority.low")}</option>
+                  <option value="MEDIUM">{tCommon("priority.medium")}</option>
+                  <option value="HIGH">{tCommon("priority.high")}</option>
+                  <option value="URGENT">{tCommon("priority.urgent")}</option>
                 </select>
               </div>
             )}
@@ -256,7 +299,7 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
             name="dueDate"
             children={(field) => (
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-on-surface">Due Date</label>
+                <label className="text-xs font-medium text-on-surface">{t("fields.dueDate")}</label>
                 <Input
                   dense
                   type="date"
@@ -270,12 +313,12 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="flex gap-2 justify-end pt-1">
-          <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button type="button" variant="secondary" onClick={onClose}>{tCommon("actions.cancel")}</Button>
           <form.Subscribe
             selector={(s) => [s.canSubmit, s.isSubmitting]}
             children={([canSubmit, isSubmitting]) => (
               <Button type="submit" disabled={!canSubmit} loading={isSubmitting}>
-                {!isSubmitting && "Create Task"}
+                {!isSubmitting && t("create")}
               </Button>
             )}
           />
@@ -294,6 +337,8 @@ function UpdateStatusModal({
   task: Task;
   onClose: () => void;
 }) {
+  const { t } = useTranslation("tasks");
+  const { t: tCommon } = useTranslation("common");
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
@@ -311,13 +356,13 @@ function UpdateStatusModal({
         });
         if (!res.ok) {
           const body = (await res.json()) as any;
-          setError(body?.error?.message || body?.message || "Failed to update status");
+          setError(body?.error?.message || body?.message || tCommon("errors.saveFailed"));
           return;
         }
         queryClient.invalidateQueries({ queryKey: ["tasks"] });
         onClose();
       } catch (err: any) {
-        setError(err.message || "An error occurred");
+        setError(err.message || tCommon("errors.generic"));
       }
     },
   });
@@ -338,7 +383,7 @@ function UpdateStatusModal({
           name="status"
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-on-surface">Move to</label>
+              <label className="text-xs font-medium text-on-surface">{t("actions.updateStatus")}</label>
               <select
                 className={selectCls}
                 value={field.state.value}
@@ -358,12 +403,12 @@ function UpdateStatusModal({
         />
 
         <div className="flex gap-2 justify-end pt-1">
-          <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button type="button" variant="secondary" onClick={onClose}>{tCommon("actions.cancel")}</Button>
           <form.Subscribe
             selector={(s) => [s.canSubmit, s.isSubmitting]}
             children={([canSubmit, isSubmitting]) => (
               <Button type="submit" disabled={!canSubmit} loading={isSubmitting}>
-                {!isSubmitting && "Update"}
+                {!isSubmitting && tCommon("actions.save")}
               </Button>
             )}
           />
@@ -378,6 +423,7 @@ function UpdateStatusModal({
 // ─── Task detail drawer ───────────────────────────────────────────────────────
 
 function TaskDetailDrawer({ task, onClose }: { task: Task; onClose: () => void }) {
+  const { t } = useTranslation("tasks");
   const queryClient = useQueryClient();
   const [comment, setComment] = useState("");
 
@@ -463,9 +509,9 @@ function TaskDetailDrawer({ task, onClose }: { task: Task; onClose: () => void }
           <div className="flex-1 min-w-0 pr-4">
             <p className="text-sm font-semibold text-on-surface leading-snug">{task.title}</p>
             {task.dueDate && (
-              <p className="text-[10px] font-mono text-on-surface-variant/40 mt-0.5">
-                Due {new Date(task.dueDate).toLocaleDateString()}
-              </p>
+              <div className="mt-1">
+                <DueDateBadge dueDate={task.dueDate} status={task.status} />
+              </div>
             )}
           </div>
           <button onClick={onClose} aria-label="Close" className="text-on-surface-variant hover:text-on-surface transition-colors shrink-0">
@@ -492,7 +538,7 @@ function TaskDetailDrawer({ task, onClose }: { task: Task; onClose: () => void }
 
           {/* Assignee */}
           <div>
-            <h4 className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-1.5">Assignee</h4>
+            <h4 className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-1.5">{t("fields.assignee")}</h4>
             <select
               value={detail?.assigneeId ?? task.assigneeId ?? ""}
               onChange={(e) => e.target.value && assignMutation.mutate(e.target.value)}
@@ -511,7 +557,7 @@ function TaskDetailDrawer({ task, onClose }: { task: Task; onClose: () => void }
           {/* Description */}
           {task.description && (
             <div>
-              <h4 className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-1.5">Description</h4>
+              <h4 className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-1.5">{t("fields.description")}</h4>
               <p className="text-sm text-on-surface-variant leading-relaxed">{task.description}</p>
             </div>
           )}
@@ -523,7 +569,7 @@ function TaskDetailDrawer({ task, onClose }: { task: Task; onClose: () => void }
           <div>
             <h4 className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <MessageSquare className="w-3 h-3" />
-              Comments ({comments.length})
+              {t("fields.comments")} ({comments.length})
             </h4>
             {comments.length === 0 ? (
               <p className="text-xs text-on-surface-variant/30 text-center py-4">No comments yet</p>
@@ -548,7 +594,7 @@ function TaskDetailDrawer({ task, onClose }: { task: Task; onClose: () => void }
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Add a comment..."
+              placeholder={t("actions.addComment")}
               rows={2}
               className="flex-1 px-3 py-2 bg-surface-container-high border border-outline-variant rounded-lg text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none transition-colors"
             />
@@ -567,10 +613,11 @@ function TaskDetailDrawer({ task, onClose }: { task: Task; onClose: () => void }
 }
 
 function TasksList() {
+  const { t } = useTranslation("tasks");
   const [showCreate, setShowCreate] = useState(false);
   const [updateTask, setUpdateTask] = useState<Task | null>(null);
   const [detailTask, setDetailTask] = useState<Task | null>(null);
-  const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
+  const [viewMode, setViewMode] = useState<"kanban" | "list" | "calendar" | "gantt">("kanban");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [dragId, setDragId] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
@@ -585,7 +632,8 @@ function TasksList() {
     },
   });
 
-  const tasks: Task[] = (data as any)?.data ?? [];
+  const rawData = (data as any)?.data;
+  const tasks: Task[] = Array.isArray(rawData) ? rawData : (rawData?.data ?? []);
 
   // ── Drag-and-drop ────────────────────────────────────────────────────────────
   const moveMutation = useMutation({
@@ -645,9 +693,9 @@ function TasksList() {
     });
 
   const toggleAll = () =>
-    setSelected((s) => (s.size === tasks.length ? new Set() : new Set(tasks.map((t) => t.id))));
+    setSelected((s) => (s.size === tasks.length ? new Set() : new Set(tasks.map((tk) => tk.id))));
 
-  const byStatus = (status: string) => tasks.filter((t) => t.status === status);
+  const byStatus = (status: string) => tasks.filter((tk) => tk.status === status);
 
   return (
     <>
@@ -658,28 +706,42 @@ function TasksList() {
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-[15px] font-semibold text-on-surface">Tasks</h1>
+          <h1 className="text-[15px] font-semibold text-on-surface">{t("title")}</h1>
           <div className="flex items-center gap-2">
             {/* View toggle */}
             <div className="flex items-center gap-0.5 bg-surface-container border border-outline-variant rounded-lg p-0.5">
               <button
                 onClick={() => setViewMode("kanban")}
-                aria-label="Kanban view"
+                aria-label={t("views.kanban")}
                 className={`p-1.5 rounded transition-colors ${viewMode === "kanban" ? "bg-primary text-on-primary" : "text-on-surface-variant hover:text-on-surface"}`}
               >
                 <Kanban className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                aria-label="List view"
+                aria-label={t("views.list")}
                 className={`p-1.5 rounded transition-colors ${viewMode === "list" ? "bg-primary text-on-primary" : "text-on-surface-variant hover:text-on-surface"}`}
               >
                 <LayoutList className="w-3.5 h-3.5" />
               </button>
+              <button
+                onClick={() => setViewMode("calendar")}
+                aria-label="Calendar"
+                className={`p-1.5 rounded transition-colors ${viewMode === "calendar" ? "bg-primary text-on-primary" : "text-on-surface-variant hover:text-on-surface"}`}
+              >
+                <CalendarDays className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => setViewMode("gantt")}
+                aria-label="Gantt"
+                className={`p-1.5 rounded transition-colors ${viewMode === "gantt" ? "bg-primary text-on-primary" : "text-on-surface-variant hover:text-on-surface"}`}
+              >
+                <BarChartHorizontal className="w-3.5 h-3.5" />
+              </button>
             </div>
             <Button onClick={() => setShowCreate(true)}>
               <Plus className="w-4 h-4" />
-              New Task
+              {t("new")}
             </Button>
           </div>
         </div>
@@ -687,7 +749,7 @@ function TasksList() {
         {/* Bulk actions bar */}
         {selected.size > 0 && (
           <div className="flex items-center gap-3 px-4 py-2.5 bg-primary/10 border border-primary/20 rounded-xl">
-            <span className="text-xs font-medium text-primary">{selected.size} selected</span>
+            <span className="text-xs font-medium text-primary">{t("bulk.selected", { count: selected.size })}</span>
             <div className="flex items-center gap-1.5 flex-wrap">
               {COLUMNS.map((col) => (
                 <button
@@ -696,7 +758,7 @@ function TasksList() {
                   disabled={bulkStatusMutation.isPending}
                   className={`px-2.5 py-1 text-[11px] font-medium rounded-lg border transition-colors ${col.accent} border-current/30 bg-current/5 hover:bg-current/10 disabled:opacity-40`}
                 >
-                  → {col.label}
+                  {t("bulk.moveTo", { status: t(col.labelKey) })}
                 </button>
               ))}
             </div>
@@ -721,9 +783,10 @@ function TasksList() {
         ) : viewMode === "kanban" ? (
           /* ── Kanban view ── */
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            {COLUMNS.map(({ key, label, accent }) => {
+            {COLUMNS.map(({ key, labelKey, accent }) => {
               const col = byStatus(key);
               const isOver = dropTarget === key;
+              const label = t(labelKey);
               return (
                 <div
                   key={key}
@@ -738,7 +801,7 @@ function TasksList() {
                   <div className="flex-1 overflow-y-auto p-2 space-y-2">
                     {col.length === 0 ? (
                       <div className={`text-center py-8 text-[11px] transition-colors ${isOver ? "text-primary/50" : "text-on-surface-variant/30"}`}>
-                        {isOver ? "Drop here" : "No tasks"}
+                        {isOver ? "Drop here" : t("empty.title")}
                       </div>
                     ) : (
                       col.map((task) => {
@@ -760,11 +823,7 @@ function TasksList() {
                                 <span className={`inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded ${prio?.cls ?? "bg-white/8 text-on-surface-variant"}`}>
                                   {prio?.icon}{task.priority}
                                 </span>
-                                {task.dueDate && (
-                                  <span className="text-[10px] font-mono text-on-surface-variant/40">
-                                    {new Date(task.dueDate).toLocaleDateString()}
-                                  </span>
-                                )}
+                                <DueDateBadge dueDate={task.dueDate} status={task.status} />
                               </div>
                               <p className="text-xs font-medium text-on-surface leading-snug group-hover:text-primary transition-colors">{task.title}</p>
                               {task.description && (
@@ -780,6 +839,10 @@ function TasksList() {
               );
             })}
           </div>
+        ) : viewMode === "calendar" ? (
+          <TaskCalendar tasks={tasks} />
+        ) : viewMode === "gantt" ? (
+          <TaskGantt tasks={tasks} />
         ) : (
           /* ── List view with bulk select ── */
           <div className="bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
@@ -795,16 +858,16 @@ function TasksList() {
                       )}
                     </button>
                   </th>
-                  <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">Task</th>
-                  <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider w-28">Status</th>
-                  <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider w-24 hidden md:table-cell">Priority</th>
-                  <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider w-28 hidden lg:table-cell">Due</th>
+                  <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("fields.title")}</th>
+                  <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider w-28">{t("fields.status")}</th>
+                  <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider w-24 hidden md:table-cell">{t("fields.priority")}</th>
+                  <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider w-28 hidden lg:table-cell">{t("fields.dueDate")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/30">
                 {tasks.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-12 text-center text-sm text-on-surface-variant/40">No tasks yet</td>
+                    <td colSpan={5} className="px-4 py-12 text-center text-sm text-on-surface-variant/40">{t("empty.title")}</td>
                   </tr>
                 ) : tasks.map((task) => {
                   const prio = PRIORITY_CONFIG[task.priority];
@@ -841,7 +904,7 @@ function TasksList() {
                       </td>
                       <td className="px-4 py-3">
                         <span className={`text-[10px] font-semibold ${col?.accent ?? "text-on-surface-variant"}`}>
-                          {col?.label ?? task.status}
+                          {col ? t(col.labelKey) : task.status}
                         </span>
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell">
@@ -850,9 +913,10 @@ function TasksList() {
                         </span>
                       </td>
                       <td className="px-4 py-3 hidden lg:table-cell">
-                        <span className="text-xs text-on-surface-variant/50">
-                          {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "—"}
-                        </span>
+                        {task.dueDate
+                          ? <DueDateBadge dueDate={task.dueDate} status={task.status} />
+                          : <span className="text-xs text-on-surface-variant/30">—</span>
+                        }
                       </td>
                     </tr>
                   );
@@ -867,9 +931,9 @@ function TasksList() {
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
               <ListChecks className="w-5 h-5 text-primary" />
             </div>
-            <p className="text-sm font-medium text-on-surface mb-1">No tasks yet</p>
+            <p className="text-sm font-medium text-on-surface mb-1">{t("empty.title")}</p>
             <button onClick={() => setShowCreate(true)} className="text-xs text-primary hover:text-primary/80 font-medium transition-colors">
-              Create the first task
+              {t("empty.create")}
             </button>
           </div>
         )}

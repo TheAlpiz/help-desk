@@ -27,7 +27,7 @@ export const mailbox = pgTable("mailbox", {
   smtpPasswordEncrypted: text("smtp_password_encrypted"),
   smtpSecure: boolean("smtp_secure").default(true).notNull(),
   isActive: boolean("is_active").default(true).notNull(),
-  lastSyncAt: timestamp("last_sync_at"),
+  lastSyncAt: timestamp("last_sync_at", { withTimezone: true }),
   ...timestamps,
 });
 

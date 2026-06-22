@@ -1,0 +1,239 @@
+{
+  "title": "Talepler",
+  "new": "Yeni Talep",
+  "create": "Talep Oluştur",
+  "edit": "Talebi Düzenle",
+  "count_one": "{{count}} talep",
+  "count_other": "{{count}} talep",
+  "fields": {
+    "subject": "Konu",
+    "description": "Açıklama",
+    "status": "Durum",
+    "priority": "Öncelik",
+    "assignee": "Atanan",
+    "department": "Departman",
+    "mailbox": "Posta Kutusu",
+    "tags": "Etiketler",
+    "createdAt": "Oluşturulma",
+    "updatedAt": "Güncellenme",
+    "resolvedAt": "Çözülme",
+    "closedAt": "Kapatılma",
+    "requester": "Talep Eden",
+    "source": "Kaynak",
+    "sla": "SLA"
+  },
+  "statuses": {
+    "open": "Açık",
+    "assigned": "Atandı",
+    "in_progress": "İşlemde",
+    "waiting_customer": "Bekliyor",
+    "resolved": "Çözüldü",
+    "closed": "Kapatıldı",
+    "reopened": "Yeniden Açıldı",
+    "archived": "Arşivlendi"
+  },
+  "priorities": {
+    "low": "Düşük",
+    "medium": "Orta",
+    "high": "Yüksek",
+    "critical": "Kritik"
+  },
+  "views": {
+    "all": "Tüm talepler",
+    "open": "Açık",
+    "mine": "Benim taleplerim",
+    "unassigned": "Atanmamış",
+    "critical": "Kritik",
+    "waiting": "Bekleyen",
+    "resolved": "Çözülmüş"
+  },
+  "sources": {
+    "email": "E-posta",
+    "portal": "Portal",
+    "api": "API",
+    "whatsapp": "WhatsApp",
+    "telegram": "Telegram",
+    "chat": "Sohbet"
+  },
+  "actions": {
+    "assign": "Talebi ata",
+    "close": "Talebi kapat",
+    "reopen": "Talebi yeniden aç",
+    "resolve": "Çözüldü olarak işaretle",
+    "reply": "Yanıtla",
+    "addNote": "İç not ekle",
+    "merge": "Talepleri birleştir",
+    "transfer": "Transfer et"
+  },
+  "sla": {
+    "firstResponse": "İlk yanıt",
+    "resolution": "Çözüm",
+    "breached": "SLA ihlali",
+    "warning": "Risk altında",
+    "onTrack": "Yolunda"
+  },
+  "list": {
+    "searchPlaceholder": "Talep ara...",
+    "allStatuses": "Tüm durumlar",
+    "newTicket": "Yeni Talep",
+    "colSubject": "Konu",
+    "colStatus": "Durum",
+    "colCreated": "Oluşturulma",
+    "deselectAll": "Tüm taleplerin seçimini kaldır",
+    "selectAll": "Tüm talepleri seç",
+    "noResults": "0 sonuç",
+    "pagination": "{{total}} içinden {{from}}–{{to}}",
+    "noSearch": "Aramanızla eşleşen talep yok",
+    "noStatus": "{{status}} talebi yok",
+    "empty": "Henüz talep yok",
+    "createFirst": "İlk talebi oluştur",
+    "fetchError": "Talepler yüklenemedi"
+  },
+  "modal": {
+    "createTitle": "Talep Oluştur",
+    "templates": "Şablonlar",
+    "subjectLabel": "Konu *",
+    "subjectPlaceholder": "Sorunun kısa açıklaması",
+    "messageLabel": "Mesaj *",
+    "messagePlaceholder": "Sorunu ayrıntılı açıklayın...",
+    "priorityLabel": "Öncelik",
+    "macroOptional": "Oluşturma sonrası makro uygula (isteğe bağlı)",
+    "macroNone": "Hiçbiri",
+    "macroEmpty": "Henüz makro tanımlanmadı",
+    "cancel": "İptal",
+    "createTicket": "Talep Oluştur",
+    "createAndApply": "Oluştur ve Makro Uygula",
+    "closeDialog": "İletişim kutusunu kapat",
+    "errors": {
+      "subjectRequired": "Konu gereklidir",
+      "messageRequired": "Mesaj gereklidir",
+      "createFailed": "Talep oluşturulamadı",
+      "generic": "Bir hata oluştu"
+    }
+  },
+  "bulk": {
+    "selected": "{{count}} seçildi",
+    "resolve": "Çöz",
+    "close": "Kapat",
+    "wait": "Beklet",
+    "deselect": "Seçimi kaldır"
+  },
+  "templates": {
+    "passwordReset": "Şifre sıfırlama",
+    "accountAccess": "Hesap erişimi",
+    "bugReport": "Hata raporu",
+    "featureRequest": "Özellik isteği",
+    "billingInquiry": "Fatura sorgusu"
+  },
+  "filters": {
+    "all": "Tüm talepler",
+    "mine": "Benim taleplerim",
+    "unassigned": "Atanmamış",
+    "byStatus": "Duruma göre",
+    "byPriority": "Önceliğe göre",
+    "byDepartment": "Departmana göre"
+  },
+  "timeline": {
+    "created": "Talep oluşturuldu",
+    "status_changed": "Durum → {{status}}",
+    "assigned": "{{name}} kişisine atandı",
+    "priority_changed": "Öncelik → {{priority}}",
+    "tag_added": "Etiket eklendi: {{tag}}",
+    "tag_removed": "Etiket kaldırıldı: {{tag}}",
+    "message_added_note": "İç not eklendi",
+    "message_added_reply": "Yanıt gönderildi",
+    "attachment_added": "Ek yüklendi",
+    "merged": "{{target}} hedefine birleştirildi",
+    "automation_fired": "Otomasyon çalıştı"
+  },
+  "archived": {
+    "title": "Arşivlenmiş Talepler",
+    "subtitle": "30 günden eski kapatılmış ve çözülmüş talepler.",
+    "empty": "Arşivlenmiş talep yok."
+  },
+  "empty": {
+    "title": "Henüz talep yok",
+    "subtitle": "Talepler gönderildikten sonra burada görünecek.",
+    "create": "İlk talebi oluştur"
+  },
+  "detail": {
+    "requester": "Talep Eden",
+    "viewContactProfile": "Kişi profilini görüntüle",
+    "properties": "Özellikler",
+    "unassigned": "Atanmamış",
+    "noDepartment": "Departman yok",
+    "slaFirstResponse": "İlk yanıt",
+    "saving": "Kaydediliyor...",
+    "notFound": "Talep bulunamadı.",
+    "backToTickets": "Talepler",
+    "noMessages": "Henüz mesaj yok.",
+    "agent": "Temsilci",
+    "internalBadge": "İç",
+    "reply": "Yanıtla",
+    "internalNote": "İç Not",
+    "replyPlaceholder": "Yanıtınızı yazın...",
+    "notePlaceholder": "İç not yazın...",
+    "sending": "Gönderiliyor...",
+    "sendReply": "Yanıt Gönder",
+    "addNote": "Not Ekle"
+  },
+  "tags": {
+    "title": "Etiketler",
+    "noTags": "Etiket yok",
+    "addPlaceholder": "Etiket ekle…",
+    "add": "Ekle"
+  },
+  "merge": {
+    "button": "Talebi birleştir",
+    "title": "Talep içine birleştir",
+    "description": "Bu talep kapatılacak ve mesajları hedef talebe taşınacak.",
+    "placeholder": "Hedef talep ID'si…",
+    "cancel": "İptal",
+    "merging": "Birleştiriliyor…",
+    "merge": "Birleştir",
+    "failed": "Birleştirme başarısız"
+  },
+  "macro": {
+    "button": "Makro uygula",
+    "title": "Makro uygula",
+    "noMacros": "Henüz makro tanımlanmadı",
+    "cancel": "İptal",
+    "applying": "Uygulanıyor…",
+    "apply": "Uygula",
+    "applied_one": "{{count}} eylem uygulandı",
+    "applied_other": "{{count}} eylem uygulandı"
+  },
+  "slaTimeline": {
+    "title": "SLA Zaman Çizelgesi",
+    "created": "Oluşturuldu",
+    "firstResponse": "İlk yanıt",
+    "resolution": "Çözüm",
+    "overdue": "Gecikmiş",
+    "due": "Son tarih {{date}}"
+  },
+  "cc": {
+    "title": "CC / Takipçiler",
+    "add": "+ Ekle",
+    "noFollowers": "Takipçi yok"
+  },
+  "convert": {
+    "button": "→ Görev",
+    "converted": "Dönüştürüldü",
+    "title": "Göreve dönüştür?",
+    "description": "Aynı öncelikle \"{{subject}}\" başlıklı yeni bir görev oluşturur. Orijinal talep açık kalır.",
+    "cancel": "İptal",
+    "converting": "Dönüştürülüyor…",
+    "convert": "Dönüştür",
+    "failed": "Dönüştürme başarısız",
+    "tooltip": "Göreve dönüştür"
+  },
+  "errors": {
+    "failedToFetch": "Talep yüklenemedi",
+    "failedMessages": "Mesajlar yüklenemedi",
+    "failedStatus": "Durum güncellenemedi",
+    "failedPriority": "Öncelik güncellenemedi",
+    "failedAssign": "Talep atanamadı",
+    "transferFailed": "Transfer başarısız",
+    "failedSend": "Yanıt gönderilemedi"
+  }
+}

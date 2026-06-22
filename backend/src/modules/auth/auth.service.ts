@@ -1,11 +1,13 @@
-import { eq, and, isNull, desc } from "drizzle-orm";
+import { eq, and, isNull, desc, gt } from "drizzle-orm";
 import * as argon2 from "argon2";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import { sendPlatformEmail } from "../../infra/mailer";
 import { user } from "../user/user.schema";
 import { userRole } from "../user/user-role.schema";
 import { organization } from "../organization/organization.schema";
 import { session } from "./session.schema";
+import { departmentMember } from "../department/department-member.schema";
 import { env } from "../../infra/env";
 import { logger } from "../../infra/logger";
 import { redis } from "../../infra/redis";
@@ -35,26 +37,33 @@ function signAccessToken(u: {
   id: string;
   organizationId: string;
   globalRole: string;
-  departmentId: string | null;
+  departmentIds: string[];
   roleIds: string[];
+  forcePasswordChange: boolean;
 }) {
   return jwt.sign(
     {
       userId: u.id,
       organizationId: u.organizationId,
       globalRole: u.globalRole,
-      departmentId: u.departmentId,
+      departmentIds: u.departmentIds,
       roleIds: u.roleIds,
+      forcePasswordChange: u.forcePasswordChange,
     },
     env.JWT_SECRET,
     { expiresIn: ACCESS_TTL },
   );
 }
 
-// Transactional email transport for auth flows. Wire to a platform SMTP mailbox
-// in production; for now the link is logged so flows are testable end-to-end.
-function sendAuthEmail(to: string, subject: string, link: string) {
-  logger.info({ to, subject, link }, "[Auth] Outbound auth email");
+// Transactional email for auth flows (password reset, verification, invites).
+// Delegates to the shared platform mailer (logs instead of sending when SMTP is
+// unconfigured; never throws).
+async function sendAuthEmail(to: string, subject: string, link: string) {
+  await sendPlatformEmail({
+    to,
+    subject,
+    html: `<p>${subject}</p><p><a href="${link}">${link}</a></p>`,
+  });
 }
 
 async function issueSession(
@@ -90,7 +99,7 @@ export const AuthService = {
   ) => {
     const email = input.email.toLowerCase().trim();
 
-    return await withSuperAdminTransaction(async (tx) => {
+    const result = await withSuperAdminTransaction(async (tx) => {
       // Email must be globally unique (login resolves by email without a tenant).
       const [existing] = await tx.select({ id: user.id }).from(user).where(eq(user.email, email)).limit(1);
       if (existing) throw new Error("An account with this email already exists");
@@ -139,8 +148,9 @@ export const AuthService = {
         id: newUser.id,
         organizationId: newUser.organizationId,
         globalRole: newUser.globalRole,
-        departmentId: newUser.departmentId,
+        departmentIds: [],
         roleIds: [],
+        forcePasswordChange: newUser.forcePasswordChange,
       });
       const { token: refreshToken } = await issueSession(tx, newUser, meta);
 
@@ -155,9 +165,22 @@ export const AuthService = {
           lastName: newUser.lastName,
           globalRole: newUser.globalRole,
           emailVerified: false,
+          forcePasswordChange: newUser.forcePasswordChange,
         },
       };
     });
+
+    // Fire an email-verification link for the new self-service account. Best-effort:
+    // the shared mailer never throws, so a mail failure can't break signup.
+    const verifyToken = randomToken();
+    await redis.set(`verify:${sha256(verifyToken)}`, result.user.id, { EX: VERIFY_TTL_SECONDS });
+    await sendAuthEmail(
+      result.user.email,
+      "Verify your email",
+      `${env.APP_BASE_URL}/verify-email?token=${verifyToken}`,
+    );
+
+    return result;
   },
 
   login: async (
@@ -184,12 +207,19 @@ export const AuthService = {
         .where(eq(userRole.userId, foundUser.id));
       const roleIds = roleRows.map((r: { roleId: string }) => r.roleId);
 
+      const deptRows = await tx
+        .select({ departmentId: departmentMember.departmentId })
+        .from(departmentMember)
+        .where(eq(departmentMember.userId, foundUser.id));
+      const departmentIds = deptRows.map((r: { departmentId: string }) => r.departmentId);
+
       const accessToken = signAccessToken({
         id: foundUser.id,
         organizationId: foundUser.organizationId,
         globalRole: foundUser.globalRole,
-        departmentId: foundUser.departmentId,
+        departmentIds,
         roleIds,
+        forcePasswordChange: foundUser.forcePasswordChange,
       });
       const { token: refreshToken } = await issueSession(tx, foundUser, meta);
 
@@ -205,7 +235,60 @@ export const AuthService = {
           firstName: foundUser.firstName,
           lastName: foundUser.lastName,
           globalRole: foundUser.globalRole,
+          preferredLanguage: foundUser.preferredLanguage,
           emailVerified: !!foundUser.emailVerifiedAt,
+          forcePasswordChange: foundUser.forcePasswordChange,
+        },
+      };
+    });
+  },
+
+  changePassword: async (tenantId: string, userId: string, newPasswordPlain: string, meta: SessionMeta = {}) => {
+    return await withTenantTransaction(tenantId, async (tx) => {
+      const [u] = await tx.select().from(user).where(eq(user.id, userId)).limit(1);
+      if (!u || u.status !== "active") throw new Error("User no longer active");
+
+      const passwordHash = await argon2.hash(newPasswordPlain);
+      await tx.update(user).set({ passwordHash, forcePasswordChange: false }).where(eq(user.id, userId));
+      u.forcePasswordChange = false; // update locally for payload
+
+      const roleRows = await tx
+        .select({ roleId: userRole.roleId })
+        .from(userRole)
+        .where(eq(userRole.userId, u.id));
+
+      const deptRows = await tx
+        .select({ departmentId: departmentMember.departmentId })
+        .from(departmentMember)
+        .where(eq(departmentMember.userId, u.id));
+      const departmentIds = deptRows.map((r: { departmentId: string }) => r.departmentId);
+
+      const accessToken = signAccessToken({
+        id: u.id,
+        organizationId: u.organizationId,
+        globalRole: u.globalRole,
+        departmentIds,
+        roleIds: roleRows.map((r: { roleId: string }) => r.roleId),
+        forcePasswordChange: false,
+      });
+
+      // Revoke old sessions and issue a new one
+      await tx.update(session).set({ revokedAt: new Date() }).where(and(eq(session.userId, u.id), isNull(session.revokedAt)));
+      const { token: refreshToken } = await issueSession(tx, u, meta);
+
+      return {
+        accessToken,
+        refreshToken,
+        user: {
+          id: u.id,
+          organizationId: u.organizationId,
+          email: u.email,
+          firstName: u.firstName,
+          lastName: u.lastName,
+          globalRole: u.globalRole,
+          preferredLanguage: u.preferredLanguage,
+          emailVerified: !!u.emailVerifiedAt,
+          forcePasswordChange: false,
         },
       };
     });
@@ -263,12 +346,19 @@ export const AuthService = {
         .from(userRole)
         .where(eq(userRole.userId, u.id));
 
+      const deptRows = await tx
+        .select({ departmentId: departmentMember.departmentId })
+        .from(departmentMember)
+        .where(eq(departmentMember.userId, u.id));
+      const departmentIds = deptRows.map((r: { departmentId: string }) => r.departmentId);
+
       const accessToken = signAccessToken({
         id: u.id,
         organizationId: u.organizationId,
         globalRole: u.globalRole,
-        departmentId: u.departmentId,
+        departmentIds,
         roleIds: roleRows.map((r: { roleId: string }) => r.roleId),
+        forcePasswordChange: u.forcePasswordChange,
       });
 
       // Mint successor first so we can link the rotation chain, then revoke current.
@@ -292,6 +382,8 @@ export const AuthService = {
     });
   },
 
+  // Active sessions only: not revoked and not expired. Revoked/expired sessions are
+  // historical noise and would confuse the security UI.
   listSessions: async (tenantId: string, userId: string) => {
     return await withTenantTransaction(tenantId, async (tx) =>
       tx
@@ -301,10 +393,15 @@ export const AuthService = {
           ipAddress: session.ipAddress,
           createdAt: session.createdAt,
           expiresAt: session.expiresAt,
-          revokedAt: session.revokedAt,
         })
         .from(session)
-        .where(eq(session.userId, userId))
+        .where(
+          and(
+            eq(session.userId, userId),
+            isNull(session.revokedAt),
+            gt(session.expiresAt, new Date()),
+          ),
+        )
         .orderBy(desc(session.createdAt)),
     );
   },
@@ -342,7 +439,7 @@ export const AuthService = {
 
       const token = randomToken();
       await redis.set(`pwreset:${sha256(token)}`, u.id, { EX: RESET_TTL_SECONDS });
-      sendAuthEmail(u.email, "Reset your password", `${env.APP_BASE_URL}/reset-password?token=${token}`);
+      await sendAuthEmail(u.email, "Reset your password", `${env.APP_BASE_URL}/reset-password?token=${token}`);
     });
     return { success: true };
   },
@@ -367,6 +464,70 @@ export const AuthService = {
     return { success: true };
   },
 
+  // Invite acceptance. Consumes the (password-reset-style) invite token, sets the
+  // chosen password, and — unlike resetPassword — issues a live session so the new
+  // user is logged straight in instead of being bounced to the login screen.
+  acceptInvite: async (token: string, newPassword: string, meta: SessionMeta = {}) => {
+    const key = `pwreset:${sha256(token)}`;
+    const userId = await redis.get(key);
+    if (!userId) throw new Error("Invalid or expired invite token");
+
+    const passwordHash = await argon2.hash(newPassword);
+    const result = await withSuperAdminTransaction(async (tx) => {
+      const [u] = await tx.select().from(user).where(eq(user.id, userId)).limit(1);
+      if (!u) throw new Error("User not found");
+
+      // Set password + mark active. Revoke any pre-existing sessions for safety.
+      await tx
+        .update(user)
+        .set({ passwordHash, status: "active", forcePasswordChange: false })
+        .where(eq(user.id, userId));
+      await tx.update(session).set({ revokedAt: new Date() }).where(eq(session.userId, userId));
+
+      const roleRows = await tx
+        .select({ roleId: userRole.roleId })
+        .from(userRole)
+        .where(eq(userRole.userId, u.id));
+      const deptRows = await tx
+        .select({ departmentId: departmentMember.departmentId })
+        .from(departmentMember)
+        .where(eq(departmentMember.userId, u.id));
+      const departmentIds = deptRows.map((r: { departmentId: string }) => r.departmentId);
+
+      const accessToken = signAccessToken({
+        id: u.id,
+        organizationId: u.organizationId,
+        globalRole: u.globalRole,
+        departmentIds,
+        roleIds: roleRows.map((r: { roleId: string }) => r.roleId),
+        forcePasswordChange: false,
+      });
+      const { token: refreshToken } = await issueSession(tx, u, meta);
+
+      return {
+        tenantId: u.organizationId,
+        accessToken,
+        refreshToken,
+        user: {
+          id: u.id,
+          organizationId: u.organizationId,
+          email: u.email,
+          firstName: u.firstName,
+          lastName: u.lastName,
+          globalRole: u.globalRole,
+          preferredLanguage: u.preferredLanguage,
+          emailVerified: !!u.emailVerifiedAt,
+          forcePasswordChange: false,
+        },
+      };
+    });
+
+    await redis.del(key);
+    await PermissionService.invalidateUser(result.tenantId, userId);
+    const { tenantId, ...payload } = result;
+    return payload;
+  },
+
   requestEmailVerification: async (tenantId: string, userId: string) => {
     return await withTenantTransaction(tenantId, async (tx) => {
       const [u] = await tx.select().from(user).where(eq(user.id, userId)).limit(1);
@@ -375,7 +536,7 @@ export const AuthService = {
 
       const token = randomToken();
       await redis.set(`verify:${sha256(token)}`, u.id, { EX: VERIFY_TTL_SECONDS });
-      sendAuthEmail(u.email, "Verify your email", `${env.APP_BASE_URL}/verify-email?token=${token}`);
+      await sendAuthEmail(u.email, "Verify your email", `${env.APP_BASE_URL}/verify-email?token=${token}`);
       return { success: true };
     });
   },

@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { authFetch } from "@/lib/api";
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Archive, ChevronLeft, ChevronRight, RotateCcw, Search, Filter } from "lucide-react";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
-import { useAppStore } from "@/store";
 import { useToast } from "@/components/Toast";
 
 export const Route = createFileRoute("/_auth/archived")({
@@ -13,31 +13,28 @@ export const Route = createFileRoute("/_auth/archived")({
   component: ArchivedTickets,
 });
 
-const STATUS_OPTS = [
-  { value: "", label: "All archived" },
-  { value: "resolved", label: "Resolved" },
-  { value: "closed", label: "Closed" },
-];
-
 const STATUS_CLS: Record<string, string> = {
   resolved: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20",
   closed: "bg-white/8 text-on-surface-variant border border-white/10",
 };
 
-function getAuthHeaders(): Record<string, string> {
-  const state = useAppStore.getState();
-  const h: Record<string, string> = {};
-  if (state.accessToken) h["Authorization"] = `Bearer ${state.accessToken}`;
-  if (state.tenantId) h["X-Tenant-ID"] = state.tenantId;
-  return h;
-}
+
 
 function ArchivedTickets() {
+  const { t } = useTranslation("tickets");
+  const { t: tCommon } = useTranslation("common");
   const { page = 1, status = "" } = Route.useSearch();
   const navigate = Route.useNavigate();
   const queryClient = useQueryClient();
   const { success, error: toastError } = useToast();
   const [search, setSearch] = useState("");
+
+  const STATUS_OPTS = [
+    { value: "", label: "All archived" },
+    { value: "archived", label: tCommon("status.archived", { defaultValue: "Archived" }) },
+    { value: "resolved", label: tCommon("status.resolved") },
+    { value: "closed", label: tCommon("status.closed") },
+  ];
 
   const { data, isLoading } = useQuery({
     queryKey: ["archived-tickets", page, status, search],
@@ -45,30 +42,27 @@ function ArchivedTickets() {
       const params: Record<string, string> = {
         page: String(page),
         limit: "20",
-        status: status || "resolved,closed",
+        status: status || "archived,resolved,closed",
       };
       if (search.trim()) params["search"] = search.trim();
 
-      const qs = new URLSearchParams(params).toString();
-      const res = await authFetch(`/api/tickets?${qs}`, { headers: getAuthHeaders() });
+      const res = await api.tickets.index.$get({ query: params });
+      const body = await res.json() as any;
       if (!res.ok) throw new Error("Failed");
-      return res.json();
+      return body;
     },
   });
 
   const reopenMutation = useMutation({
     mutationFn: async (ticketId: string) => {
-      const res = await authFetch(`/api/tickets/${ticketId}/reopen`, {
-        method: "POST",
-        headers: getAuthHeaders(),
-      });
+      const res = await api.tickets[":id"].reopen.$post({ param: { id: ticketId } });
       if (!res.ok) throw new Error("Failed to reopen");
     },
     onSuccess: () => {
-      success("Ticket reopened");
+      success(t("actions.reopen"));
       queryClient.invalidateQueries({ queryKey: ["archived-tickets"] });
     },
-    onError: () => toastError("Failed to reopen ticket"),
+    onError: () => toastError(tCommon("errors.saveFailed")),
   });
 
   const paginated = data?.data;
@@ -82,7 +76,7 @@ function ArchivedTickets() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Archive className="w-4 h-4 text-on-surface-variant/50" />
-          <h1 className="text-[15px] font-semibold text-on-surface">Archived Tickets</h1>
+          <h1 className="text-[15px] font-semibold text-on-surface">{t("archived.title")}</h1>
           {total > 0 && (
             <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/8 text-on-surface-variant font-mono">
               {total}
@@ -94,7 +88,7 @@ function ArchivedTickets() {
           className="inline-flex items-center gap-1 text-xs text-on-surface-variant/50 hover:text-on-surface-variant transition-colors"
         >
           <ChevronLeft className="w-3 h-3" />
-          Back to tickets
+          {tCommon("actions.back")}
         </Link>
       </div>
 
@@ -105,9 +99,9 @@ function ArchivedTickets() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search archived tickets…"
+            placeholder={tCommon("actions.search")}
             className="w-full pl-9 pr-3 py-2 bg-surface-container border border-outline-variant rounded-lg text-sm text-on-surface placeholder:text-on-surface-variant/35 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors"
-            aria-label="Search archived tickets"
+            aria-label={tCommon("actions.search")}
           />
         </div>
         <div className="flex items-center gap-1">
@@ -139,19 +133,19 @@ function ArchivedTickets() {
         ) : tickets.length === 0 ? (
           <div className="text-center py-16">
             <Archive className="w-10 h-10 text-on-surface-variant/15 mx-auto mb-3" />
-            <p className="text-sm text-on-surface-variant/40">No archived tickets</p>
+            <p className="text-sm text-on-surface-variant/40">{t("archived.empty")}</p>
             <p className="text-xs text-on-surface-variant/25 mt-1">
-              Resolved and closed tickets will appear here
+              {t("archived.subtitle")}
             </p>
           </div>
         ) : (
           <table className="w-full text-left">
             <thead className="border-b border-outline-variant">
               <tr>
-                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">Subject</th>
-                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider w-28">Status</th>
-                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider w-32 hidden md:table-cell">Priority</th>
-                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider w-36 hidden lg:table-cell">Resolved</th>
+                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("fields.subject")}</th>
+                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider w-28">{t("fields.status")}</th>
+                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider w-32 hidden md:table-cell">{t("fields.priority")}</th>
+                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider w-36 hidden lg:table-cell">{t("fields.resolvedAt")}</th>
                 <th className="px-4 py-3 w-24" />
               </tr>
             </thead>
@@ -187,12 +181,12 @@ function ArchivedTickets() {
                     <button
                       onClick={() => reopenMutation.mutate(ticket.id)}
                       disabled={reopenMutation.isPending}
-                      title="Reopen ticket"
-                      aria-label="Reopen ticket"
+                      title={t("actions.reopen")}
+                      aria-label={t("actions.reopen")}
                       className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium rounded-lg border border-outline-variant text-on-surface-variant hover:border-primary/30 hover:text-primary disabled:opacity-40 transition-colors"
                     >
                       <RotateCcw className="w-3 h-3" />
-                      Reopen
+                      {t("actions.reopen")}
                     </button>
                   </td>
                 </tr>
@@ -205,7 +199,7 @@ function ArchivedTickets() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between text-xs text-on-surface-variant/50">
-          <span>Page {page} of {totalPages} — {total} tickets</span>
+          <span>{tCommon("pagination.page", { page, total: totalPages })} — {t("count_other", { count: total })}</span>
           <div className="flex items-center gap-1">
             <button
               disabled={page <= 1}

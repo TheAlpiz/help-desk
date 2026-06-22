@@ -17,6 +17,7 @@ function DashboardSwitchboard() {
   if (!user) return null;
 
   switch (user.globalRole) {
+    case "SUPER_ADMIN":
     case "ADMIN":
     case "PLATFORM_OWNER":
       return <AdminDashboard />;

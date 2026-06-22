@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CreditCard, Zap, Check, Users, Database } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/_auth/billing")({
   component: Billing,
@@ -30,17 +31,18 @@ const PLANS = [
 ];
 
 function Billing() {
+  const { t } = useTranslation("billing");
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-[15px] font-semibold text-on-surface">Billing & Subscription</h1>
-        <p className="text-xs text-on-surface-variant mt-1">Manage your plan and usage.</p>
+        <h1 className="text-[15px] font-semibold text-on-surface">{t("title")}</h1>
+        <p className="text-xs text-on-surface-variant mt-1">{t("subtitle")}</p>
       </div>
 
       {/* Current plan summary */}
       <div className="bg-surface-container border border-outline-variant rounded-xl p-5 flex items-center justify-between gap-4">
         <div>
-          <p className="text-[10px] text-on-surface-variant/50 uppercase tracking-wider">Current plan</p>
+          <p className="text-[10px] text-on-surface-variant/50 uppercase tracking-wider">{t("currentPlanLabel")}</p>
           <p className="text-lg font-bold text-on-surface mt-0.5">Growth</p>
           <p className="text-xs text-on-surface-variant/60">Renews July 1, 2026 · $99/mo</p>
         </div>
@@ -67,7 +69,7 @@ function Billing() {
           >
             {plan.current && (
               <span className="self-start text-[10px] font-semibold px-2 py-0.5 rounded bg-primary/15 text-primary border border-primary/25">
-                Current plan
+                {t("currentPlanBadge")}
               </span>
             )}
             <div>
@@ -95,7 +97,7 @@ function Billing() {
                   : "bg-primary text-on-primary hover:bg-primary/90"
               }`}
             >
-              {plan.current ? "Current plan" : plan.name === "Enterprise" ? "Contact sales" : `Upgrade to ${plan.name}`}
+              {plan.current ? t("currentPlanBadge") : plan.name === "Enterprise" ? t("contactSales") : t("upgradeTo", { name: plan.name })}
             </button>
           </div>
         ))}
@@ -106,9 +108,9 @@ function Billing() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CreditCard className="w-4 h-4 text-on-surface-variant" />
-            <h3 className="text-sm font-semibold text-on-surface">Payment method</h3>
+            <h3 className="text-sm font-semibold text-on-surface">{t("paymentMethod")}</h3>
           </div>
-          <button className="text-xs text-primary hover:text-primary/80 transition-colors">Update</button>
+          <button className="text-xs text-primary hover:text-primary/80 transition-colors">{t("update")}</button>
         </div>
         <div className="flex items-center gap-3 p-3 bg-white/3 rounded-lg">
           <div className="w-10 h-6 rounded bg-on-surface-variant/10 flex items-center justify-center">
@@ -121,7 +123,7 @@ function Billing() {
         </div>
       </div>
 
-      <p className="text-[10px] text-on-surface-variant/30 text-center">Billing integration requires Stripe — UI stubbed</p>
+      <p className="text-[10px] text-on-surface-variant/30 text-center">{t("stripeStub")}</p>
     </div>
   );
 }

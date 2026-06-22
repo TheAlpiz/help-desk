@@ -30,11 +30,14 @@ export const ticketRouter = new Hono<{
     const offset = Number(query.offset) || 0;
     const status = query.status || undefined;
     const priority = query.priority || undefined;
+    const search = query.search || undefined;
+    const assigneeId = query.assigneeId || undefined;
+    const unassigned = query.unassigned || undefined;
     try {
       const result = await TicketService.findAll(
         tenantId,
-        { userId: user.userId, departmentId: user.departmentId, permissions: c.get("permissions") ?? [] },
-        { limit, offset, status, priority },
+        { userId: user.userId, departmentIds: user.departmentIds ?? [], permissions: c.get("permissions") ?? [] },
+        { limit, offset, status, priority, search, assigneeId, unassigned },
       );
       return ResponseHandler.ok(c, result);
     } catch (error: any) {
@@ -49,7 +52,7 @@ export const ticketRouter = new Hono<{
     try {
       const t = await TicketService.findById(tenantId, id, {
         userId: user.userId,
-        departmentId: user.departmentId,
+        departmentIds: user.departmentIds ?? [],
         permissions: c.get("permissions") ?? [],
       });
       if (!t) return ResponseHandler.notFound(c, "Ticket not found");

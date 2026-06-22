@@ -1,0 +1,20 @@
+{
+  "title": "Denetim Günlüğü",
+  "events": "{{count}} olay",
+  "search": "Aktör, varlık ara...",
+  "filterAction": "Eyleme göre filtrele...",
+  "empty": {
+    "title": "Denetim olayı yok",
+    "noFilter": "Sistem olayları burada görünecek",
+    "filtered": "Filtrenizle eşleşen olay yok"
+  },
+  "table": {
+    "time": "Zaman",
+    "actor": "Aktör",
+    "action": "Eylem",
+    "entity": "Varlık",
+    "entityId": "Varlık ID"
+  },
+  "system": "sistem",
+  "pagination": "Sayfa {{page}} / {{total}}"
+}

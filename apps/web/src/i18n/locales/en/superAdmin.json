@@ -1,0 +1,76 @@
+{
+  "globalUsers": {
+    "editTitle": "Edit User",
+    "deleteTitle": "Delete User",
+    "emailReadOnly": "Email (read-only)",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "required": "Required",
+    "globalRole": "Global Role",
+    "status": "Status",
+    "saveChanges": "Save Changes",
+    "deleteUser": "Delete User",
+    "deleteConfirmPre": "Delete",
+    "deleteConfirmPost": "({{email}})? Cannot be undone.",
+    "stats": {
+      "total": "Total Users",
+      "active": "Active",
+      "admins": "Admins",
+      "inactive": "Inactive"
+    },
+    "cols": {
+      "user": "User",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "lastLogin": "Last Login",
+      "actions": "Actions"
+    },
+    "loadFailed": "Failed to load users.",
+    "never": "Never",
+    "noUsers": "No users found"
+  },
+  "globalRoles": {
+    "newRole": "New Global Role",
+    "systemWideDesc": "System-wide roles shared across all tenants.",
+    "loadFailed": "Failed to load global roles.",
+    "noRoles": "No global roles yet",
+    "createFirst": "Create first role",
+    "cols": {
+      "name": "Name",
+      "description": "Description",
+      "type": "Type",
+      "actions": "Actions"
+    },
+    "typeSystem": "System",
+    "typeCustom": "Custom",
+    "createModal": {
+      "stepDetails": "Role Details",
+      "stepPermissions": "Permissions",
+      "titleCreate": "Create Global Role",
+      "titlePermissions": "Set Permissions — \"{{name}}\"",
+      "nameLabel": "Role Name *",
+      "namePlaceholder": "e.g. Support Lead",
+      "descLabel": "Description",
+      "descPlaceholder": "Describe this role's responsibilities...",
+      "selectPermissions": "Select the permissions this role should have.",
+      "permissionsSelected_one": "{{count}} permission selected",
+      "permissionsSelected_other": "{{count}} permissions selected",
+      "next": "Next: Permissions →",
+      "createRole": "Create Role"
+    },
+    "permissionsDrawer": {
+      "title": "Edit Permissions",
+      "globalRoleLabel": "Global role:",
+      "selected": "{{count}} selected",
+      "savePermissions": "Save Permissions",
+      "editPermissions": "Edit Permissions"
+    },
+    "deleteModal": {
+      "title": "Delete Global Role",
+      "confirmPre": "Delete",
+      "confirmPost": "? All associated permissions will be removed. Cannot be undone.",
+      "delete": "Delete"
+    }
+  }
+}

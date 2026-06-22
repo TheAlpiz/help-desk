@@ -7,6 +7,7 @@ import { api } from "../lib/api";
 import { useAppStore } from "../store";
 import { resetPasswordSchema } from "@help-desk/shared";
 import { Button, Input, FormError, FormAlert, Label, fieldErrors } from "@/components/ui";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/accept-invite")({
   validateSearch: z.object({ token: z.string().optional() }),
@@ -14,6 +15,7 @@ export const Route = createFileRoute("/accept-invite")({
 });
 
 function AcceptInvite() {
+  const { t } = useTranslation("auth");
   const { token } = Route.useSearch();
   const navigate = useNavigate();
   const { setUser, setTenantId, setAccessToken } = useAppStore();
@@ -25,13 +27,14 @@ function AcceptInvite() {
       if (!token) return;
       setSubmitError(null);
       try {
-        const res = await api.auths["reset-password"].$post({
+        const res = await api.auths["accept-invite"].$post({
           json: { token, password: value.password },
         });
         const data = (await res.json()) as any;
         if (!res.ok)
           throw new Error(data?.error?.message || "Failed to accept invite");
 
+        // accept-invite issues a live session — log the new user straight in.
         if (data?.data?.accessToken) {
           const payload = data.data;
           setUser(payload.user);
@@ -56,17 +59,17 @@ function AcceptInvite() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-on-surface mb-1">
-              Invalid invite link
+              {t("acceptInvite.invalidTitle")}
             </h1>
             <p className="text-sm text-on-surface-variant">
-              This link is missing a token. Ask your admin to resend the invite.
+              {t("acceptInvite.invalidMessage")}
             </p>
           </div>
           <Link
             to="/login"
             className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
           >
-            Back to sign in
+            {t("acceptInvite.backToSignIn")}
           </Link>
         </div>
       </div>
@@ -85,10 +88,10 @@ function AcceptInvite() {
 
         <div>
           <h1 className="text-2xl font-bold text-on-surface tracking-tight mb-1">
-            Set your password
+            {t("acceptInvite.title")}
           </h1>
           <p className="text-sm text-on-surface-variant">
-            Create a password to activate your account.
+            {t("acceptInvite.subtitle")}
           </p>
         </div>
 
@@ -107,7 +110,7 @@ function AcceptInvite() {
             validators={{ onChange: resetPasswordSchema.shape.password }}
             children={(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label>Password</Label>
+                <Label>{t("acceptInvite.password")}</Label>
                 <Input
                   type="password"
                   autoComplete="new-password"
@@ -129,12 +132,12 @@ function AcceptInvite() {
               onChangeListenTo: ["password"],
               onChange: ({ value, fieldApi }) =>
                 value !== fieldApi.form.getFieldValue("password")
-                  ? "Passwords do not match"
+                  ? t("acceptInvite.passwordMismatch")
                   : undefined,
             }}
             children={(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label>Confirm password</Label>
+                <Label>{t("acceptInvite.confirmPassword")}</Label>
                 <Input
                   type="password"
                   autoComplete="new-password"
@@ -159,7 +162,7 @@ function AcceptInvite() {
                 disabled={!canSubmit}
                 loading={isSubmitting}
               >
-                {!isSubmitting && "Activate account"}
+                {!isSubmitting && t("acceptInvite.activateBtn")}
               </Button>
             )}
           />

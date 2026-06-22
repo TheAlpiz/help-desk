@@ -1,0 +1,49 @@
+{
+  "title": "Dışa Aktarma Merkezi",
+  "subtitle": "Verileri CSV, JSON veya Excel formatında indirin.",
+  "dateRange": {
+    "label": "Tarih Aralığı (isteğe bağlı)",
+    "from": "Başlangıç",
+    "to": "Bitiş",
+    "clear": "Temizle"
+  },
+  "entities": {
+    "tickets": {
+      "label": "Talepler",
+      "description": "Durum, öncelik, atanan kişi ve tarihlerle tüm talepler"
+    },
+    "tasks": {
+      "label": "Görevler",
+      "description": "Tamamlanma durumu, bitiş tarihleri ve atanan kişilerle görevler"
+    },
+    "users": {
+      "label": "Kullanıcılar",
+      "description": "Temsilci ve müşteri hesapları (şifre içermez)"
+    },
+    "audit_logs": {
+      "label": "Denetim Günlükleri",
+      "description": "Aktör, eylem, varlık ve zaman damgasıyla tam denetim izi"
+    },
+    "sla_reports": {
+      "label": "SLA Raporları",
+      "description": "Politika bazında SLA uyum ve ihlal verileri"
+    }
+  },
+  "formats": {
+    "csv": "CSV",
+    "json": "JSON",
+    "xlsx": "Excel (XLSX)"
+  },
+  "status": {
+    "pending": "Hazırlanıyor…",
+    "done": "Hazır",
+    "error": "Başarısız"
+  },
+  "history": "Dışa Aktarma Geçmişi",
+  "ariaExport": "{{label}} öğesini {{format}} olarak dışa aktar",
+  "toast": {
+    "success": "{{label}} {{format}} olarak dışa aktarıldı",
+    "error": "Dışa aktarma başarısız — arka uç dışa aktarma uç noktası beklemede",
+    "httpError": "Dışa aktarma başarısız: {{status}}"
+  }
+}

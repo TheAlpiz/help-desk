@@ -1,0 +1,11 @@
+{
+  "title": "Billing & Subscription",
+  "subtitle": "Manage your plan and usage.",
+  "currentPlanLabel": "Current plan",
+  "currentPlanBadge": "Current plan",
+  "contactSales": "Contact sales",
+  "upgradeTo": "Upgrade to {{name}}",
+  "paymentMethod": "Payment method",
+  "update": "Update",
+  "stripeStub": "Billing integration requires Stripe — UI stubbed"
+}

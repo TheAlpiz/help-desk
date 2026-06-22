@@ -1,0 +1,30 @@
+{
+  "title": "Compliance",
+  "subtitle": "Compliance posture, data subject rights, and legal holds.",
+  "dashboard": {
+    "title": "Compliance Dashboard",
+    "description": "Manage GDPR, SOC 2, and ISO 27001 compliance posture, handle data subject requests, and create legal holds — all from one place."
+  },
+  "features": {
+    "frameworkTracking": {
+      "label": "Framework tracking",
+      "description": "Monitor GDPR, SOC 2 Type II, ISO 27001, and HIPAA control pass rates in real time."
+    },
+    "dataSubjectRequests": {
+      "label": "Data subject requests",
+      "description": "Receive and action access, erasure, portability, and rectification requests."
+    },
+    "legalHolds": {
+      "label": "Legal holds",
+      "description": "Freeze tickets and data for litigation or audits and release them when resolved."
+    },
+    "automatedChecks": {
+      "label": "Automated compliance checks",
+      "description": "Nightly scans surface encryption, MFA, session, and data-mapping gaps."
+    },
+    "auditReports": {
+      "label": "Audit-ready reports",
+      "description": "Export a full compliance report for auditors with one click."
+    }
+  }
+}

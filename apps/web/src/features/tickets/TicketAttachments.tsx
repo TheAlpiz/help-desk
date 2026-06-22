@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { authFetch } from "@/lib/api";
+import { useTranslation } from "react-i18next";
+import { api } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Paperclip, Upload, Download, FileText, X, Loader2 } from "lucide-react";
 import { useAppStore } from "@/store";
@@ -21,6 +22,7 @@ function formatBytes(bytes: number) {
 }
 
 export function TicketAttachments({ entityType = "TICKET", entityId, ticketId }: Props) {
+  const { t } = useTranslation("common");
   const eid = (entityId ?? ticketId) as string;
   const queryClient = useQueryClient();
   const { accessToken, tenantId } = useAppStore();
@@ -30,15 +32,10 @@ export function TicketAttachments({ entityType = "TICKET", entityId, ticketId }:
   const { data, isLoading } = useQuery({
     queryKey: ["attachments", entityType, eid],
     queryFn: async () => {
-      const params = new URLSearchParams({ entityType, entityId: eid });
-      const res = await authFetch(`/api/attachments?${params}`, {
-        headers: {
-          Authorization: `Bearer ${accessToken ?? ""}`,
-          "X-Tenant-ID": tenantId ?? "",
-        },
-      });
+      const res = await api.attachments.index.$get({ query: { entityType, entityId: eid } as any });
+      const body = await res.json() as any;
       if (!res.ok) throw new Error("Failed to fetch attachments");
-      return res.json();
+      return body;
     },
   });
 
@@ -55,28 +52,22 @@ export function TicketAttachments({ entityType = "TICKET", entityId, ticketId }:
 
       try {
         // Step 1: request presigned URL
-        const reqRes = await authFetch("/api/attachments/upload-request", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken ?? ""}`,
-            "X-Tenant-ID": tenantId ?? "",
-          },
-          body: JSON.stringify({
-            entityType,
+        const reqRes = await api.attachments["upload-request"].$post({
+          json: {
+            entityType: entityType as any,
             entityId: eid,
             filename: file.name,
             mimeType: file.type || "application/octet-stream",
             sizeBytes: file.size,
-          }),
+          },
         });
 
+        const err = await reqRes.json() as any;
         if (!reqRes.ok) {
-          const err = await reqRes.json() as any;
           throw new Error(err?.error?.message || "Upload request failed");
         }
 
-        const { data: uploadData } = await reqRes.json() as any;
+        const uploadData = err.data;
         const { uploadUrl, storageKey, filename, mimeType, sizeBytes } = uploadData;
 
         // Step 2: PUT to presigned URL (direct to MinIO)
@@ -93,21 +84,15 @@ export function TicketAttachments({ entityType = "TICKET", entityId, ticketId }:
         );
 
         // Step 3: confirm
-        const confirmRes = await authFetch("/api/attachments/confirm", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken ?? ""}`,
-            "X-Tenant-ID": tenantId ?? "",
-          },
-          body: JSON.stringify({
+        const confirmRes = await api.attachments.confirm.$post({
+          json: {
             storageKey,
-            entityType,
+            entityType: entityType as any,
             entityId: eid,
             filename,
             mimeType,
             sizeBytes,
-          }),
+          },
         });
 
         if (!confirmRes.ok) throw new Error("Confirm upload failed");
@@ -140,14 +125,14 @@ export function TicketAttachments({ entityType = "TICKET", entityId, ticketId }:
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-semibold text-on-surface flex items-center gap-1.5">
           <Paperclip className="w-3.5 h-3.5" />
-          Attachments
+          {t("attachments.title")}
         </h3>
         <button
           onClick={() => fileRef.current?.click()}
           className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-primary border border-primary/30 rounded-md hover:bg-primary/10 transition-colors"
         >
           <Upload className="w-3 h-3" />
-          Upload
+          {t("attachments.upload")}
         </button>
       </div>
 
@@ -174,7 +159,7 @@ export function TicketAttachments({ entityType = "TICKET", entityId, ticketId }:
               )}
               <span className="text-[11px] text-on-surface truncate flex-1">{u.name}</span>
               <span className="text-[10px] text-on-surface-variant/50 shrink-0">
-                {u.progress === "error" ? "failed" : u.progress === "done" ? "done" : u.progress}
+                {u.progress === "error" ? t("attachments.progressFailed") : u.progress === "done" ? t("attachments.progressDone") : u.progress}
               </span>
               {(u.progress === "done" || u.progress === "error") && (
                 <button
@@ -198,7 +183,7 @@ export function TicketAttachments({ entityType = "TICKET", entityId, ticketId }:
         </div>
       ) : attachments.length === 0 && uploads.length === 0 ? (
         <p className="text-[11px] text-on-surface-variant/40 text-center py-2">
-          No attachments yet
+          {t("attachments.noAttachments")}
         </p>
       ) : (
         <div className="space-y-1">
@@ -228,7 +213,7 @@ export function TicketAttachments({ entityType = "TICKET", entityId, ticketId }:
         className="border border-dashed border-outline-variant/50 rounded-lg p-3 text-center text-[10px] text-on-surface-variant/30 hover:border-primary/40 hover:text-primary/50 transition-colors cursor-pointer"
         onClick={() => fileRef.current?.click()}
       >
-        Drop files here or click to browse
+        {t("attachments.dropHint")}
       </div>
     </div>
   );

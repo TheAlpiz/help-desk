@@ -15,8 +15,10 @@ import { NotificationRouter } from "../modules/notification";
 import { AttachmentRouter } from "../modules/attachment";
 import { MacroRouter } from "../modules/macro";
 import { AutomationRouter } from "../modules/automation";
+import { ExportRouter } from "../modules/export";
+import { EmailRouter } from "../modules/email";
 
-const router = new Hono()
+const router = new Hono({ strict: false })
   .route("/auths", AuthRouter)
   .route("/auditLogs", AuditLogRouter)
   .route("/slas", SlaRouter)
@@ -33,6 +35,8 @@ const router = new Hono()
   .route("/notifications", NotificationRouter)
   .route("/attachments", AttachmentRouter)
   .route("/macros", MacroRouter)
-  .route("/automations", AutomationRouter);
+  .route("/automations", AutomationRouter)
+  .route("/exports", ExportRouter)
+  .route("/email", EmailRouter);
 
 export default router;

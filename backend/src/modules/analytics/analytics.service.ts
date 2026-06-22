@@ -67,7 +67,7 @@ export const AnalyticsService = {
       const [totalRow] = await tx.select({ count: count() }).from(task).where(eq(task.organizationId, tenantId));
       const [doneRow] = await tx.select({ count: count() }).from(task).where(and(eq(task.organizationId, tenantId), eq(task.status, "DONE")));
       const [overdueRow] = await tx.select({ count: count() }).from(task).where(
-        and(eq(task.organizationId, tenantId), lt(task.dueDate, new Date().toISOString() as any), sql`${task.status} != 'DONE'`),
+        and(eq(task.organizationId, tenantId), lt(task.dueDate, new Date()), sql`${task.status} != 'DONE'`),
       );
 
       const total = Number(totalRow.count);

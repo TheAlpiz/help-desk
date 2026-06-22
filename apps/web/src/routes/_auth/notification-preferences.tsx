@@ -1,47 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { authFetch } from "@/lib/api";
+import { api } from "@/lib/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Bell, Mail, MessageSquare } from "lucide-react";
 import { useAppStore } from "@/store";
 import { useToast } from "@/components/Toast";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/_auth/notification-preferences")({
   component: NotificationPreferences,
 });
-
-const EVENT_GROUPS = [
-  {
-    label: "Tickets",
-    events: [
-      { key: "ticket.assigned", label: "Ticket assigned to me" },
-      { key: "ticket.status_changed", label: "Ticket status changed" },
-      { key: "ticket.reply_received", label: "Reply received on my ticket" },
-      { key: "ticket.mention", label: "Mentioned in ticket" },
-    ],
-  },
-  {
-    label: "Tasks",
-    events: [
-      { key: "task.assigned", label: "Task assigned to me" },
-      { key: "task.due_soon", label: "Task due soon (24h)" },
-      { key: "task.completed", label: "Task completed" },
-    ],
-  },
-  {
-    label: "SLA",
-    events: [
-      { key: "sla.breach_warning", label: "SLA breach warning" },
-      { key: "sla.breached", label: "SLA breached" },
-    ],
-  },
-  {
-    label: "System",
-    events: [
-      { key: "user.invited", label: "New user invited" },
-      { key: "mailbox.error", label: "Mailbox connection error" },
-    ],
-  },
-];
 
 type Channel = "IN_APP" | "EMAIL";
 
@@ -72,22 +39,56 @@ function ChannelToggle({
 }
 
 function NotificationPreferences() {
-  const { accessToken, tenantId } = useAppStore();
+  const { t } = useTranslation("notifications");
+  const { accessToken, tenantId, notificationSound, toggleNotificationSound } = useAppStore();
   const queryClient = useQueryClient();
   const { success, error: toastError } = useToast();
 
-  const headers = {
-    Authorization: `Bearer ${accessToken ?? ""}`,
-    "X-Tenant-ID": tenantId ?? "",
-    "Content-Type": "application/json",
-  };
+  const EVENT_GROUPS = [
+    {
+      key: "tickets",
+      label: t("preferences.groups.tickets"),
+      events: [
+        { key: "ticket.assigned", label: t("preferences.events.ticket.assigned") },
+        { key: "ticket.status_changed", label: t("preferences.events.ticket.status_changed") },
+        { key: "ticket.reply_received", label: t("preferences.events.ticket.reply_received") },
+        { key: "ticket.mention", label: t("preferences.events.ticket.mention") },
+      ],
+    },
+    {
+      key: "tasks",
+      label: t("preferences.groups.tasks"),
+      events: [
+        { key: "task.assigned", label: t("preferences.events.task.assigned") },
+        { key: "task.due_soon", label: t("preferences.events.task.due_soon") },
+        { key: "task.completed", label: t("preferences.events.task.completed") },
+      ],
+    },
+    {
+      key: "sla",
+      label: t("preferences.groups.sla"),
+      events: [
+        { key: "sla.breach_warning", label: t("preferences.events.sla.breach_warning") },
+        { key: "sla.breached", label: t("preferences.events.sla.breached") },
+      ],
+    },
+    {
+      key: "system",
+      label: t("preferences.groups.system"),
+      events: [
+        { key: "user.invited", label: t("preferences.events.user.invited") },
+        { key: "mailbox.error", label: t("preferences.events.mailbox.error") },
+      ],
+    },
+  ];
 
   const { data, isLoading } = useQuery({
     queryKey: ["notification-preferences"],
     queryFn: async () => {
-      const res = await authFetch("/api/notifications/preferences", { headers });
+      const res = await api.notifications.preferences.$get();
+      const body = await res.json() as any;
       if (!res.ok) return {};
-      return res.json();
+      return body;
     },
   });
 
@@ -107,16 +108,14 @@ function NotificationPreferences() {
       channel: Channel;
       enabled: boolean;
     }) => {
-      const res = await authFetch("/api/notifications/preferences", {
-        method: "PUT",
-        headers,
-        body: JSON.stringify({ eventKey, channel, enabled }),
+      const res = await api.notifications.preferences.$put({
+        json: { eventKey, channel, enabled } as any,
       });
       if (!res.ok) throw new Error("Failed to save preference");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notification-preferences"] });
-      success("Preference saved");
+      success(t("preferences.saved"));
     },
     onError: (err: any) => toastError(err.message),
   });
@@ -124,10 +123,26 @@ function NotificationPreferences() {
   return (
     <div className="max-w-xl flex flex-col gap-4">
       <div>
-        <h1 className="text-[15px] font-semibold text-on-surface">Notification Preferences</h1>
+        <h1 className="text-[15px] font-semibold text-on-surface">{t("preferences.title")}</h1>
         <p className="text-xs text-on-surface-variant mt-1">
-          Choose how you get notified for each event type.
+          {t("preferences.description")}
         </p>
+      </div>
+
+      <div className="bg-surface-container border border-outline-variant rounded-xl p-4 flex items-center justify-between">
+        <div>
+          <h3 className="text-[14px] font-medium text-on-surface">{t("preferences.soundTitle")}</h3>
+          <p className="text-xs text-on-surface-variant mt-0.5">{t("preferences.soundDescription")}</p>
+        </div>
+        <label className="relative inline-flex items-center cursor-pointer shrink-0">
+          <input 
+            type="checkbox" 
+            className="sr-only peer" 
+            checked={notificationSound}
+            onChange={() => toggleNotificationSound()}
+          />
+          <div className="w-9 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+        </label>
       </div>
 
       {isLoading ? (
@@ -139,13 +154,13 @@ function NotificationPreferences() {
       ) : (
         <div className="space-y-4">
           {EVENT_GROUPS.map((group) => (
-            <div key={group.label} className="bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
+            <div key={group.key} className="bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
               <div className="px-4 py-2.5 border-b border-outline-variant bg-surface-container-low">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-semibold text-on-surface">{group.label}</h3>
                   <div className="flex items-center gap-3 text-[10px] font-semibold text-on-surface-variant/40 uppercase tracking-wider">
-                    <span className="w-7 text-center">App</span>
-                    <span className="w-7 text-center">Email</span>
+                    <span className="w-7 text-center">{t("preferences.channelApp")}</span>
+                    <span className="w-7 text-center">{t("preferences.channelEmail")}</span>
                   </div>
                 </div>
               </div>
@@ -158,13 +173,13 @@ function NotificationPreferences() {
                         enabled={getPref(event.key, "IN_APP")}
                         onChange={(v) => mutation.mutate({ eventKey: event.key, channel: "IN_APP", enabled: v })}
                         icon={Bell}
-                        label="In-app notifications"
+                        label={t("preferences.inApp")}
                       />
                       <ChannelToggle
                         enabled={getPref(event.key, "EMAIL")}
                         onChange={(v) => mutation.mutate({ eventKey: event.key, channel: "EMAIL", enabled: v })}
                         icon={Mail}
-                        label="Email notifications"
+                        label={t("preferences.email")}
                       />
                     </div>
                   </div>

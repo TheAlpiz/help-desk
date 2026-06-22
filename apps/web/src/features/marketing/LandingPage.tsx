@@ -1,4 +1,6 @@
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import {
   Ticket,
   Mail,
@@ -198,6 +200,15 @@ function TicketQueuePreview() {
 // ─── Nav ───────────────────────────────────────────────────────────────────────
 
 export function Nav() {
+  const { t } = useTranslation("marketing");
+
+  const NAV_LINKS = [
+    { label: t("nav.features"), href: "/features" },
+    { label: t("nav.pricing"), href: "/pricing" },
+    { label: t("nav.docs"), href: "/docs" },
+    { label: t("nav.changelog"), href: "/changelog" },
+  ];
+
   return (
     <nav className="sticky top-0 z-50 flex items-center justify-between px-6 md:px-10 h-14 border-b border-white/8 bg-background/80 backdrop-blur-md">
       <div className="flex items-center gap-8">
@@ -210,29 +221,30 @@ export function Nav() {
           </span>
         </Link>
         <div className="hidden md:flex items-center gap-1">
-          {["Features", "Pricing", "Docs", "Changelog"].map((item) => (
+          {NAV_LINKS.map((item) => (
             <a
-              key={item}
-              href={`/${item.toLowerCase()}`}
+              key={item.href}
+              href={item.href}
               className="px-3 py-1.5 text-sm text-on-surface-variant hover:text-on-surface transition-colors rounded-md hover:bg-surface-container"
             >
-              {item}
+              {item.label}
             </a>
           ))}
         </div>
       </div>
       <div className="flex items-center gap-2">
+        <LanguageSwitcher variant="inline" className="hidden sm:flex" />
         <Link
           to="/login"
           className="hidden sm:inline-flex px-3 py-1.5 text-sm text-on-surface-variant hover:text-on-surface transition-colors"
         >
-          Sign in
+          {t("nav.signIn")}
         </Link>
         <Link
           to="/register"
           className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-sm font-medium bg-primary text-on-primary rounded-md hover:bg-primary/90 transition-colors active:scale-[0.98]"
         >
-          Get started <ArrowRight className="w-3.5 h-3.5" />
+          {t("nav.getStarted")} <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
     </nav>
@@ -242,39 +254,37 @@ export function Nav() {
 // ─── Hero ──────────────────────────────────────────────────────────────────────
 
 function Hero() {
+  const { t } = useTranslation("marketing");
+  const badges = t("landing.hero.badges", { returnObjects: true }) as string[];
+
   return (
     <section className="px-6 md:px-10 pt-16 pb-20 max-w-[1280px] mx-auto">
       <div className="grid md:grid-cols-[1fr_1fr] lg:grid-cols-[5fr_6fr] gap-12 lg:gap-20 items-center">
         {/* Left */}
         <div className="flex flex-col gap-6">
           <h1 className="text-4xl md:text-5xl lg:text-[56px] font-bold text-on-surface tracking-tight leading-[1.08]">
-            Service desk built for{" "}
-            <span className="text-primary">teams that scale.</span>
+            {t("landing.hero.headline1")}{" "}
+            <span className="text-primary">{t("landing.hero.headline2")}</span>
           </h1>
           <p className="text-base md:text-lg text-on-surface-variant leading-relaxed max-w-[420px]">
-            Multi-tenant ticketing, email ingestion, SLA enforcement, and
-            real-time notifications - in one platform for MSPs and IT teams.
+            {t("landing.hero.subtitle")}
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
               to="/register"
               className="inline-flex items-center gap-2 px-5 py-2.5 font-medium text-sm bg-primary text-on-primary rounded-md hover:bg-primary/90 transition-colors active:scale-[0.98]"
             >
-              Start for free <ArrowRight className="w-4 h-4" />
+              {t("landing.hero.startFree")} <ArrowRight className="w-4 h-4" />
             </Link>
             <a
               href="#features"
               className="inline-flex items-center gap-2 px-5 py-2.5 font-medium text-sm text-on-surface border border-outline-variant rounded-md hover:bg-surface-container transition-colors"
             >
-              See how it works
+              {t("landing.hero.howItWorks")}
             </a>
           </div>
           <div className="flex items-center gap-4 pt-2">
-            {[
-              "No credit card required",
-              "Free 14-day trial",
-              "SOC 2 ready",
-            ].map((item) => (
+            {badges.map((item) => (
               <div
                 key={item}
                 className="flex items-center gap-1.5 text-xs text-on-surface-variant"
@@ -298,6 +308,7 @@ function Hero() {
 // ─── Trusted by ────────────────────────────────────────────────────────────────
 
 function TrustedBy() {
+  const { t } = useTranslation("marketing");
   const orgs = [
     "Meridian Solutions",
     "Vanta Systems",
@@ -310,7 +321,7 @@ function TrustedBy() {
     <section className="border-t border-b border-white/6 py-8 px-6 md:px-10">
       <div className="max-w-[1280px] mx-auto flex flex-col sm:flex-row items-center gap-6 sm:gap-10">
         <p className="text-xs font-medium text-on-surface-variant whitespace-nowrap shrink-0">
-          Trusted by IT teams at
+          {t("landing.trustedBy")}
         </p>
         <div className="flex flex-wrap justify-center sm:justify-start items-center gap-x-8 gap-y-3">
           {orgs.map((org) => (
@@ -329,54 +340,22 @@ function TrustedBy() {
 
 // ─── Bento feature grid ────────────────────────────────────────────────────────
 
-const FEATURES = [
-  {
-    icon: <Ticket className="w-5 h-5" />,
-    title: "Unified ticket engine",
-    body: "Email, portal, and API - all channels flow into one queue. Status, priority, SLA, assignee, tags, and full history on every ticket.",
-    size: "large",
-    accent: "text-primary",
-  },
-  {
-    icon: <Shield className="w-5 h-5" />,
-    title: "Row-level security",
-    body: "Postgres RLS enforces tenant isolation at the database layer. No application-level filtering that can be bypassed.",
-    size: "large",
-    accent: "text-tertiary",
-  },
-  {
-    icon: <Mail className="w-5 h-5" />,
-    title: "IMAP/SMTP mailboxes",
-    body: "Connect unlimited mailboxes per org. STARTTLS, OAuth, RFC-compliant threading.",
-    size: "small",
-    accent: "text-secondary",
-  },
-  {
-    icon: <Clock className="w-5 h-5" />,
-    title: "SLA policies",
-    body: "Define response and resolution targets per priority. Breach alerts auto-escalate.",
-    size: "small",
-    accent: "text-secondary",
-  },
-  {
-    icon: <Users className="w-5 h-5" />,
-    title: "RBAC + ABAC",
-    body: "Four system roles with granular permissions. ABAC scoping limits what agents can see.",
-    size: "small",
-    accent: "text-primary",
-  },
-  {
-    icon: <Bell className="w-5 h-5" />,
-    title: "Channel notifications",
-    body: "In-app, email, push, and SMS fan-out. Per-user preferences per event type.",
-    size: "small",
-    accent: "text-tertiary",
-  },
+const FEATURE_META = [
+  { icon: <Ticket className="w-5 h-5" />, size: "large", accent: "text-primary" },
+  { icon: <Shield className="w-5 h-5" />, size: "large", accent: "text-tertiary" },
+  { icon: <Mail className="w-5 h-5" />, size: "small", accent: "text-secondary" },
+  { icon: <Clock className="w-5 h-5" />, size: "small", accent: "text-secondary" },
+  { icon: <Users className="w-5 h-5" />, size: "small", accent: "text-primary" },
+  { icon: <Bell className="w-5 h-5" />, size: "small", accent: "text-tertiary" },
 ];
 
 function FeatureGrid() {
-  const large = FEATURES.filter((f) => f.size === "large");
-  const small = FEATURES.filter((f) => f.size === "small");
+  const { t } = useTranslation("marketing");
+  const featureTexts = t("landing.featureGrid.features", { returnObjects: true }) as { title: string; body: string }[];
+
+  const features = FEATURE_META.map((meta, i) => ({ ...meta, ...featureTexts[i] }));
+  const large = features.filter((f) => f.size === "large");
+  const small = features.filter((f) => f.size === "small");
 
   return (
     <section
@@ -385,10 +364,10 @@ function FeatureGrid() {
     >
       <div className="mb-12">
         <h2 className="text-3xl md:text-4xl font-bold text-on-surface tracking-tight">
-          Everything your team needs.
+          {t("landing.featureGrid.heading1")}
           <br />
           <span className="text-on-surface-variant font-normal">
-            Nothing it doesn't.
+            {t("landing.featureGrid.heading2")}
           </span>
         </h2>
       </div>
@@ -440,43 +419,31 @@ function FeatureGrid() {
 
 // ─── Multi-channel section ────────────────────────────────────────────────────
 
+const CHANNEL_META = [
+  { icon: <Mail className="w-4 h-4" />, live: true },
+  { icon: <Globe className="w-4 h-4" />, live: true },
+  { icon: <MessageSquare className="w-4 h-4" />, live: false },
+  { icon: <Zap className="w-4 h-4" />, live: false },
+];
+
 function Channels() {
+  const { t } = useTranslation("marketing");
+  const channelLabels = t("landing.channels.labels", { returnObjects: true }) as string[];
+  const channels = CHANNEL_META.map((meta, i) => ({ ...meta, label: channelLabels[i] }));
+
   return (
     <section className="px-6 md:px-10 py-20 border-t border-white/6">
       <div className="max-w-[1280px] mx-auto grid md:grid-cols-2 gap-16 items-center">
         {/* Left: channel list */}
         <div className="flex flex-col gap-6">
           <h2 className="text-3xl md:text-4xl font-bold text-on-surface tracking-tight">
-            Every channel, one queue.
+            {t("landing.channels.heading")}
           </h2>
           <p className="text-base text-on-surface-variant leading-relaxed">
-            Tickets arrive from email, web portal, API, and - soon - WhatsApp
-            and Telegram. The engine doesn't care about source. Your agents get
-            one unified view.
+            {t("landing.channels.subtitle")}
           </p>
           <div className="flex flex-col gap-3">
-            {[
-              {
-                icon: <Mail className="w-4 h-4" />,
-                label: "Email via IMAP/SMTP",
-                live: true,
-              },
-              {
-                icon: <Globe className="w-4 h-4" />,
-                label: "Web portal & API",
-                live: true,
-              },
-              {
-                icon: <MessageSquare className="w-4 h-4" />,
-                label: "WhatsApp Business",
-                live: false,
-              },
-              {
-                icon: <Zap className="w-4 h-4" />,
-                label: "Telegram",
-                live: false,
-              },
-            ].map(({ icon, label, live }) => (
+            {channels.map(({ icon, label, live }) => (
               <div key={label} className="flex items-center gap-3 text-sm">
                 <div className="text-on-surface-variant">{icon}</div>
                 <span
@@ -488,11 +455,11 @@ function Channels() {
                 </span>
                 {live ? (
                   <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
-                    Live
+                    {t("landing.channels.live")}
                   </span>
                 ) : (
                   <span className="text-[10px] font-medium text-on-surface-variant/40 border border-outline-variant/40 px-1.5 py-0.5 rounded">
-                    Soon
+                    {t("landing.channels.soon")}
                   </span>
                 )}
               </div>
@@ -550,6 +517,10 @@ function Channels() {
 // ─── Security section ─────────────────────────────────────────────────────────
 
 function Security() {
+  const { t } = useTranslation("marketing");
+  const secItems = t("landing.security.items", { returnObjects: true }) as string[];
+  const headingLines = t("landing.security.heading").split("\n");
+
   return (
     <section className="px-6 md:px-10 py-20 border-t border-white/6 bg-surface-container-low">
       <div className="max-w-[1280px] mx-auto">
@@ -557,26 +528,18 @@ function Security() {
           <div>
             <div className="inline-flex items-center gap-2 text-xs font-medium text-secondary mb-6 border border-secondary/25 bg-secondary/10 px-3 py-1.5 rounded-full">
               <Lock className="w-3.5 h-3.5" />
-              Security architecture
+              {t("landing.security.badge")}
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-on-surface tracking-tight mb-6">
-              Tenant isolation
+              {headingLines[0]}
               <br />
-              enforced at the DB.
+              {headingLines[1]}
             </h2>
             <p className="text-base text-on-surface-variant leading-relaxed mb-8">
-              Postgres Row Level Security policies run at the database layer. No
-              tenant data ever leaks through a missed WHERE clause in
-              application code.
+              {t("landing.security.body")}
             </p>
             <div className="flex flex-col gap-3">
-              {[
-                "Every org gets its own RLS context via SET LOCAL GUC",
-                "Background workers use bypass_rls=on super-admin context",
-                "Subdomain-based tenant resolution with 60s cache",
-                "Rotating JWT refresh tokens, SHA-256 hashed in DB",
-                "Full audit log on every state change",
-              ].map((item) => (
+              {secItems.map((item) => (
                 <div
                   key={item}
                   className="flex items-start gap-2.5 text-sm text-on-surface-variant"
@@ -629,72 +592,29 @@ function Security() {
 
 // ─── Pricing ──────────────────────────────────────────────────────────────────
 
-const PLANS = [
-  {
-    name: "Starter",
-    price: "$0",
-    period: "/mo",
-    desc: "For small teams getting started.",
-    cta: "Start free",
-    features: [
-      "3 agents",
-      "1 mailbox",
-      "500 tickets/mo",
-      "Email channel",
-      "Community support",
-    ],
-    highlighted: false,
-  },
-  {
-    name: "Pro",
-    price: "$49",
-    period: "/mo per 5 agents",
-    desc: "For growing IT teams and MSPs.",
-    cta: "Start trial",
-    features: [
-      "Unlimited agents",
-      "10 mailboxes",
-      "Unlimited tickets",
-      "SLA management",
-      "RBAC + ABAC",
-      "Audit logs",
-      "Priority support",
-    ],
-    highlighted: true,
-  },
-  {
-    name: "Enterprise",
-    price: "Custom",
-    period: "",
-    desc: "For large organizations with compliance needs.",
-    cta: "Contact sales",
-    features: [
-      "Everything in Pro",
-      "Self-hosted option",
-      "SSO / SAML",
-      "Dedicated support",
-      "SLA guarantee",
-      "Custom integrations",
-    ],
-    highlighted: false,
-  },
-];
+const PLAN_HIGHLIGHTED = [false, true, false];
 
 function Pricing() {
+  const { t } = useTranslation("marketing");
+  type PlanData = { name: string; price: string; period: string; desc: string; cta: string; features: string[] };
+  const plans = (t("landing.pricing.plans", { returnObjects: true }) as PlanData[]).map(
+    (plan, i) => ({ ...plan, highlighted: PLAN_HIGHLIGHTED[i] }),
+  );
+
   return (
     <section className="px-6 md:px-10 py-20 border-t border-white/6">
       <div className="max-w-[1280px] mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-on-surface tracking-tight mb-4">
-            Simple, transparent pricing.
+            {t("landing.pricing.heading")}
           </h2>
           <p className="text-base text-on-surface-variant">
-            No per-ticket fees. No surprise overage charges.
+            {t("landing.pricing.subtitle")}
           </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-4 max-w-4xl mx-auto">
-          {PLANS.map((plan) => (
+          {plans.map((plan) => (
             <div
               key={plan.name}
               className={`rounded-xl border p-6 flex flex-col gap-6 ${
@@ -706,7 +626,7 @@ function Pricing() {
               {plan.highlighted && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <span className="text-[10px] font-bold px-3 py-1 rounded-full bg-primary text-on-primary uppercase tracking-wider">
-                    Most popular
+                    {t("landing.pricing.mostPopular")}
                   </span>
                 </div>
               )}
@@ -762,27 +682,28 @@ function Pricing() {
 // ─── Final CTA ────────────────────────────────────────────────────────────────
 
 function FinalCta() {
+  const { t } = useTranslation("marketing");
   return (
     <section className="px-6 md:px-10 py-24 border-t border-white/6 text-center">
       <div className="max-w-2xl mx-auto flex flex-col gap-6 items-center">
         <h2 className="text-3xl md:text-4xl font-bold text-on-surface tracking-tight">
-          Ready to modernize your service desk?
+          {t("landing.cta.heading")}
         </h2>
         <p className="text-base text-on-surface-variant">
-          Set up in minutes. No infrastructure to manage.
+          {t("landing.cta.subtitle")}
         </p>
         <div className="flex flex-wrap gap-3 justify-center">
           <Link
             to="/register"
             className="inline-flex items-center gap-2 px-6 py-3 font-medium text-sm bg-primary text-on-primary rounded-md hover:bg-primary/90 transition-colors active:scale-[0.98]"
           >
-            Start for free <ArrowRight className="w-4 h-4" />
+            {t("landing.cta.startFree")} <ArrowRight className="w-4 h-4" />
           </Link>
           <a
             href="mailto:sales@alpis.io"
             className="inline-flex items-center gap-2 px-6 py-3 font-medium text-sm text-on-surface border border-outline-variant rounded-md hover:bg-surface-container transition-colors"
           >
-            Talk to sales
+            {t("landing.cta.talkToSales")}
           </a>
         </div>
       </div>
@@ -793,6 +714,10 @@ function FinalCta() {
 // ─── Footer ───────────────────────────────────────────────────────────────────
 
 export function Footer() {
+  const { t } = useTranslation("marketing");
+  type FooterLink = { label: string; href: string };
+  const links = t("footer.links", { returnObjects: true }) as FooterLink[];
+
   return (
     <footer className="border-t border-white/6 px-6 md:px-10 py-10">
       <div className="max-w-[1280px] mx-auto flex flex-col sm:flex-row justify-between gap-6">
@@ -802,21 +727,19 @@ export function Footer() {
           </div>
           <span className="text-sm font-semibold text-on-surface">Alpis</span>
           <span className="text-xs text-on-surface-variant ml-2">
-            Enterprise service desk.
+            {t("footer.tagline")}
           </span>
         </div>
         <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-on-surface-variant">
-          {["Features", "Pricing", "Docs", "Security", "Privacy", "Terms"].map(
-            (item) => (
-              <a
-                key={item}
-                href={`/${item.toLowerCase()}`}
-                className="hover:text-on-surface transition-colors"
-              >
-                {item}
-              </a>
-            ),
-          )}
+          {links.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className="hover:text-on-surface transition-colors"
+            >
+              {item.label}
+            </a>
+          ))}
         </div>
       </div>
     </footer>

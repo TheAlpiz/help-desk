@@ -7,7 +7,7 @@ export const createTicketSchema = z.object({
 });
 
 export const updateTicketStatusSchema = z.object({
-  status: z.enum(["open", "assigned", "in_progress", "waiting_customer", "resolved", "closed", "reopened"]),
+  status: z.enum(["open", "assigned", "in_progress", "waiting_customer", "resolved", "closed", "reopened", "archived"]),
 });
 
 export const addMessageSchema = z.object({

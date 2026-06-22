@@ -13,7 +13,17 @@ const router = new Hono<{ Variables: { tenantId: string; user: JwtPayload } }>()
     try {
       const tenantId = c.get("tenantId");
       if (!tenantId) return ResponseHandler.unauthorized(c, "Tenant ID required");
-      const data = await DepartmentService.findAll(tenantId);
+      
+      const query = c.req.query();
+      const limit = Math.min(Number(query.limit) || 50, 100);
+      const offset = Number(query.offset) || 0;
+
+      const data = await DepartmentService.findAll(tenantId, {
+        search: query.search,
+        limit,
+        offset,
+      });
+      
       return c.json({ success: true, data, message: "Fetched departments" });
     } catch (error) {
       return ResponseHandler.internalServerError(c, "Internal Server Error", error);

@@ -1,14 +1,16 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { authFetch } from "@/lib/api";
+
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import { useAppStore } from "@/store";
 import { updateOrganizationSchema } from "@help-desk/shared";
 import { Button, Input, FormError, FormAlert, fieldErrors } from "@/components/ui";
 
 export function OrganizationSettingsForm() {
+  const { t } = useTranslation("settings");
   const tenantId = useAppStore((state) => state.tenantId);
   const queryClient = useQueryClient();
   const [saved, setSaved] = useState(false);
@@ -32,20 +34,15 @@ export function OrganizationSettingsForm() {
       name: org?.name ?? "",
       domain: org?.domain ?? "",
     },
-    validators: { onChange: updateOrganizationSchema.pick({ name: true, domain: true }) },
+    validators: { onChange: updateOrganizationSchema as any },
     onSubmit: async ({ value }) => {
       if (!tenantId) return;
       setApiError(null);
       setSaved(false);
       try {
-        const state = useAppStore.getState();
-        const headers: Record<string, string> = { "Content-Type": "application/json" };
-        if (state.accessToken) headers["Authorization"] = `Bearer ${state.accessToken}`;
-        if (state.tenantId) headers["X-Tenant-ID"] = state.tenantId;
-        const res = await authFetch(`/api/organizations/${tenantId}`, {
-          method: "PUT",
-          headers,
-          body: JSON.stringify(value),
+        const res = await api.organizations[":id"].$put({
+          param: { id: tenantId },
+          json: value,
         });
         const body = (await res.json()) as any;
         if (!res.ok) { setApiError(body?.error?.message || body?.message || "Failed to save settings"); return; }
@@ -70,7 +67,7 @@ export function OrganizationSettingsForm() {
   }
 
   if (error) {
-    return <div className="p-8 text-center text-error text-sm">Error loading organization settings.</div>;
+    return <div className="p-8 text-center text-error text-sm">{t("form.loadError")}</div>;
   }
 
   return (
@@ -82,16 +79,16 @@ export function OrganizationSettingsForm() {
         {apiError && <FormAlert>{apiError}</FormAlert>}
         {saved && (
           <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-xs text-emerald-300">
-            Settings saved successfully.
+            {t("form.savedSuccess")}
           </div>
         )}
 
         <form.Field
           name="name"
-          validators={{ onChange: z.string().min(1, "Name is required") }}
+          validators={{ onChange: z.string().min(1, t("form.nameRequired")) }}
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-on-surface">Organization Name *</label>
+              <label className="text-xs font-medium text-on-surface">{t("form.name")}</label>
               <Input
                 dense
                 type="text"
@@ -106,10 +103,10 @@ export function OrganizationSettingsForm() {
 
         <form.Field
           name="domain"
-          validators={{ onChange: z.string().min(1, "Domain is required") }}
+          validators={{ onChange: z.string().min(1, t("form.domainRequired")) }}
           children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-on-surface">Custom Domain *</label>
+              <label className="text-xs font-medium text-on-surface">{t("form.domain")}</label>
               <div className="flex rounded-lg overflow-hidden border border-outline-variant focus-within:ring-2 focus-within:ring-primary/50 focus-within:border-primary/60 transition-colors">
                 <span className="inline-flex items-center px-3 bg-surface-container-high border-r border-outline-variant text-on-surface-variant text-xs shrink-0">
                   https://
@@ -128,7 +125,7 @@ export function OrganizationSettingsForm() {
         />
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-medium text-on-surface">Status</label>
+          <label className="text-xs font-medium text-on-surface">{t("form.status")}</label>
           <div className="flex items-center gap-3">
             <span className={`inline-flex text-[10px] font-semibold px-2 py-0.5 rounded border ${
               org.status === "active"
@@ -137,7 +134,7 @@ export function OrganizationSettingsForm() {
             }`}>
               {org.status}
             </span>
-            <p className="text-xs text-on-surface-variant/40">Status managed by super admins.</p>
+            <p className="text-xs text-on-surface-variant/40">{t("form.statusManaged")}</p>
           </div>
         </div>
 
@@ -146,7 +143,7 @@ export function OrganizationSettingsForm() {
             selector={(s) => [s.canSubmit, s.isSubmitting, s.isDirty]}
             children={([canSubmit, isSubmitting, isDirty]) => (
               <Button type="submit" disabled={!canSubmit || !isDirty} loading={isSubmitting}>
-                Save Changes
+                {t("form.save")}
               </Button>
             )}
           />

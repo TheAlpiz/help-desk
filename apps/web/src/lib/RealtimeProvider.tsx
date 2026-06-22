@@ -4,6 +4,36 @@ import { useAppStore } from "@/store";
 import { useToast } from "@/components/Toast";
 import { RealtimeClient, type RealtimeEvent } from "./ws";
 
+const playNotificationSound = () => {
+  try {
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContext) return;
+    
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    // Create a pleasant "ding" sound
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(880, ctx.currentTime); // A5 note
+    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.1); // Drop to A4
+    
+    // Envelope for a quick strike and fade out
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+    
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.5);
+  } catch (err) {
+    // Ignore browser autoplay policy errors silently
+    console.debug("Notification sound blocked by browser:", err);
+  }
+};
+
 export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const accessToken = useAppStore((s) => s.accessToken);
   const tenantId = useAppStore((s) => s.tenantId);
@@ -22,6 +52,9 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
           qc.invalidateQueries({ queryKey: ["notifications", "unread"] });
           qc.invalidateQueries({ queryKey: ["notifications"] });
           info(e.payload.title);
+          if (useAppStore.getState().notificationSound) {
+            playNotificationSound();
+          }
           break;
         case "ticket.created":
         case "ticket.updated":

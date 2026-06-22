@@ -20,12 +20,12 @@ export const ticket = pgTable("ticket", {
   status: varchar("status", { length: 50 }).default("open").notNull(),
   priority: varchar("priority", { length: 50 }).default("medium").notNull(),
 
-  firstResponseTargetAt: timestamp("first_response_target_at"),
-  resolutionTargetAt: timestamp("resolution_target_at"),
+  firstResponseTargetAt: timestamp("first_response_target_at", { withTimezone: true }),
+  resolutionTargetAt: timestamp("resolution_target_at", { withTimezone: true }),
   firstResponseMet: boolean("first_response_met").default(false).notNull(),
   resolutionBreached: boolean("resolution_breached").default(false).notNull(),
 
-  resolvedAt: timestamp("resolved_at"),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
   ccEmails: jsonb("cc_emails").$type<string[]>().default([]),
   ...timestamps,
 });

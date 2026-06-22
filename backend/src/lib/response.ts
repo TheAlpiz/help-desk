@@ -87,6 +87,10 @@ export class ResponseHandler {
     return this.error(c, message, { status: 404, code: 'NOT_FOUND' });
   }
 
+  static tooManyRequests(c: Context, message: string = 'Too Many Requests') {
+    return this.error(c, message, { status: 429, code: 'TOO_MANY_REQUESTS' });
+  }
+
   static internalServerError(c: Context, message: string = 'Internal Server Error', details?: any) {
     return this.error(c, message, { status: 500, code: 'INTERNAL_SERVER_ERROR', details });
   }

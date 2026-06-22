@@ -1,0 +1,20 @@
+{
+  "title": "Audit Log",
+  "events": "{{count}} events",
+  "search": "Search actor, entity...",
+  "filterAction": "Filter by action...",
+  "empty": {
+    "title": "No audit events",
+    "noFilter": "System events will appear here",
+    "filtered": "No events match your filter"
+  },
+  "table": {
+    "time": "Time",
+    "actor": "Actor",
+    "action": "Action",
+    "entity": "Entity",
+    "entityId": "Entity ID"
+  },
+  "system": "system",
+  "pagination": "Page {{page}} of {{total}}"
+}

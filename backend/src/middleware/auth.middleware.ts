@@ -8,7 +8,8 @@ export type JwtPayload = {
   organizationId: string;
   roleIds: string[];
   globalRole: string;
-  departmentId: string | null;
+  departmentIds: string[];
+  forcePasswordChange: boolean;
 };
 
 export const authMiddleware = () => async (c: Context, next: Next) => {

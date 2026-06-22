@@ -1,9 +1,11 @@
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { Queue } from "bullmq";
 import { db, withTenantTransaction } from "../../infra/db";
 import { sla, NewSla } from "./sla.schema";
 import { ticket } from "../ticket/ticket.schema";
+import { organization } from "../organization/organization.schema";
 import { env } from "../../infra/env";
+import { addBusinessMinutes, BusinessHoursConfig } from "../../lib/business-hours";
 
 // The transaction handle passed by withTenantTransaction (tenant GUC already set).
 type TenantTx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -51,25 +53,6 @@ export const SlaService = {
     });
   },
 
-  calculateTargetDate: (minutes: number, businessHoursConfig: any): Date => {
-    const now = new Date();
-    
-    if (businessHoursConfig?.enabled) {
-      // User opted into Business Hours
-      // TODO: Use date-fns-business-days to compute exact target.
-      // E.g., if ticket created Friday 4 PM with 4 hr SLA, it becomes Monday 12 PM.
-      // For this implementation, we will log and fallback to 24/7 if library not present,
-      // but conceptually it's ready.
-      console.log("SLA Engine: Applying Business Hours computation...");
-    } else {
-      // User opted into 24/7 computation
-      console.log("SLA Engine: Applying 24/7 computation...");
-    }
-
-    // Baseline calculation
-    return new Date(now.getTime() + minutes * 60000);
-  },
-
   // Runs on the caller's tenant transaction (`tx`) so RLS sees the active tenant.
   attachSlaToTicket: async (
     tx: TenantTx,
@@ -78,14 +61,64 @@ export const SlaService = {
     priority: string,
     departmentId?: string,
   ) => {
-    // In a real app, match SLA policy based on rules. Mocking selecting the first active policy.
-    const policies = await tx.select().from(sla).where(eq(sla.organizationId, organizationId)).limit(1);
-    const policy = policies[0];
+    // Match most-specific active policy first:
+    //  score 3 = dept + priority match
+    //  score 2 = dept match only
+    //  score 1 = priority match only
+    //  score 0 = catch-all (both null)
+    //  score -1 = scoping field set but doesn't match → skip
+    const policies = await tx.select().from(sla).where(
+      and(eq(sla.organizationId, organizationId), eq(sla.isActive, true))
+    );
+
+    const deptId = departmentId ?? null;
+    const pri = priority.toLowerCase();
+    const score = (p: typeof policies[number]) => {
+      let s = 0;
+      if (p.departmentId !== null) {
+        if (p.departmentId !== deptId) return -1;
+        s += 2;
+      }
+      if (p.priority !== null) {
+        if (p.priority !== pri) return -1;
+        s += 1;
+      }
+      return s;
+    };
+
+    const policy = policies
+      .map((p) => ({ p, s: score(p) }))
+      .filter(({ s }) => s >= 0)
+      .sort((a, b) => b.s - a.s)[0]?.p;
 
     if (!policy) return; // No SLA applies
 
-    const firstResponseTargetAt = SlaService.calculateTargetDate(policy.firstResponseTimeMins, policy.businessHoursConfig);
-    const resolutionTargetAt = SlaService.calculateTargetDate(policy.resolutionTimeMins, policy.businessHoursConfig);
+    // Fetch org business hours (if configured)
+    const [orgRow] = await tx
+      .select({ businessHoursConfig: organization.businessHoursConfig })
+      .from(organization)
+      .where(eq(organization.id, organizationId))
+      .limit(1);
+    const bh = orgRow?.businessHoursConfig as BusinessHoursConfig | null | undefined;
+
+    // Fetch ticket creation time
+    const [ticketData] = await tx
+      .select({ createdAt: ticket.createdAt })
+      .from(ticket)
+      .where(eq(ticket.id, ticketId))
+      .limit(1);
+
+    if (!ticketData) return;
+    
+    const baseTime = ticketData.createdAt;
+
+    const calcTarget = (mins: number) =>
+      bh?.timezone && bh?.days
+        ? addBusinessMinutes(baseTime, mins, bh)
+        : new Date(baseTime.getTime() + mins * 60000);
+
+    const firstResponseTargetAt = calcTarget(policy.firstResponseTimeMins);
+    const resolutionTargetAt    = calcTarget(policy.resolutionTimeMins);
 
     await tx.update(ticket).set({
       slaId: policy.id,

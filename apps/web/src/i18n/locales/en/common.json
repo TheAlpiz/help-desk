@@ -1,0 +1,212 @@
+{
+  "app": {
+    "name": "Alpis",
+    "tagline": "Enterprise Service Desk"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "add": "Add",
+    "remove": "Remove",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "refresh": "Refresh",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "download": "Download",
+    "upload": "Upload",
+    "send": "Send",
+    "reply": "Reply",
+    "assign": "Assign",
+    "run": "Run",
+    "view": "View",
+    "preview": "Preview",
+    "loading": "Loading…",
+    "saving": "Saving…",
+    "deleting": "Deleting…",
+    "clear": "Clear"
+  },
+  "status": {
+    "open": "Open",
+    "assigned": "Assigned",
+    "in_progress": "In Progress",
+    "waiting_customer": "Waiting Customer",
+    "resolved": "Resolved",
+    "closed": "Closed",
+    "reopened": "Reopened",
+    "active": "Active",
+    "inactive": "Inactive",
+    "suspended": "Suspended",
+    "pending": "Pending",
+    "processing": "Processing",
+    "completed": "Completed",
+    "rejected": "Rejected",
+    "draft": "Draft",
+    "archived": "Archived"
+  },
+  "priority": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical",
+    "urgent": "Urgent"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Network error. Check your connection.",
+    "unauthorized": "You are not authorized to perform this action.",
+    "notFound": "The requested resource was not found.",
+    "serverError": "Internal server error. Please try again later.",
+    "validationFailed": "Please fix the errors below.",
+    "loadFailed": "Failed to load data.",
+    "saveFailed": "Failed to save changes.",
+    "deleteFailed": "Failed to delete.",
+    "requiredField": "This field is required.",
+    "invalidEmail": "Please enter a valid email address.",
+    "tooShort": "Must be at least {{min}} characters.",
+    "tooLong": "Must be no more than {{max}} characters."
+  },
+  "empty": {
+    "noData": "No data",
+    "noResults": "No results found.",
+    "noItems": "No items yet."
+  },
+  "pagination": {
+    "showing": "Showing {{from}}–{{to}} of {{total}}",
+    "page": "Page {{page}} of {{total}}"
+  },
+  "time": {
+    "just_now": "Just now",
+    "minutes_ago": "{{count}} minute ago",
+    "minutes_ago_plural": "{{count}} minutes ago",
+    "hours_ago": "{{count}} hour ago",
+    "hours_ago_plural": "{{count}} hours ago",
+    "days_ago": "{{count}} day ago",
+    "days_ago_plural": "{{count}} days ago",
+    "due_in": "Due in {{time}}",
+    "overdue": "{{time}} overdue"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "tr": "Turkish"
+  },
+  "offline": "You are offline",
+  "comingSoon": "Coming Soon",
+  "attachments": {
+    "title": "Attachments",
+    "upload": "Upload",
+    "noAttachments": "No attachments yet",
+    "dropHint": "Drop files here or click to browse",
+    "progressFailed": "failed",
+    "progressDone": "done"
+  },
+  "commandPalette": {
+    "placeholder": "Search or jump to…",
+    "noResults": "No results for \"{{query}}\"",
+    "navigate": "navigate",
+    "select": "select",
+    "groups": {
+      "navigate": "Navigate",
+      "account": "Account",
+      "admin": "Admin",
+      "channels": "Channels"
+    },
+    "commands": {
+      "dashboard": "Dashboard",
+      "tickets": "Tickets",
+      "tasks": "Tasks",
+      "mailboxes": "Mailboxes",
+      "reports": "Reports",
+      "notifications": "Notifications",
+      "archived": "Archived Tickets",
+      "globalSearch": "Global Search",
+      "myProfile": "My Profile",
+      "security": "Security & Sessions",
+      "apiTokens": "API Tokens",
+      "notifPrefs": "Notification Preferences",
+      "usersRoles": "Users & Roles",
+      "departments": "Departments",
+      "slaPolicies": "SLA Policies",
+      "rolesPerms": "Permissions & Roles",
+      "macros": "Macros / Canned Responses",
+      "automations": "Automation Rules",
+      "auditLogs": "Audit Logs",
+      "settings": "Settings",
+      "whatsapp": "WhatsApp",
+      "billing": "Billing",
+      "onboarding": "Setup wizard"
+    }
+  },
+  "departments": {
+    "title": "Departments",
+    "subtitle": "Manage your organization's departments.",
+    "newDepartment": "New Department",
+    "loadFailed": "Failed to load departments.",
+    "cols": {
+      "name": "Name",
+      "description": "Description",
+      "actions": "Actions"
+    },
+    "empty": {
+      "title": "No departments yet",
+      "create": "Create first department"
+    },
+    "manageMembers": "Manage members",
+    "form": {
+      "namePlaceholder": "e.g. Support",
+      "descPlaceholder": "Describe this department…",
+      "nameRequired": "Name is required",
+      "createTitle": "New Department",
+      "editTitle": "Edit Department",
+      "saveChanges": "Save Changes",
+      "createFailed": "Failed to create department",
+      "updateFailed": "Failed to update department"
+    },
+    "delete": {
+      "title": "Delete Department",
+      "confirmPrefix": "Delete",
+      "confirmSuffix": "? Cannot be undone.",
+      "failed": "Failed to delete"
+    },
+    "members": {
+      "title": "Members ({{count}})",
+      "noMembers": "No members yet",
+      "addMember": "Add member",
+      "remove": "Remove {{name}}"
+    }
+  },
+  "search": {
+    "title": "Global Search",
+    "subtitle": "Search across tickets, tasks, users, and departments.",
+    "placeholder": "Search everything…",
+    "clearSearch": "Clear search",
+    "all": "All",
+    "noResults": "No results for \"{{query}}\"",
+    "tryDifferent": "Try different keywords or check spelling",
+    "startTyping": "Start typing to search",
+    "searchesAcross": "Searches tickets, tasks, users, and departments",
+    "entities": {
+      "ticket": "Ticket",
+      "task": "Task",
+      "user": "User",
+      "department": "Department",
+      "audit": "Audit log"
+    }
+  }
+}

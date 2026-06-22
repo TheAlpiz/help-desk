@@ -1,24 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { authFetch } from "@/lib/api";
+import { api } from "@/lib/api";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Plus, Trash2, Zap, ChevronDown, Play, Pause, Copy,
   Mail, Tag, UserCheck, AlertTriangle, MessageSquare, Building2, ListChecks,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useToast } from "@/components/Toast";
 import { useAppStore } from "@/store";
 import { FieldValueInput } from "@/lib/fieldOptions";
 import { Button } from "@/components/ui";
 
-function getHeaders() {
-  const { accessToken, tenantId } = useAppStore.getState();
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${accessToken}`,
-    "X-Tenant-ID": tenantId ?? "",
-  };
-}
+
 
 export const Route = createFileRoute("/_auth/automations")({
   component: AutomationsPage,
@@ -316,6 +310,8 @@ function RuleCard({
   onRemove: () => void;
   onDuplicate: () => void;
 }) {
+  const { t } = useTranslation("automations");
+
   const addCondition = () =>
     onUpdate({
       conditions: [
@@ -358,7 +354,7 @@ function RuleCard({
           value={rule.name}
           onChange={(e) => onUpdate({ name: e.target.value })}
           className="flex-1 bg-transparent text-sm font-medium text-on-surface focus:outline-none"
-          aria-label="Rule name"
+          aria-label={t("fields.name")}
         />
         {rule.runCount > 0 && (
           <span className="text-[10px] text-on-surface-variant/40 font-mono">{rule.runCount} runs</span>
@@ -384,10 +380,10 @@ function RuleCard({
                 value={rule.trigger}
                 onChange={(e) => onUpdate({ trigger: e.target.value as TriggerType })}
                 className={`${selectCls} text-xs`}
-                aria-label="Trigger event"
+                aria-label={t("fields.trigger")}
               >
-                {(Object.keys(TRIGGER_LABELS) as TriggerType[]).map((t) => (
-                  <option key={t} value={t}>{TRIGGER_LABELS[t]}</option>
+                {(Object.keys(TRIGGER_LABELS) as TriggerType[]).map((trig) => (
+                  <option key={trig} value={trig}>{TRIGGER_LABELS[trig]}</option>
                 ))}
               </select>
               <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant/40 pointer-events-none" />
@@ -398,7 +394,7 @@ function RuleCard({
         {/* Conditions */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide">If (all match)</span>
+            <span className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide">{t("fields.conditions")} (all match)</span>
             <button
               onClick={addCondition}
               className="text-[11px] text-primary/70 hover:text-primary transition-colors"
@@ -423,7 +419,7 @@ function RuleCard({
         {/* Actions */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide">Then</span>
+            <span className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide">{t("fields.actions")}</span>
             <button
               onClick={addAction}
               className="text-[11px] text-primary/70 hover:text-primary transition-colors"
@@ -454,15 +450,16 @@ function RuleCard({
 function AutomationsPage() {
   const qc = useQueryClient();
   const { success, error: showError } = useToast();
+  const { t } = useTranslation("automations");
   // Local draft state on top of server data so inline editing works
   const [localRules, setLocalRules] = useState<AutomationRule[] | null>(null);
 
   const { data: serverRules, isLoading } = useQuery({
     queryKey: ["automations"],
     queryFn: async () => {
-      const res = await authFetch("/api/automations", { headers: getHeaders() });
-      const json = await res.json();
-      return ((json?.data ?? []) as any[]).map(normalizeRule);
+      const res = await api.automations.index.$get();
+      const body = await res.json() as any;
+      return ((body?.data ?? []) as any[]).map(normalizeRule);
     },
   });
 
@@ -478,7 +475,7 @@ function AutomationsPage() {
 
   const toggleMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await authFetch(`/api/automations/${id}/toggle`, { method: "POST", headers: getHeaders() });
+      const res = await api.automations[":id"].toggle.$post({ param: { id } });
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     },
@@ -488,7 +485,7 @@ function AutomationsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await authFetch(`/api/automations/${id}`, { method: "DELETE", headers: getHeaders() });
+      const res = await api.automations[":id"].$delete({ param: { id } });
       if (!res.ok) throw new Error(await res.text());
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["automations"] }); success("Rule deleted"); },
@@ -497,16 +494,14 @@ function AutomationsPage() {
 
   const createMutation = useMutation({
     mutationFn: async (rule: Omit<AutomationRule, "id" | "runCount">) => {
-      const res = await authFetch("/api/automations", {
-        method: "POST",
-        headers: getHeaders(),
-        body: JSON.stringify({
+      const res = await api.automations.index.$post({
+        json: {
           name: rule.name,
-          trigger: rule.trigger,
-          conditions: rule.conditions,
-          actions: rule.actions,
+          trigger: rule.trigger as any,
+          conditions: rule.conditions as any,
+          actions: rule.actions as any,
           conditionMatch: rule.conditionMatch ?? "all",
-        }),
+        },
       });
       if (!res.ok) throw new Error(await res.text());
       return res.json();
@@ -518,17 +513,16 @@ function AutomationsPage() {
   const saveAllMutation = useMutation({
     mutationFn: async (ruleList: AutomationRule[]) => {
       await Promise.all(ruleList.map(async (rule) => {
-        const res = await authFetch(`/api/automations/${rule.id}`, {
-          method: "PUT",
-          headers: getHeaders(),
-          body: JSON.stringify({
+        const res = await api.automations[":id"].$put({
+          param: { id: rule.id },
+          json: {
             name: rule.name,
-            trigger: rule.trigger,
-            conditions: rule.conditions,
-            actions: rule.actions,
+            trigger: rule.trigger as any,
+            conditions: rule.conditions as any,
+            actions: rule.actions as any,
             conditionMatch: rule.conditionMatch ?? "all",
             isActive: rule.enabled,
-          }),
+          },
         });
         if (!res.ok) throw new Error(await res.text());
       }));
@@ -540,7 +534,7 @@ function AutomationsPage() {
   const addRule = () => {
     const newRule: AutomationRule = {
       id: uid(),
-      name: "New automation",
+      name: t("new"),
       trigger: "ticket_created",
       conditions: [],
       actions: [{ id: uid(), type: "set_status", value: "" }],
@@ -576,7 +570,7 @@ function AutomationsPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[15px] font-semibold text-on-surface">Automation Rules</h1>
+          <h1 className="text-[15px] font-semibold text-on-surface">{t("title")}</h1>
           <p className="text-xs text-on-surface-variant mt-1">
             {activeCount} active rule{activeCount !== 1 ? "s" : ""} · Runs automatically on ticket events
           </p>
@@ -590,7 +584,7 @@ function AutomationsPage() {
             {saveAllMutation.isPending ? "Saving…" : "Save all"}
           </button>
           <Button onClick={addRule} disabled={createMutation.isPending} loading={createMutation.isPending}>
-            {!createMutation.isPending && <><Plus className="w-3.5 h-3.5" />New rule</>}
+            {!createMutation.isPending && <><Plus className="w-3.5 h-3.5" />{t("new")}</>}
           </Button>
         </div>
       </div>
@@ -599,7 +593,7 @@ function AutomationsPage() {
       <div className="grid grid-cols-3 gap-3">
         {[
           { label: "Total rules", value: rules.length, icon: <Zap className="w-3.5 h-3.5" /> },
-          { label: "Active", value: activeCount, icon: <Play className="w-3.5 h-3.5 text-emerald-400" /> },
+          { label: t("fields.active"), value: activeCount, icon: <Play className="w-3.5 h-3.5 text-emerald-400" /> },
           { label: "Inactive", value: rules.length - activeCount, icon: <Pause className="w-3.5 h-3.5 text-on-surface-variant/40" /> },
         ].map((s) => (
           <div key={s.label} className="bg-surface-container border border-outline-variant rounded-xl px-4 py-3 flex items-center gap-3">
@@ -617,10 +611,10 @@ function AutomationsPage() {
       ) : rules.length === 0 ? (
         <div className="text-center py-16 bg-surface-container border border-outline-variant rounded-xl">
           <Zap className="w-10 h-10 text-on-surface-variant/15 mx-auto mb-3" />
-          <p className="text-sm text-on-surface-variant/40">No automation rules</p>
+          <p className="text-sm text-on-surface-variant/40">{t("empty.title")}</p>
           <Button onClick={addRule} className="mt-3">
             <Plus className="w-3.5 h-3.5" />
-            Create first rule
+            {t("new")}
           </Button>
         </div>
       ) : (

@@ -1,0 +1,79 @@
+{
+  "title": "Notifications",
+  "unread": "{{count}} unread",
+  "marking": "Marking...",
+  "markRead": "Mark as read",
+  "markAllRead": "Mark all as read",
+  "ofNotifications": "{{shown}} of {{total}} notifications",
+  "filter": {
+    "all": "All",
+    "unread": "Unread",
+    "read": "Read",
+    "allTypes": "All types"
+  },
+  "types": {
+    "ticket_assigned": "Ticket Assigned",
+    "ticket_reply": "Ticket Reply",
+    "ticket_closed": "Ticket Closed",
+    "sla_breach": "SLA Breach",
+    "sla_escalation": "SLA Escalation",
+    "mention": "Mention",
+    "task_assigned": "Task Assigned",
+    "system": "System",
+    "notification": "Notification"
+  },
+  "empty": {
+    "title": "No notifications",
+    "subtitle": "You're all caught up.",
+    "allCaughtUp": "All caught up",
+    "allCaughtUpSub": "No notifications yet.",
+    "noMatches": "No matches",
+    "noMatchesSub": "Try a different filter."
+  },
+  "preferences": {
+    "title": "Notification Preferences",
+    "description": "Choose how you get notified for each event type.",
+    "channelApp": "App",
+    "channelEmail": "Email",
+    "email": "Email notifications",
+    "inApp": "In-app notifications",
+    "saved": "Preference saved",
+    "soundTitle": "In-App Notification Sounds",
+    "soundDescription": "Play a sound when you receive a new notification while using the app.",
+    "groups": {
+      "tickets": "Tickets",
+      "tasks": "Tasks",
+      "sla": "SLA",
+      "system": "System"
+    },
+    "events": {
+      "ticket": {
+        "assigned": "Ticket assigned to me",
+        "status_changed": "Ticket status changed",
+        "reply_received": "Reply received on my ticket",
+        "mention": "Mentioned in ticket"
+      },
+      "task": {
+        "assigned": "Task assigned to me",
+        "due_soon": "Task due soon (24h)",
+        "completed": "Task completed"
+      },
+      "sla": {
+        "breach_warning": "SLA breach warning",
+        "breached": "SLA breached"
+      },
+      "user": {
+        "invited": "New user invited"
+      },
+      "mailbox": {
+        "error": "Mailbox connection error"
+      }
+    },
+    "ticketAssigned": "Ticket assigned to me",
+    "ticketReplied": "Reply on my tickets",
+    "ticketStatusChanged": "Ticket status changes",
+    "slaBreached": "SLA breaches",
+    "mentionedInNote": "Mentioned in a note",
+    "save": "Save preferences"
+  }
+}

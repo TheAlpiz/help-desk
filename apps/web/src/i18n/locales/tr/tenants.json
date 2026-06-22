@@ -1,0 +1,129 @@
+{
+  "stats": {
+    "total": "Toplam Kiracı",
+    "active": "Aktif",
+    "inactive": "Pasif / Askıya Alınmış"
+  },
+  "subtitle": "Tüm kiracı organizasyonlarını yönetin.",
+  "provisionBtn": "Kiracı Oluştur",
+  "table": {
+    "organization": "Organizasyon",
+    "domain": "Alan Adı",
+    "status": "Durum",
+    "created": "Oluşturulma",
+    "actions": "İşlemler"
+  },
+  "status": {
+    "active": "Aktif",
+    "inactive": "Pasif",
+    "suspended": "Askıya Alındı"
+  },
+  "actions": {
+    "featureFlags": "Özellik bayrakları",
+    "edit": "Düzenle",
+    "delete": "Sil"
+  },
+  "empty": {
+    "title": "Henüz kiracı yok",
+    "cta": "İlk kiracıyı oluştur"
+  },
+  "error": {
+    "load": "Kiracılar yüklenemedi."
+  },
+  "provision": {
+    "title": "Yeni Kiracı Oluştur",
+    "steps": {
+      "org": "Organizasyon",
+      "admin": "Yönetici Kullanıcı",
+      "review": "İnceleme"
+    },
+    "org": {
+      "nameLabel": "Organizasyon Adı *",
+      "namePlaceholder": "Örnek A.Ş.",
+      "domainLabel": "Alan Adı *",
+      "domainPlaceholder": "ornek.example.com",
+      "nextBtn": "Sonraki: Yönetici Kullanıcı →"
+    },
+    "admin": {
+      "firstNameLabel": "Ad *",
+      "lastNameLabel": "Soyad *",
+      "emailLabel": "E-posta *",
+      "emailPlaceholder": "yonetici@ornek.com",
+      "passwordLabel": "Geçici Şifre *",
+      "backBtn": "Geri",
+      "nextBtn": "Sonraki: İnceleme →"
+    },
+    "review": {
+      "orgSection": "Organizasyon",
+      "adminSection": "Yönetici Kullanıcı",
+      "nameField": "Ad",
+      "domainField": "Alan Adı",
+      "emailField": "E-posta",
+      "roleField": "Rol",
+      "backBtn": "Geri",
+      "createBtn": "Kiracı Oluştur"
+    },
+    "errors": {
+      "failed": "Kiracı oluşturulamadı"
+    },
+    "validation": {
+      "required": "Zorunlu",
+      "invalidEmail": "Geçersiz e-posta",
+      "minPassword": "En az 8 karakter"
+    }
+  },
+  "edit": {
+    "title": "Kiracıyı Düzenle",
+    "nameLabel": "Organizasyon Adı",
+    "domainLabel": "Alan Adı",
+    "statusLabel": "Durum",
+    "cancelBtn": "İptal",
+    "saveBtn": "Değişiklikleri Kaydet",
+    "errors": {
+      "failed": "Güncellenemedi",
+      "generic": "Bir hata oluştu"
+    }
+  },
+  "delete": {
+    "title": "Kiracıyı Sil",
+    "confirm": "<strong>{{name}}</strong> kalıcı olarak silinsin mi? Tüm veriler kaybolacak. Bu işlem geri alınamaz.",
+    "cancelBtn": "İptal",
+    "deleteBtn": "Kiracıyı Sil"
+  },
+  "flags": {
+    "title": "Özellik Bayrakları",
+    "savedBtn": "Kaydedildi!",
+    "saveBtn": "Bayrakları kaydet",
+    "toggle": "{{label}} aç/kapat",
+    "items": {
+      "whatsapp": {
+        "label": "WhatsApp entegrasyonu",
+        "description": "Bu kiracı için WhatsApp kanalını etkinleştir"
+      },
+      "api_tokens": {
+        "label": "API tokenları",
+        "description": "Temsilcilerin kişisel API tokenı oluşturmasına izin ver"
+      },
+      "sla_escalation": {
+        "label": "SLA eskalasyon kuralları",
+        "description": "Gelişmiş SLA eskalasyon oluşturucu"
+      },
+      "custom_domains": {
+        "label": "Özel alan adları",
+        "description": "Kiracının özel alt alan adı ayarlamasına izin ver"
+      },
+      "data_export": {
+        "label": "Veri dışa aktarma",
+        "description": "Toplu veri dışa aktarma merkezini etkinleştir"
+      },
+      "sso": {
+        "label": "SSO / SCIM",
+        "description": "Tek oturum açma ve SCIM sağlama"
+      },
+      "ai_assist": {
+        "label": "Yapay zeka yardımı (beta)",
+        "description": "Yapay zeka destekli yanıt önerileri ve önceliklendirme"
+      }
+    }
+  }
+}

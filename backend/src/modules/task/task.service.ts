@@ -1,4 +1,4 @@
-import { eq, and, desc, isNull } from "drizzle-orm";
+import { eq, and, or, desc, isNull, ilike, count } from "drizzle-orm";
 import { task } from "./task.schema";
 import { taskComment } from "./task-comment.schema";
 import { auditLog } from "../audit-log/audit-log.schema";
@@ -10,18 +10,30 @@ import { CreateTaskInput, AddTaskCommentInput, UpdateTaskInput } from "@help-des
 export const TaskService = {
   findAll: async (
     tenantId: string,
-    filters?: { ticketId?: string; assigneeId?: string; standalone?: boolean }
+    filters?: { ticketId?: string; assigneeId?: string; standalone?: boolean; search?: string; limit?: number; offset?: number }
   ) => {
     return withTenantTransaction(tenantId, async (tx) => {
       const conditions = [eq(task.organizationId, tenantId)];
       if (filters?.ticketId) conditions.push(eq(task.ticketId, filters.ticketId));
       if (filters?.assigneeId) conditions.push(eq(task.assigneeId, filters.assigneeId));
       if (filters?.standalone) conditions.push(isNull(task.ticketId));
-      return tx
-        .select()
-        .from(task)
-        .where(and(...conditions))
-        .orderBy(desc(task.createdAt));
+      
+      let searchFilter;
+      if (filters?.search) {
+        searchFilter = ilike(task.title, `%${filters.search}%`);
+      }
+      
+      const where = and(...conditions, searchFilter);
+      
+      const limit = filters?.limit ?? 25;
+      const offset = filters?.offset ?? 0;
+
+      const [rows, [{ total }]] = await Promise.all([
+        tx.select().from(task).where(where).orderBy(desc(task.createdAt)).limit(limit).offset(offset),
+        tx.select({ total: count() }).from(task).where(where),
+      ]);
+
+      return { data: rows, total: Number(total), limit, offset };
     });
   },
 

@@ -1,0 +1,33 @@
+{
+  "title": "Mailboxes",
+  "new": "New Mailbox",
+  "edit": "Edit Mailbox",
+  "connect": "Connect mailbox",
+  "fields": {
+    "name": "Name",
+    "email": "Email address",
+    "imapHost": "IMAP host",
+    "imapPort": "IMAP port",
+    "smtpHost": "SMTP host",
+    "smtpPort": "SMTP port",
+    "username": "Username",
+    "password": "Password",
+    "useSSL": "Use SSL/TLS",
+    "status": "Status"
+  },
+  "status": {
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "error": "Connection error",
+    "connecting": "Connecting…"
+  },
+  "actions": {
+    "test": "Test connection",
+    "reconnect": "Reconnect",
+    "disconnect": "Disconnect"
+  },
+  "empty": {
+    "title": "No mailboxes",
+    "subtitle": "Connect an email account to start receiving tickets."
+  }
+}

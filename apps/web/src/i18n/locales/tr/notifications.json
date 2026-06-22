@@ -1,0 +1,79 @@
+{
+  "title": "Bildirimler",
+  "unread": "{{count}} okunmamış",
+  "marking": "İşaretleniyor...",
+  "markRead": "Okundu olarak işaretle",
+  "markAllRead": "Tümünü okundu olarak işaretle",
+  "ofNotifications": "{{total}} bildirimden {{shown}} tanesi",
+  "filter": {
+    "all": "Tümü",
+    "unread": "Okunmamış",
+    "read": "Okunmuş",
+    "allTypes": "Tüm türler"
+  },
+  "types": {
+    "ticket_assigned": "Talep Atandı",
+    "ticket_reply": "Talep Yanıtı",
+    "ticket_closed": "Talep Kapatıldı",
+    "sla_breach": "SLA İhlali",
+    "sla_escalation": "SLA Yükseltmesi",
+    "mention": "Bahsedilme",
+    "task_assigned": "Görev Atandı",
+    "system": "Sistem",
+    "notification": "Bildirim"
+  },
+  "empty": {
+    "title": "Bildirim yok",
+    "subtitle": "Tüm bildirimler okundu.",
+    "allCaughtUp": "Hepsi tamam",
+    "allCaughtUpSub": "Henüz bildirim yok.",
+    "noMatches": "Eşleşme bulunamadı",
+    "noMatchesSub": "Farklı bir filtre deneyin."
+  },
+  "preferences": {
+    "title": "Bildirim Tercihleri",
+    "description": "Her etkinlik türü için nasıl bildirim almak istediğinizi seçin.",
+    "channelApp": "Uygulama",
+    "channelEmail": "E-posta",
+    "email": "E-posta bildirimleri",
+    "inApp": "Uygulama içi bildirimler",
+    "saved": "Tercih kaydedildi",
+    "soundTitle": "Uygulama İçi Bildirim Sesleri",
+    "soundDescription": "Uygulamayı kullanırken yeni bildirim aldığınızda ses çalar.",
+    "groups": {
+      "tickets": "Talepler",
+      "tasks": "Görevler",
+      "sla": "SLA",
+      "system": "Sistem"
+    },
+    "events": {
+      "ticket": {
+        "assigned": "Bana atanan talepler",
+        "status_changed": "Talep durumu değişti",
+        "reply_received": "Talebimdeki yanıt",
+        "mention": "Talep içinde bahsedilme"
+      },
+      "task": {
+        "assigned": "Bana atanan görevler",
+        "due_soon": "Yakında teslim edilecek görev (24s)",
+        "completed": "Görev tamamlandı"
+      },
+      "sla": {
+        "breach_warning": "SLA ihlal uyarısı",
+        "breached": "SLA ihlal edildi"
+      },
+      "user": {
+        "invited": "Yeni kullanıcı davet edildi"
+      },
+      "mailbox": {
+        "error": "Posta kutusu bağlantı hatası"
+      }
+    },
+    "ticketAssigned": "Bana atanan talepler",
+    "ticketReplied": "Taleplerime yanıt",
+    "ticketStatusChanged": "Talep durum değişiklikleri",
+    "slaBreached": "SLA ihlalleri",
+    "mentionedInNote": "Notta bahsedilme",
+    "save": "Tercihleri kaydet"
+  }
+}

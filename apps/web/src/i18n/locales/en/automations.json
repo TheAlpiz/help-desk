@@ -1,0 +1,50 @@
+{
+  "title": "Automations",
+  "new": "New Automation",
+  "edit": "Edit Automation",
+  "fields": {
+    "name": "Name",
+    "trigger": "Trigger",
+    "conditions": "Conditions",
+    "actions": "Actions",
+    "active": "Active",
+    "runCount": "Run count"
+  },
+  "triggers": {
+    "ticket_created": "Ticket created",
+    "ticket_updated": "Ticket updated",
+    "ticket_assigned": "Ticket assigned",
+    "ticket_resolved": "Ticket resolved",
+    "ticket_closed": "Ticket closed",
+    "sla_breached": "SLA breached",
+    "reply_received": "Reply received"
+  },
+  "actions_list": {
+    "assign_agent": "Assign to agent",
+    "set_status": "Set status",
+    "set_priority": "Set priority",
+    "add_tag": "Add tag",
+    "send_email": "Send email",
+    "create_task": "Create task",
+    "send_reply": "Send reply",
+    "add_note": "Add internal note"
+  },
+  "empty": {
+    "title": "No automations",
+    "subtitle": "Automate repetitive tasks to save time."
+  },
+  "macros": {
+    "title": "Macros",
+    "subtitle": "Automate repetitive ticket actions with one click.",
+    "new": "New macro",
+    "create": "Create macro",
+    "edit": "Edit macro",
+    "noActionsYet": "No actions yet",
+    "descriptionPlaceholder": "Description (optional)",
+    "valuePlaceholder": "Value…",
+    "created": "Macro created",
+    "saved": "Macro saved",
+    "deleted": "Macro deleted",
+    "duplicated": "Macro duplicated"
+  }
+}

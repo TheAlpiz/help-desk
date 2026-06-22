@@ -2,47 +2,50 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Nav, Footer } from "../features/marketing/LandingPage";
 import { Input, Button, Label } from "@/components/ui";
 import { MapPin, Mail, MessageSquare, ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/contact")({
   component: ContactPage,
 });
 
 function ContactPage() {
+  const { t } = useTranslation("marketing");
+
   return (
     <div className="min-h-[100dvh] bg-background text-on-surface antialiased flex flex-col selection:bg-primary/30 selection:text-primary">
       <Nav />
       <main className="flex-grow">
         <section className="px-6 md:px-10 py-24 max-w-[1280px] mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-start">
-            
+
             {/* Left Col: Info */}
             <div className="space-y-12">
               <div>
-                <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">Get in touch</h1>
+                <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6">{t("contact.hero.title")}</h1>
                 <p className="text-xl text-on-surface-variant leading-relaxed max-w-md">
-                  Whether you have questions about pricing, features, or need help setting up a custom integration, our team is here for you.
+                  {t("contact.hero.subtitle")}
                 </p>
               </div>
-              
+
               <div className="space-y-8">
                 <div className="flex gap-4 items-start">
                   <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
                     <MessageSquare className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold mb-1">Chat with sales</h3>
-                    <p className="text-on-surface-variant text-sm mb-2">Speak directly to our sales team about Enterprise plans.</p>
+                    <h3 className="text-lg font-semibold mb-1">{t("contact.channels.sales.title")}</h3>
+                    <p className="text-on-surface-variant text-sm mb-2">{t("contact.channels.sales.subtitle")}</p>
                     <a href="mailto:sales@alpis.io" className="text-primary font-medium hover:underline inline-flex items-center gap-1">sales@alpis.io <ArrowRight className="w-3 h-3" /></a>
                   </div>
                 </div>
-                
+
                 <div className="flex gap-4 items-start">
                   <div className="w-12 h-12 rounded-xl bg-secondary/10 border border-secondary/20 flex items-center justify-center text-secondary shrink-0">
                     <Mail className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold mb-1">Customer support</h3>
-                    <p className="text-on-surface-variant text-sm mb-2">Need technical assistance with your instance?</p>
+                    <h3 className="text-lg font-semibold mb-1">{t("contact.channels.support.title")}</h3>
+                    <p className="text-on-surface-variant text-sm mb-2">{t("contact.channels.support.subtitle")}</p>
                     <a href="mailto:support@alpis.io" className="text-primary font-medium hover:underline inline-flex items-center gap-1">support@alpis.io <ArrowRight className="w-3 h-3" /></a>
                   </div>
                 </div>
@@ -52,11 +55,9 @@ function ContactPage() {
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold mb-1">Global Headquarters</h3>
-                    <p className="text-on-surface-variant text-sm leading-relaxed">
-                      100 Innovation Drive<br/>
-                      Suite 400<br/>
-                      San Francisco, CA 94111
+                    <h3 className="text-lg font-semibold mb-1">{t("contact.channels.hq.title")}</h3>
+                    <p className="text-on-surface-variant text-sm leading-relaxed whitespace-pre-line">
+                      {t("contact.channels.hq.address")}
                     </p>
                   </div>
                 </div>
@@ -65,43 +66,42 @@ function ContactPage() {
 
             {/* Right Col: Form */}
             <div className="relative">
-              {/* Decorative elements */}
               <div className="absolute -inset-4 bg-gradient-to-br from-primary/10 to-secondary/10 blur-xl rounded-[2rem] -z-10" />
-              
+
               <div className="bg-surface-container/60 backdrop-blur-xl p-8 md:p-10 rounded-[2rem] border border-white/10 shadow-2xl">
-                <h3 className="text-2xl font-bold mb-6">Send us a message</h3>
+                <h3 className="text-2xl font-bold mb-6">{t("contact.form.title")}</h3>
                 <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
                   <div className="grid grid-cols-2 gap-5">
                     <div className="space-y-2">
-                      <Label htmlFor="first-name" className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">First name</Label>
+                      <Label htmlFor="first-name" className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{t("contact.form.firstName")}</Label>
                       <Input id="first-name" placeholder="Jane" className="bg-background/50 border-white/5 focus:bg-background" />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="last-name" className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Last name</Label>
+                      <Label htmlFor="last-name" className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{t("contact.form.lastName")}</Label>
                       <Input id="last-name" placeholder="Doe" className="bg-background/50 border-white/5 focus:bg-background" />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Work email</Label>
+                    <Label htmlFor="email" className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{t("contact.form.workEmail")}</Label>
                     <Input id="email" type="email" placeholder="jane@company.com" className="bg-background/50 border-white/5 focus:bg-background" />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="message" className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">How can we help?</Label>
-                    <textarea 
-                      id="message" 
-                      rows={5} 
+                    <Label htmlFor="message" className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{t("contact.form.message")}</Label>
+                    <textarea
+                      id="message"
+                      rows={5}
                       className="w-full px-4 py-3 bg-background/50 border border-white/5 rounded-xl text-sm text-on-surface focus:bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/60 transition-all resize-none shadow-inner"
-                      placeholder="Tell us about your team's needs..."
+                      placeholder={t("contact.form.messagePlaceholder")}
                     ></textarea>
                   </div>
-                  
+
                   <Button className="w-full py-6 rounded-xl font-semibold text-base bg-primary hover:bg-primary/90 hover:shadow-[0_0_20px_rgba(var(--color-primary),0.3)] transition-all" type="button">
-                    Send Message
+                    {t("contact.form.submit")}
                   </Button>
                   <p className="text-xs text-center text-on-surface-variant/60 mt-4">
-                    By submitting this form, you agree to our <Link to="/privacy" className="underline hover:text-on-surface">Privacy Policy</Link>.
+                    {t("contact.form.privacyPrefix")} <Link to="/privacy" className="underline hover:text-on-surface">{t("contact.form.privacyLink")}</Link>.
                   </p>
                 </form>
               </div>

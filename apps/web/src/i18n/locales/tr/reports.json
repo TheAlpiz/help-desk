@@ -1,0 +1,122 @@
+{
+  "title": "Raporlar",
+  "tabs": {
+    "analytics": "Analitik",
+    "builder": "Rapor Oluşturucu",
+    "scheduled": "Zamanlanmış",
+    "saved": "Kayıtlı"
+  },
+  "dashboard": {
+    "title": "Analitik ve Raporlar",
+    "exportCsv": "CSV Dışa Aktar",
+    "range": "Aralık:",
+    "dateFrom": "Başlangıç tarihi",
+    "dateTo": "Bitiş tarihi",
+    "presets": {
+      "7": "Son 7 gün",
+      "30": "Son 30 gün",
+      "90": "Son 90 gün",
+      "365": "Bu yıl"
+    },
+    "kpi": {
+      "totalTickets": "Toplam Talepler",
+      "resolutionRate": "Çözüm Oranı",
+      "slaCompliance": "SLA Uyumu",
+      "taskCompletion": "Görev Tamamlama"
+    },
+    "charts": {
+      "byStatus": "Duruma Göre Talepler",
+      "slaCompliance": "SLA Uyumu",
+      "agentPerformance": "Temsilci Performansı",
+      "taskCompletion": "Görev Tamamlama"
+    },
+    "sla": {
+      "firstResponse": "İlk Yanıt",
+      "withSla": "SLA ile",
+      "met": "Karşılandı"
+    },
+    "agent": {
+      "unassigned": "Atanmamış",
+      "resolved": "{{count}} çözüldü"
+    },
+    "task": {
+      "completionRate": "Tamamlama oranı",
+      "total": "Toplam",
+      "completed": "Tamamlandı",
+      "overdue": "Gecikmiş"
+    },
+    "empty": "Henüz veri yok",
+    "emptyAgents": "Henüz çözülen talep yok"
+  },
+  "analytics": {
+    "openTickets": "Açık talepler",
+    "resolved": "Çözüldü",
+    "avgResolutionHours": "Ort. çözüm (saat)",
+    "slaCompliance": "SLA uyumu",
+    "byStatus": "Duruma göre",
+    "byPriority": "Önceliğe göre",
+    "byAgent": "Ajana göre",
+    "byDepartment": "Departmana göre",
+    "period": "Dönem",
+    "last7days": "Son 7 gün",
+    "last30days": "Son 30 gün",
+    "last90days": "Son 90 gün",
+    "custom": "Özel aralık"
+  },
+  "builder": {
+    "title": "Rapor Oluşturucu",
+    "description": "Kod gerektirmeyen arayüzle talepler, görevler, SLA politikaları ve denetim günlükleri üzerinde özel sorgular oluşturun.",
+    "dataset": "Veri kümesi",
+    "metric": "Metrik",
+    "groupBy": "Gruplama",
+    "filters": "Filtreler",
+    "addFilter": "Filtre ekle",
+    "noFilters": "Filtre yok — tüm kayıtlar dahil",
+    "rowLimit": "Satır limiti",
+    "runQuery": "Sorgu çalıştır",
+    "saveReport": "Raporu kaydet",
+    "exportCsv": "CSV olarak dışa aktar",
+    "features": {
+      "datasetLabel": "Veri kümesi ve metrik seçici",
+      "datasetDesc": "Sayı, ortalama çözüm süresi, SLA uyum oranı ve daha fazlasını seçin.",
+      "groupingLabel": "Gruplama ve filtreler",
+      "groupingDesc": "Durum, öncelik, atanan, departman veya tarihe göre herhangi bir filtre kombinasyonuyla gruplayın.",
+      "exportLabel": "Dışa aktar",
+      "exportDesc": "Sonuçları doğrudan oluşturucudan CSV olarak dışa aktarın."
+    }
+  },
+  "scheduled": {
+    "title": "Zamanlanmış Raporlar",
+    "description": "Raporları günlük, haftalık veya aylık olarak e-posta, Slack veya webhook aracılığıyla otomatik olarak gönderin.",
+    "activeCount": "{{count}} aktif zamanlama",
+    "newSchedule": "Yeni zamanlama",
+    "frequency": {
+      "daily": "Günlük",
+      "weekly": "Haftalık",
+      "monthly": "Aylık"
+    },
+    "channel": {
+      "email": "E-posta",
+      "slack": "Slack",
+      "webhook": "Webhook"
+    },
+    "features": {
+      "schedulingLabel": "Esnek zamanlama",
+      "schedulingDesc": "Yapılandırılabilir çalışma saatleriyle günlük, haftalık ve aylık teslimat.",
+      "deliveryLabel": "Çok kanallı teslimat",
+      "deliveryDesc": "E-posta adreslerine, Slack kanallarına veya herhangi bir webhook URL'sine gönderin."
+    }
+  },
+  "saved": {
+    "title": "Kayıtlı Raporlar",
+    "description": "Herhangi bir rapor yapılandırmasını kaydedin ve tek tıklamayla yeniden çalıştırın veya panonuza sabitleyin.",
+    "saveNew": "Yeni rapor kaydet",
+    "empty": "Kayıtlı rapor yok",
+    "features": {
+      "saveLabel": "Herhangi bir sorguyu kaydet",
+      "saveDesc": "Anında yeniden çalıştırma için veri kümesini, filtreleri ve gruplamayı kaydedin.",
+      "exportLabel": "Tek tıkla dışa aktarma",
+      "exportDesc": "Kayıtlı raporları her zaman CSV veya PDF olarak indirin."
+    }
+  }
+}

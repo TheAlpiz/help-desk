@@ -4,12 +4,14 @@ export const createSlaSchema = z.object({
   name: z.string().min(1).max(255),
   firstResponseTimeMins: z.number().int().positive(),
   resolutionTimeMins: z.number().int().positive(),
+  departmentId: z.string().uuid().nullable().optional(),
+  priority: z.enum(["low", "medium", "high", "critical"]).nullable().optional(),
   businessHoursConfig: z.object({
     enabled: z.boolean(),
     timezone: z.string().optional(),
-    workDays: z.array(z.number()).optional(), // 1=Monday, 5=Friday
-    startHour: z.string().optional(), // "09:00"
-    endHour: z.string().optional(), // "17:00"
+    workDays: z.array(z.number()).optional(),
+    startHour: z.string().optional(),
+    endHour: z.string().optional(),
   }).optional(),
 });
 

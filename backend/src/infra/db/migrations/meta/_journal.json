@@ -78,6 +78,83 @@
       "when": 1782005197168,
       "tag": "0010_session_reuse_detection",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1782037765887,
+      "tag": "0011_slim_lethal_legion",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1782040001804,
+      "tag": "0012_high_luke_cage",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1782040614106,
+      "tag": "0013_magical_franklin_richards",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1782043011983,
+      "tag": "0014_little_quasar",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1782082732334,
+      "tag": "0015_shallow_tenebrous",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1782085381604,
+      "tag": "0016_lowly_satana",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1782089379745,
+      "tag": "0017_pale_matthew_murdock",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1782091294921,
+      "tag": "0018_warm_bill_hollister",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1782092204081,
+      "tag": "0019_past_crystal",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1782095214085,
+      "tag": "0020_perpetual_maelstrom",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1782095396860,
+      "tag": "0021_heavy_mephisto",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,242 @@
+{
+  "title": "Settings",
+  "tabs": {
+    "general": "General",
+    "branding": "Branding",
+    "members": "Members",
+    "retention": "Data Retention",
+    "sso": "SSO / SCIM",
+    "danger": "Danger Zone",
+    "security": "Security",
+    "notifications": "Notifications",
+    "email": "Email Templates"
+  },
+  "headers": {
+    "general": {
+      "title": "General Settings",
+      "subtitle": "Organization name and domain."
+    },
+    "branding": {
+      "title": "Branding",
+      "subtitle": "Logo, colors, and support contact."
+    },
+    "retention": {
+      "title": "Data Retention",
+      "subtitle": "Configure archival and deletion policies."
+    },
+    "sso": {
+      "title": "SSO / SCIM",
+      "subtitle": "Single Sign-On and user provisioning."
+    },
+    "members": {
+      "title": "Members",
+      "subtitle": "View and manage organization members."
+    },
+    "danger": {
+      "title": "Danger Zone",
+      "subtitle": "Irreversible actions — proceed with caution."
+    },
+    "emailTemplates": {
+      "title": "Email Templates",
+      "subtitle": "Configure global styling and logos for automated outgoing emails."
+    }
+  },
+  "general": {
+    "title": "Organization settings",
+    "name": "Organization name",
+    "domain": "Domain",
+    "timezone": "Timezone",
+    "save": "Save changes",
+    "saved": "Saved ✓"
+  },
+  "form": {
+    "savedSuccess": "Settings saved successfully.",
+    "name": "Organization Name *",
+    "domain": "Custom Domain *",
+    "status": "Status",
+    "statusManaged": "Status managed by super admins.",
+    "save": "Save Changes",
+    "nameRequired": "Name is required",
+    "domainRequired": "Domain is required",
+    "loadError": "Error loading organization settings."
+  },
+  "branding": {
+    "title": "Branding",
+    "intro": "Customize how your workspace looks to your team and customers.",
+    "logo": "Logo",
+    "primaryColor": "Primary color",
+    "uploadLogo": "Upload logo",
+    "logoHint": "PNG, SVG, max 2MB",
+    "supportEmail": "Support email address",
+    "supportEmailHint": "Shown to customers in emails and the portal",
+    "brandColor": "Brand color",
+    "save": "Save branding",
+    "remove": "Remove",
+    "colorInvalid": "Must be a #rrggbb hex color",
+    "preview": "Preview"
+  },
+  "retention": {
+    "title": "Data retention",
+    "intro": "Configure how long data is retained before automatic archival or deletion. Changes require backend worker support.",
+    "auditDays": "Audit log retention (days)",
+    "auditHint": "Logs older than this are compressed and archived",
+    "ticketDays": "Ticket retention (days)",
+    "ticketHint": "Closed tickets older than this are moved to cold storage",
+    "attachmentDays": "Attachment retention (days)",
+    "attachmentHint": "File attachments deleted after this period",
+    "autoDelete": "Auto-delete expired data",
+    "autoDeleteHint": "Permanently delete data when retention period expires (irreversible)",
+    "enableAutoDelete": "Enable auto-delete",
+    "disableAutoDelete": "Disable auto-delete",
+    "autoDeleteWarning": "Auto-delete is enabled. Data will be permanently deleted after the retention period. This cannot be undone.",
+    "save": "Save retention policy",
+    "saved": "Saved ✓",
+    "stub": "Backend retention worker runs nightly — config persisted locally until connected"
+  },
+  "sso": {
+    "title": "SSO / SCIM",
+    "description": "Connect your Identity Provider for Single Sign-On and automate user provisioning with SCIM.",
+    "provider": "SSO Provider",
+    "noSso": "No SSO (local auth only)",
+    "issuerUrl": "Issuer / Discovery URL",
+    "clientId": "Client ID",
+    "clientSecret": "Client Secret",
+    "callbackUrl": "Callback URL (copy to IdP)",
+    "scim": "SCIM Provisioning",
+    "scimDescription": "Automatically provision/deprovision users from your IdP",
+    "scimBaseUrl": "SCIM Base URL",
+    "scimToken": "SCIM Bearer Token",
+    "save": "Save SSO config",
+    "features": {
+      "ssoLabel": "Single Sign-On",
+      "ssoDesc": "Okta, Google Workspace, Microsoft Azure AD, and generic SAML 2.0 support.",
+      "scimLabel": "SCIM provisioning",
+      "scimDesc": "Automatically provision and deprovision users directly from your IdP.",
+      "jitLabel": "Just-in-time provisioning",
+      "jitDesc": "New users are created on first login — no manual invite needed."
+    }
+  },
+  "members": {
+    "count_one": "{{count}} member in this organization",
+    "count_other": "{{count}} members in this organization",
+    "loadError": "Failed to load members.",
+    "name": "Name",
+    "role": "Role",
+    "status": "Status",
+    "actions": "Actions",
+    "deactivate": "Deactivate",
+    "inactive": "Inactive"
+  },
+  "danger": {
+    "title": "Danger Zone",
+    "deleteOrg": "Delete organization",
+    "deleteOrgWarning": "This action is irreversible. All data will be permanently deleted.",
+    "confirmDelete": "Type the organization name to confirm",
+    "deactivateOrg": "Deactivate organization",
+    "deactivateOrgDesc": "Suspend access for all members. Data is retained. Can be re-activated by a super admin.",
+    "deactivate": "Deactivate",
+    "deactivateWarning": "This will immediately suspend access for all organization members.",
+    "typeToConfirmPre": "Type",
+    "typeToConfirmPost": "to confirm:",
+    "cancel": "Cancel",
+    "deactivating": "Deactivating...",
+    "confirmDeactivation": "Confirm deactivation",
+    "exportTitle": "Export all data",
+    "exportDesc": "Download a full export of all organization data as a ZIP archive.",
+    "goToExport": "Go to Export"
+  },
+  "emailSignatures": {
+    "title": "Email Signatures",
+    "description": "Create and manage email signatures for your organization and agents.",
+    "create": "Create Signature",
+    "defaultBadge": "Default",
+    "globalSignature": "Global Signature",
+    "edit": "Edit",
+    "noSignatures": "No signatures configured yet.",
+    "editTitle": "Edit Signature: {{name}}",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "save": "Save Signature"
+  },
+  "emailBranding": {
+    "title": "Email Templates Branding",
+    "description": "Customize the look and feel of all automated notifications and emails sent by your organization.",
+    "fontFamily": "Font Family",
+    "fontFamilyHint": "The default font used in your emails.",
+    "removeHelpdeskBranding": "Remove Helpdesk Branding",
+    "removeHelpdeskBrandingHint": "Remove \"Powered by Helpdesk\" from email footers.",
+    "saving": "Saving...",
+    "save": "Save Email Branding"
+  },
+  "businessHours": {
+    "title": "Business Hours",
+    "timezone": "Timezone",
+    "enabled": "Enabled",
+    "start": "Start",
+    "end": "End",
+    "save": "Save business hours",
+    "saved": "Business hours saved"
+  },
+  "language": {
+    "title": "Language & Region",
+    "systemLanguage": "System language",
+    "userLanguage": "Your language"
+  },
+  "roles": {
+    "pageTitle": "Permissions & Roles",
+    "manageSubtitle": "Manage roles for your organization.",
+    "newRole": "New Role",
+    "colName": "Name",
+    "colDescription": "Description",
+    "colType": "Type",
+    "colActions": "Actions",
+    "typeSystem": "System",
+    "typeCustom": "Custom",
+    "noRoles": "No roles yet",
+    "createFirst": "Create first role",
+    "failedLoad": "Failed to load roles.",
+    "whoHasRole": "Who has this role",
+    "cloneRole": "Clone role",
+    "editPermissions": "Edit Permissions",
+    "delete": "Delete",
+    "createModal": {
+      "stepDetails": "Role Details",
+      "stepPermissions": "Permissions",
+      "titleCreate": "Create Role",
+      "titlePermissions": "Set Permissions — \"{{name}}\"",
+      "nameLabel": "Role Name *",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Describe this role's responsibilities...",
+      "selectPermissions": "Select the permissions this role should have.",
+      "permissionsSelected_one": "{{count}} permission selected",
+      "permissionsSelected_other": "{{count}} permissions selected",
+      "cancel": "Cancel",
+      "back": "Back",
+      "next": "Next: Permissions →",
+      "createRole": "Create Role",
+      "failedCreate": "Failed to create role",
+      "failedPermissions": "Role created, but permissions failed to save"
+    },
+    "editDrawer": {
+      "title": "Edit Permissions",
+      "subtitle": "Manage permissions for",
+      "selected": "{{count}} selected",
+      "cancel": "Cancel",
+      "save": "Save Permissions",
+      "failedSave": "Failed to save permissions"
+    },
+    "deleteModal": {
+      "title": "Delete Role",
+      "confirm": "Delete \"{{name}}\"? All associated permissions will also be removed. Cannot be undone.",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "failedDelete": "Failed to delete role"
+    },
+    "whoHasDrawer": {
+      "memberCount_one": "{{count}} user",
+      "memberCount_other": "{{count}} users",
+      "noMembers": "No users with this role",
+      "close": "Close"
+    }
+  }
+}

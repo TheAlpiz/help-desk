@@ -3,7 +3,13 @@ import { authFetch } from "./authFetch";
 import type { ApiResponse } from "@help-desk/backend/src/lib/response";
 
 // Re-export the shared helpers so existing imports can migrate to `@/lib/api`.
-export { apiFetch, authHeaders, authFetch, bootstrapAuth, refreshAccessToken } from "./authFetch";
+export {
+  apiFetch,
+  authHeaders,
+  authFetch,
+  bootstrapAuth,
+  refreshAccessToken,
+} from "./authFetch";
 
 // ─── Import each router type individually ─────────────────────────────────────
 // This is the correct pattern for large Hono apps: import each sub-router's
@@ -22,7 +28,11 @@ import type organizationRouter from "@help-desk/backend/src/modules/organization
 import type departmentRouter from "@help-desk/backend/src/modules/department/department.route";
 import type mailboxRouter from "@help-desk/backend/src/modules/mailbox/mailbox.route";
 import type { analyticsRouter } from "@help-desk/backend/src/modules/analytics/analytics.route";
-
+import type { notificationRouter } from "@help-desk/backend/src/modules/notification/notification.route";
+import type { attachmentRouter } from "@help-desk/backend/src/modules/attachment/attachment.route";
+import type { macroRouter } from "@help-desk/backend/src/modules/macro/macro.route";
+import type { automationRouter } from "@help-desk/backend/src/modules/automation/automation.route";
+import type { slaEscalationRuleRouter } from "@help-desk/backend/src/modules/sla/sla-escalation-rule.route";
 // ─── Auth-injecting fetch ─────────────────────────────────────────────────────
 // All clients route through the shared authFetch: in-memory Bearer token injection,
 // credentialed cookies (refresh + CSRF), and single-flight refresh-and-retry on 401.
@@ -48,7 +58,17 @@ const organizations = hc<typeof organizationRouter>(
 const departments = hc<typeof departmentRouter>("/api/departments/", opts);
 const mailboxes = hc<typeof mailboxRouter>("/api/mailboxes/", opts);
 const analytics = hc<typeof analyticsRouter>("/api/analytics/", opts);
-
+const notifications = hc<typeof notificationRouter>(
+  "/api/notifications/",
+  opts,
+);
+const attachments = hc<typeof attachmentRouter>("/api/attachments/", opts);
+const macros = hc<typeof macroRouter>("/api/macros/", opts);
+const automations = hc<typeof automationRouter>("/api/automations/", opts);
+const slaEscalationRules = hc<typeof slaEscalationRuleRouter>(
+  "/api/sla-escalation-rules/",
+  opts,
+);
 // ─── Unified api object ───────────────────────────────────────────────────────
 
 export const api = {
@@ -64,4 +84,9 @@ export const api = {
   departments,
   mailboxes,
   analytics,
+  notifications,
+  attachments,
+  macros,
+  automations,
+  slaEscalationRules,
 };

@@ -1,0 +1,36 @@
+{
+  "title": "WhatsApp",
+  "subtitle": "Connect WhatsApp Business accounts to handle conversations.",
+  "comingSoon": {
+    "title": "WhatsApp Business integration",
+    "description": "Bring WhatsApp conversations into Alpis — manage them alongside email and portal tickets in one unified inbox.",
+    "badge": "Coming soon",
+    "eta": "Q3 2025",
+    "features": {
+      "multiNumber": {
+        "label": "Multi-number support",
+        "description": "Connect multiple WhatsApp Business numbers to different departments or mailboxes."
+      },
+      "autoTicket": {
+        "label": "Automatic ticket creation",
+        "description": "Incoming WhatsApp messages create tickets instantly with full conversation threading."
+      },
+      "sessionWindow": {
+        "label": "Session window tracking",
+        "description": "Respects the 24-hour messaging window with smart re-engagement prompts."
+      },
+      "agentAssignment": {
+        "label": "Agent assignment",
+        "description": "Route WhatsApp tickets to agents and teams with the same rules as email tickets."
+      },
+      "templates": {
+        "label": "Template messages",
+        "description": "Send pre-approved WhatsApp message templates for proactive outreach."
+      },
+      "analytics": {
+        "label": "Channel analytics",
+        "description": "Response times, resolution rates, and CSAT scores broken out by channel."
+      }
+    }
+  }
+}

@@ -1,0 +1,381 @@
+{
+  "nav": {
+    "features": "Özellikler",
+    "pricing": "Fiyatlandırma",
+    "docs": "Belgeler",
+    "changelog": "Değişiklik Günlüğü",
+    "signIn": "Giriş yap",
+    "getStarted": "Başlayın"
+  },
+  "features": {
+    "hero": {
+      "title": "Hız için inşa edildi.\nÖlçek için tasarlandı.",
+      "subtitle": "Alpis'in BT ekiplerine sorunları daha hızlı çözme, tekrarlayan işleri otomatikleştirme ve tüm organizasyonda üstün destek sunma konusunda nasıl güç verdiğini keşfedin.",
+      "startTrial": "Ücretsiz denemenizi başlatın"
+    },
+    "sections": {
+      "omnichannel": {
+        "title": "Çok Kanallı Bilet Yönetimi",
+        "description": "Her istek için tek bir birleşik gelen kutusu.",
+        "features": [
+          "E-posta, web portalı, API ve sohbet entegrasyonlarından bilet alın.",
+          "Kusursuz konuşma görünümleri için otomatik konu ayrıştırma.",
+          "Akıllı çakışma tespiti, birden fazla temsilcinin aynı anda yanıt vermesini önler.",
+          "Portal için koşullu mantıklı özel bilet formları."
+        ]
+      },
+      "automation": {
+        "title": "Akıllı Otomasyon",
+        "description": "En yaygın iş akışlarınızı otomatik pilota alın.",
+        "features": [
+          "Zamana ve olaylara dayalı tetikleyici kurallar.",
+          "İş yüküne, beceri setine veya departmana göre otomatik bilet atama.",
+          "Yaygın yanıtlar için tek tıkla makro çalıştırma.",
+          "SMS veya PagerDuty üzerinden otomatik SLA ihlali eskalasyonları."
+        ]
+      },
+      "security": {
+        "title": "Kurumsal Güvenlik",
+        "description": "Doğrudan veritabanına entegre banka düzeyinde güvenlik.",
+        "features": [
+          "Satır Düzeyinde Güvenlik (RLS) mutlak kiracı veri yalıtımını sağlar.",
+          "Ayrıntılı görüntüleme izinleri için Öznitelik Tabanlı Erişim Kontrolü (ABAC).",
+          "Her durum değişikliğini izleyen kapsamlı denetim günlükleri.",
+          "SOC2 uyumluluk hazır mimarisi."
+        ]
+      },
+      "analytics": {
+        "title": "Gelişmiş Analitik",
+        "description": "Ekibinizin performansını yönlendiren içgörüler.",
+        "features": [
+          "Kuyruk sağlığı ve temsilci performansı için gerçek zamanlı gösterge panelleri.",
+          "CSV/PDF dışa aktarma özellikli özel rapor oluşturucu.",
+          "SLA başarı oranları ve çözüm darboğazlarına derinlemesine bakış.",
+          "CSAT takibi ve otomatik geri bildirim toplama."
+        ]
+      }
+    },
+    "cta": {
+      "title": "Servis masanızı dönüştürmeye hazır mısınız?",
+      "subtitle": "Alpis'i halihazırda kullanan yüzlerce ileri görüşlü BT ekibine katılın.",
+      "btn": "Hemen Başlayın"
+    }
+  },
+  "pricing": {
+    "hero": {
+      "title": "Sizinle büyüyen fiyatlandırma",
+      "subtitle": "Ücretsiz başlayın, gelişmiş özelliklere ihtiyaç duyduğunuzda yükseltin. Gizli ücret yok, bilet başına fazladan ödeme yok."
+    },
+    "mostPopular": "En Popüler",
+    "plans": {
+      "starter": {
+        "name": "Başlangıç",
+        "tagline": "Küçük ekipler ve girişimler için mükemmel.",
+        "price": "$0",
+        "period": "/ sonsuza kadar",
+        "cta": "Başlayın",
+        "includesLabel": "İçerir:",
+        "features": [
+          "3 temsilciye kadar",
+          "1 bağlı posta kutusu",
+          "Ayda 500 bilet",
+          "Standart destek",
+          "Topluluk forumuna erişim"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "tagline": "Otomasyon ihtiyacı duyan büyüyen BT ekipleri için.",
+        "price": "$49",
+        "period": "/ ay, 5 temsilci başına",
+        "cta": "14 günlük ücretsiz denemeyi başlatın",
+        "includesLabel": "Başlangıç'taki her şey, artı:",
+        "features": [
+          "Sınırsız bilet",
+          "10 bağlı posta kutusu",
+          "SLA yönetim kuralları",
+          "Otomatik iş akışları",
+          "Rol tabanlı erişim kontrolü",
+          "Öncelikli e-posta desteği"
+        ]
+      },
+      "enterprise": {
+        "name": "Kurumsal",
+        "tagline": "Gelişmiş güvenlik ve uyumluluk.",
+        "price": "Özel",
+        "cta": "Satışla İletişime Geç",
+        "includesLabel": "Pro'daki her şey, artı:",
+        "features": [
+          "Kendi altyapınızda barındırma",
+          "SAML SSO / SCIM",
+          "Sınırsız posta kutusu",
+          "Özel entegrasyon desteği",
+          "Özel başarı yöneticisi",
+          "%99,99 çalışma süresi SLA"
+        ]
+      }
+    },
+    "compare": {
+      "title": "Planları Karşılaştır",
+      "featureCol": "Özellik",
+      "rows": [
+        { "label": "Dahil edilen temsilciler", "s": "3", "p": "5 (temel)", "e": "Özel" },
+        { "label": "Aylık biletler", "s": "500", "p": "Sınırsız", "e": "Sınırsız" },
+        { "label": "Posta kutuları", "s": "1", "p": "10", "e": "Sınırsız" },
+        { "label": "SLA Yönetimi" },
+        { "label": "Otomasyonlar" },
+        { "label": "Özel Alan Adları" },
+        { "label": "RBAC ve ABAC" },
+        { "label": "SSO (SAML)" },
+        { "label": "Kendi Altyapında Barındırma" }
+      ]
+    },
+    "faq": {
+      "title": "Sıkça Sorulan Sorular",
+      "subtitle": "Hâlâ sorularınız mı var?",
+      "contactLink": "Ekibimizle iletişime geçin.",
+      "items": [
+        {
+          "q": "Kaydolmak için kredi kartı gerekiyor mu?",
+          "a": "Hayır! Başlangıç planımıza herhangi bir ödeme bilgisi girmeden tamamen ücretsiz kaydolabilir ve kullanabilirsiniz. Karta yalnızca Pro'ya yükseltmeye karar verirseniz ihtiyaç duyarsınız."
+        },
+        {
+          "q": "'5 temsilci başına' fiyatlandırması nasıl işliyor?",
+          "a": "Pro planımız 5'li temsilci blokları halinde faturalandırılır. 1-5 temsilciniz varsa $49/ay, 6-10 için $98/aydır. Bu, faturalamayı basitleştirir ve lisans yönetimini kolaylaştırır."
+        },
+        {
+          "q": "Alpis'i kendi altyapımda barındırabilir miyim?",
+          "a": "Evet, kendi altyapınızda barındırma Kurumsal planımızda mevcuttur. Kendi altyapınıza dağıtım için Docker imajları ve Helm grafikleri sunuyoruz. Ayrıntılar için satış ekibiyle iletişime geçin."
+        },
+        {
+          "q": "'Posta kutusu' nedir?",
+          "a": "Posta kutusu, IMAP/SMTP aracılığıyla bağladığınız bir e-posta adresidir (örn. destek@sirketiniz.com). Başlangıç planı 1, Pro ise 10 posta kutusu içerir."
+        }
+      ]
+    }
+  },
+  "security": {
+    "hero": {
+      "title": "Tasarımla Güvenlik",
+      "subtitle": "Alpis'te güvenlik sonradan düşünülmüş bir şey değildir. Verilerinizin yalıtılmış, şifrelenmiş ve uyumlu kalmasını sağlayan mimarimizin dokusuna işlenmiştir."
+    },
+    "cards": {
+      "dbIsolation": {
+        "title": "Veritabanı Düzeyinde Yalıtım",
+        "p1": "Kusurlu uygulama düzeyinde filtrelemeye dayanan eski SaaS platformlarının aksine, Alpis <strong>PostgreSQL Satır Düzeyinde Güvenlik (RLS)</strong> kullanır.",
+        "p2": "Her sorgu, veritabanı motoru düzeyinde mevcut kiracıya şifreli olarak kapsamlandırılır. Uygulama kodundaki bir hata veri sızdıramaz."
+      },
+      "encryption": {
+        "title": "Uçtan Uca Şifreleme",
+        "p1": "<strong>İletim Sırasında:</strong> Tarayıcınız ile API'miz arasında iletilen tüm veriler, zorunlu kılınan katı HSTS politikalarıyla TLS 1.3 kullanılarak şifrelenir.",
+        "p2": "<strong>Depolama Sırasında:</strong> Veritabanları, otomatik yedeklemeler ve dosya depolama birimleri, endüstri standardı AES-256 şifrelemesi kullanılarak dinlenme durumunda şifrelenir."
+      },
+      "auth": {
+        "title": "Kimlik Doğrulama ve Erişim",
+        "items": [
+          "SAML ve OpenID Connect üzerinden SSO (Kurumsal)",
+          "Argon2id algoritması ile şifrelenmiş parolalar",
+          "Kısa ömürlü imzalı JWT oturum tokenları",
+          "Katı Rol Tabanlı Erişim Kontrolü (RBAC)",
+          "Öznitelik Tabanlı Erişim Kontrolü (ABAC) kapsamları"
+        ]
+      },
+      "infra": {
+        "title": "Altyapı ve Uyumluluk",
+        "p1": "Alpis, SOC 2 uyumlu altyapı (AWS) üzerinde barındırılmaktadır. Düzenli sızma testleri ve güvenlik açığı taramaları gerçekleştiriyoruz.",
+        "badge": "SOC 2 Tip II Beklemede"
+      }
+    },
+    "disclosure": {
+      "title": "Güvenlik Açığı Bildirimi",
+      "subtitle": "Güvenlik araştırma topluluğuyla yakın işbirliği yapacağımıza inanıyoruz. Bir güvenlik açığı bulduysanız, lütfen bunu sorumlu bir şekilde bildirin.",
+      "cta": "security@alpis.io adresine bildirin"
+    }
+  },
+  "contact": {
+    "hero": {
+      "title": "İletişime Geçin",
+      "subtitle": "Fiyatlandırma, özellikler veya özel entegrasyon kurulumu konusunda yardıma ihtiyacınız varsa ekibimiz burada."
+    },
+    "channels": {
+      "sales": {
+        "title": "Satış ekibiyle sohbet",
+        "subtitle": "Kurumsal planlar hakkında satış ekibimizle doğrudan konuşun."
+      },
+      "support": {
+        "title": "Müşteri desteği",
+        "subtitle": "Örneğinizle ilgili teknik yardıma mı ihtiyacınız var?"
+      },
+      "hq": {
+        "title": "Genel Merkez",
+        "address": "100 Innovation Drive\nSuite 400\nSan Francisco, CA 94111"
+      }
+    },
+    "form": {
+      "title": "Bize mesaj gönderin",
+      "firstName": "Ad",
+      "lastName": "Soyad",
+      "workEmail": "İş e-postası",
+      "message": "Size nasıl yardımcı olabiliriz?",
+      "messagePlaceholder": "Ekibinizin ihtiyaçlarını bize anlatın...",
+      "submit": "Mesaj Gönder",
+      "privacyPrefix": "Bu formu göndererek",
+      "privacyLink": "Gizlilik Politikamızı"
+    }
+  },
+  "landing": {
+    "hero": {
+      "headline1": "Ölçeklenen ekipler için",
+      "headline2": "servis masası.",
+      "subtitle": "Çok kiracılı bilet yönetimi, e-posta alımı, SLA uygulaması ve gerçek zamanlı bildirimler - MSP'ler ve BT ekipleri için tek platformda.",
+      "startFree": "Ücretsiz başlayın",
+      "howItWorks": "Nasıl çalışır",
+      "badges": ["Kredi kartı gerekmez", "14 günlük ücretsiz deneme", "SOC 2 hazır"]
+    },
+    "trustedBy": "BT ekipleri tarafından güvenilen",
+    "featureGrid": {
+      "heading1": "Ekibinizin ihtiyacı olan her şey.",
+      "heading2": "İhtiyacı olmayanlar değil.",
+      "features": [
+        { "title": "Birleşik bilet motoru", "body": "E-posta, portal ve API - tüm kanallar tek kuyruğa akar. Her bilette durum, öncelik, SLA, atanan, etiketler ve tam geçmiş." },
+        { "title": "Satır düzeyinde güvenlik", "body": "Postgres RLS, kiracı yalıtımını veritabanı katmanında zorlar. Atlatılabilecek uygulama düzeyinde filtreleme yok." },
+        { "title": "IMAP/SMTP posta kutuları", "body": "Her organizasyon için sınırsız posta kutusu bağlayın. STARTTLS, OAuth, RFC uyumlu konu ayrıştırma." },
+        { "title": "SLA politikaları", "body": "Önceliğe göre yanıt ve çözüm hedefleri tanımlayın. İhlal uyarıları otomatik yükseltilir." },
+        { "title": "RBAC + ABAC", "body": "Ayrıntılı izinlerle dört sistem rolü. ABAC kapsamı ajanların görebileceklerini sınırlar." },
+        { "title": "Kanal bildirimleri", "body": "Uygulama içi, e-posta, push ve SMS fan-out. Kullanıcı başına olay türüne göre tercihler." }
+      ]
+    },
+    "channels": {
+      "heading": "Her kanal, tek kuyruk.",
+      "subtitle": "Biletler e-posta, web portalı, API ve - yakında - WhatsApp ve Telegram'dan gelir. Motor kaynakla ilgilenmez. Ajanlarınız tek birleşik görünüm alır.",
+      "labels": ["IMAP/SMTP ile E-posta", "Web portalı ve API", "WhatsApp Business", "Telegram"],
+      "live": "Aktif",
+      "soon": "Yakında"
+    },
+    "security": {
+      "badge": "Güvenlik mimarisi",
+      "heading": "Kiracı yalıtımı\nveritabanında zorlanır.",
+      "body": "Postgres Satır Düzeyinde Güvenlik politikaları veritabanı katmanında çalışır. Uygulama kodundaki eksik WHERE koşulundan hiçbir kiracı verisi sızmaz.",
+      "items": [
+        "Her org, SET LOCAL GUC aracılığıyla kendi RLS bağlamını alır",
+        "Arka plan işçileri bypass_rls=on süper-yönetici bağlamı kullanır",
+        "Alt alan adı tabanlı kiracı çözümleme, 60s önbellek ile",
+        "Dönen JWT yenileme tokenleri, veritabanında SHA-256 ile hash'lenir",
+        "Her durum değişikliğinde tam denetim günlüğü"
+      ]
+    },
+    "pricing": {
+      "heading": "Basit, şeffaf fiyatlandırma.",
+      "subtitle": "Bilet başına ücret yok. Sürpriz aşım ücreti yok.",
+      "mostPopular": "En popüler",
+      "plans": [
+        { "name": "Başlangıç", "price": "$0", "period": "/ay", "desc": "Başlangıç yapan küçük ekipler için.", "cta": "Ücretsiz başlayın", "features": ["3 ajan", "1 posta kutusu", "Ayda 500 bilet", "E-posta kanalı", "Topluluk desteği"] },
+        { "name": "Pro", "price": "$49", "period": "/ay, 5 ajan başına", "desc": "Büyüyen BT ekipleri ve MSP'ler için.", "cta": "Denemeyi başlatın", "features": ["Sınırsız ajan", "10 posta kutusu", "Sınırsız bilet", "SLA yönetimi", "RBAC + ABAC", "Denetim günlükleri", "Öncelikli destek"] },
+        { "name": "Kurumsal", "price": "Özel", "period": "", "desc": "Uyumluluk ihtiyacı olan büyük organizasyonlar için.", "cta": "Satışla iletişim", "features": ["Pro'daki her şey", "Kendi altyapında barındırma", "SSO / SAML", "Özel destek", "SLA garantisi", "Özel entegrasyonlar"] }
+      ]
+    },
+    "cta": {
+      "heading": "Servis masanızı modernize etmeye hazır mısınız?",
+      "subtitle": "Dakikalar içinde kurulum. Yönetilecek altyapı yok.",
+      "startFree": "Ücretsiz başlayın",
+      "talkToSales": "Satışla görüşün"
+    }
+  },
+  "footer": {
+    "tagline": "Kurumsal servis masası.",
+    "links": [
+      { "label": "Özellikler", "href": "/features" },
+      { "label": "Fiyatlandırma", "href": "/pricing" },
+      { "label": "Belgeler", "href": "/docs" },
+      { "label": "Güvenlik", "href": "/security" },
+      { "label": "Gizlilik", "href": "/privacy" },
+      { "label": "Şartlar", "href": "/terms" }
+    ]
+  },
+  "changelog": {
+    "hero": {
+      "badge": "Ürün Güncellemeleri",
+      "title": "Değişiklik Günlüğü",
+      "subtitle": "Alpis'teki en son özellikler, iyileştirmeler ve hata düzeltmeleriyle güncel kalın."
+    },
+    "releases": [
+      {
+        "version": "v1.2.0",
+        "date": "20 Haziran 2026",
+        "title": "Gelişmiş SLA'lar ve Özel Çalışma Saatleri",
+        "description": "Bu sürüm, kurumsal ekiplere Hizmet Seviyesi Anlaşmaları üzerinde daha fazla kontrol vermeye odaklanmaktadır. Artık departman bazında özel çalışma saatleri tanımlayabilir ve çok katmanlı yükseltme politikaları belirleyebilirsiniz.",
+        "changes": [
+          { "type": "feature", "text": "SLA politikalarında özel çalışma saatleri desteği eklendi." },
+          { "type": "feature", "text": "SLA ihlalleri için çok katmanlı yükseltme kuralları tanıtıldı." },
+          { "type": "improvement", "text": ">10.000 aktif bilet içeren kuyruklar için bilet listesi render'ı optimize edildi." },
+          { "type": "bug", "text": "Outlook istemcilerinde e-posta iş parçacığı yanıt ayrıştırmasındaki hata düzeltildi." }
+        ]
+      },
+      {
+        "version": "v1.1.0",
+        "date": "15 Mayıs 2026",
+        "title": "ABAC Sürümü ve Webhook'lar",
+        "description": "Ayrıntılı kontrol burada. Öznitelik Tabanlı Erişim Kontrolü (ABAC) devreye alındı; departman, etiket veya özel özniteliklere göre ajan görünürlüğünü kısıtlamanıza olanak tanır.",
+        "changes": [
+          { "type": "feature", "text": "Öznitelik Tabanlı Erişim Kontrolü (ABAC) lansmanı yapıldı." },
+          { "type": "feature", "text": "Bilet yaşam döngüsü olayları için giden Webhook entegrasyonları eklendi." },
+          { "type": "improvement", "text": "Daha hızlı erişim için makro yürütme menüsü yeniden tasarlandı." },
+          { "type": "bug", "text": "CC'lenen kullanıcıların ilk bildirimleri almadığı sorun düzeltildi." }
+        ]
+      },
+      {
+        "version": "v1.0.0",
+        "date": "02 Nisan 2026",
+        "title": "Genel Beta Lansmanı",
+        "description": "Alpis Servis Masası'nın ilk genel sürümü. Son altı ay boyunca paha biçilmez geri bildirimler sağlayan erken alfa test kullanıcılarımıza çok teşekkürler.",
+        "changes": [
+          { "type": "feature", "text": "E-posta ve portal alımıyla çekirdek bilet motoru." },
+          { "type": "feature", "text": "Postgres Satır Düzeyinde Güvenlik ile kiracı yalıtımı." },
+          { "type": "feature", "text": "Temel SLA yönetimi ve RBAC rolleri." }
+        ]
+      }
+    ]
+  },
+  "docs": {
+    "header": "Alpis Belgeleri",
+    "searchPlaceholder": "Belgelerde ara... ('/' tuşuna basın)",
+    "sidebar": {
+      "gettingStarted": {
+        "title": "Başlarken",
+        "links": ["Giriş", "Hızlı Başlangıç", "Kurulum", "Temel Kavramlar"]
+      },
+      "configuration": {
+        "title": "Yapılandırma",
+        "links": ["Posta Kutuları (IMAP/SMTP)", "Departmanlar", "SLA Politikaları", "Yönlendirme Kuralları"]
+      },
+      "security": {
+        "title": "Güvenlik ve Kullanıcılar",
+        "links": ["RBAC Rolleri", "ABAC Kapsamları", "SSO Yapılandırması", "Denetim Günlükleri"]
+      },
+      "api": {
+        "title": "Geliştirici API",
+        "links": ["Kimlik Doğrulama", "REST Uç Noktaları", "Webhook'lar", "Hız Limitleri"]
+      }
+    },
+    "content": {
+      "category": "Başlarken",
+      "title": "Alpis'e Giriş",
+      "intro": "Alpis, yüksek performanslı, geliştirici dostu bir BT servis masasıdır. Bu belgeler, ilk kurulumdan gelişmiş API entegrasyonlarına kadar her şeyi kapsar.",
+      "quickstart": {
+        "title": "Hızlı Başlangıç Kılavuzu",
+        "subtitle": "Servis masanızı 5 dakikadan kısa sürede çalıştırın.",
+        "cta": "Kılavuzu oku"
+      },
+      "api": {
+        "title": "API Referansı",
+        "subtitle": "Biletler ve kullanıcılarla programatik olarak etkileşim kurun.",
+        "cta": "API'yi görüntüle"
+      },
+      "architectureTitle": "Temel Mimari",
+      "architectureBody": "Alpis, veri yalıtımını garanti etmek için Satır Düzeyinde Güvenlik (RLS) kullanan çok kiracılı bir PostgreSQL veritabanı üzerine inşa edilmiştir. Backend, uçtan uca tip güvenliği için tRPC ile Node.js'i kullanırken, frontend Vite ve TanStack Router tarafından desteklenen bir React SPA'sıdır.",
+      "helpTitle": "Yardım Alma",
+      "helpBody": "Takıldığınızda <communityLink>Topluluk Forumlarımıza</communityLink> göz atın veya <contactLink>Destek</contactLink> ile iletişime geçin. Kurumsal müşteriler özel bir Slack kanalına ve Teknik Hesap Yöneticisine erişebilir.",
+      "nextBtn": "Sonraki: Hızlı Başlangıç"
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "main": {
+    "dashboard": "Kontrol Paneli",
+    "tickets": "Talepler",
+    "archived": "Arşiv",
+    "tasks": "Görevler",
+    "notifications": "Bildirimler",
+    "mailboxes": "Posta Kutuları",
+    "reports": "Raporlar",
+    "search": "Ara"
+  },
+  "admin": {
+    "heading": "Yönetim",
+    "users": "Kullanıcılar ve Roller",
+    "departments": "Departmanlar",
+    "sla": "SLA Politikaları",
+    "roles": "İzinler",
+    "macros": "Makrolar",
+    "automations": "Otomasyonlar",
+    "export": "Dışa Aktar",
+    "compliance": "Uyumluluk",
+    "auditLog": "Denetim Günlüğü",
+    "settings": "Ayarlar"
+  },
+  "super": {
+    "heading": "Platform",
+    "organizations": "Organizasyonlar",
+    "globalUsers": "Global Kullanıcılar",
+    "globalRoles": "Global Roller"
+  },
+  "user": {
+    "profile": "Profil",
+    "accountSecurity": "Hesap Güvenliği",
+    "preferences": "Tercihler",
+    "apiTokens": "API Anahtarları",
+    "billing": "Faturalama",
+    "logout": "Çıkış Yap"
+  },
+  "notifications": {
+    "title": "Bildirimler",
+    "allCaughtUp": "Tümü okundu",
+    "viewAll": "Tüm bildirimleri görüntüle →"
+  },
+  "verifyEmail": {
+    "message": "Hesabınızı güvence altına almak için lütfen e-posta adresinizi doğrulayın.",
+    "resend": "Doğrulama e-postasını tekrar gönder",
+    "sending": "Gönderiliyor…",
+    "sent": "Doğrulama e-postası gönderildi — gelen kutunuzu kontrol edin."
+  }
+}

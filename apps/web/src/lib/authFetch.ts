@@ -1,4 +1,5 @@
 import { useAppStore } from "../store";
+import { api } from "./api";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Central authenticated fetch.
@@ -15,10 +16,16 @@ function readCookie(name: string): string | undefined {
 }
 
 /** Headers for callers that build their own fetch (kept for incremental migration). */
-export function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
+export function authHeaders(
+  extra: Record<string, string> = {},
+): Record<string, string> {
   const state = useAppStore.getState();
-  const headers: Record<string, string> = { "Content-Type": "application/json", ...extra };
-  if (state.accessToken) headers["Authorization"] = `Bearer ${state.accessToken}`;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...extra,
+  };
+  if (state.accessToken)
+    headers["Authorization"] = `Bearer ${state.accessToken}`;
   if (state.tenantId) headers["X-Tenant-ID"] = state.tenantId;
   const csrf = readCookie("csrf");
   if (csrf) headers["X-CSRF-Token"] = csrf;
@@ -26,7 +33,11 @@ export function authHeaders(extra: Record<string, string> = {}): Record<string, 
 }
 
 const urlOf = (input: RequestInfo | URL): string =>
-  typeof input === "string" ? input : input instanceof URL ? input.pathname : input.url;
+  typeof input === "string"
+    ? input
+    : input instanceof URL
+      ? input.pathname
+      : input.url;
 
 const isAuthEndpoint = (url: string) => url.includes("/api/auths/");
 
@@ -38,15 +49,10 @@ export function refreshAccessToken(): Promise<boolean> {
   if (refreshPromise) return refreshPromise;
   refreshPromise = (async () => {
     try {
-      const res = await fetch("/api/auths/refresh", {
-        method: "POST",
-        credentials: "include",
-        headers: authHeaders(),
-        body: "{}",
-      });
+      const res = await api.auths.refresh.$post({ json: {} });
       if (!res.ok) return false;
       const data = await res.json().catch(() => null);
-      const token = data?.data?.accessToken;
+      const token = data && data.success ? data.data.accessToken : undefined;
       if (!token) return false;
       useAppStore.getState().setAccessToken(token);
       return true;
@@ -64,8 +70,11 @@ function forceLogout() {
   const state = useAppStore.getState();
   state.logout();
   if (!window.location.pathname.startsWith("/login")) {
-    const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
-    window.location.href = `/login?returnTo=${returnTo}`;
+    const returnTo = encodeURIComponent(
+      window.location.pathname + window.location.search,
+    );
+    // reason lets the login page explain why the user landed back there.
+    window.location.href = `/login?returnTo=${returnTo}&reason=session-expired`;
   }
 }
 
@@ -112,14 +121,11 @@ export async function bootstrapAuth(): Promise<boolean> {
   const ok = await refreshAccessToken();
   if (!ok) return false;
   try {
-    const res = await fetch("/api/auths/me", {
-      credentials: "include",
-      headers: authHeaders(),
-    });
+    const res = await api.auths.me.$get();
     if (!res.ok) return false;
     const data = await res.json();
-    const u = data?.data;
-    if (!u) return false;
+    if (!data.success) return false;
+    const u = data.data;
     const state = useAppStore.getState();
     state.setUser({
       id: u.id,
@@ -128,6 +134,8 @@ export async function bootstrapAuth(): Promise<boolean> {
       firstName: u.firstName,
       lastName: u.lastName,
       globalRole: u.globalRole,
+      forcePasswordChange: u.forcePasswordChange,
+      emailVerified: !!u.emailVerifiedAt,
     });
     state.setTenantId(u.organizationId);
     return true;

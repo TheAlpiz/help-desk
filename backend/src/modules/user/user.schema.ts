@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, timestamp, AnyPgColumn } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, timestamp, AnyPgColumn, boolean } from "drizzle-orm/pg-core";
 import { timestamps } from "../../infra/db/schema-utils";
 import { organization } from "../organization/organization.schema";
 import { department } from "../department/department.schema";
@@ -14,9 +14,12 @@ export const user = pgTable("user", {
   globalRole: varchar("global_role", { length: 50 }).default("REQUESTER").notNull(),
   // ABAC: department membership used for department-scoped ticket visibility.
   departmentId: uuid("department_id").references((): AnyPgColumn => department.id, { onDelete: "set null" }),
+  // Language preference — ISO 639-1 code (e.g. "en", "tr"). Null = browser default.
+  preferredLanguage: varchar("preferred_language", { length: 10 }),
   // Email verification lifecycle.
   emailVerifiedAt: timestamp("email_verified_at"),
   lastLoginAt: timestamp("last_login_at"),
+  forcePasswordChange: boolean("force_password_change").default(false).notNull(),
   ...timestamps,
 });
 

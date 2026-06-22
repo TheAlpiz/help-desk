@@ -16,6 +16,8 @@ import { SlaWorker } from "./workers/sla.worker";
 import { NotificationWorker } from "./workers/notification.worker";
 import { EmailDeliveryWorker } from "./workers/email-delivery.worker";
 import { AuditArchivalWorker } from "./workers/audit-archival.worker";
+import { TicketArchivalWorker } from "./workers/ticket-archival.worker";
+import { AttachmentArchivalWorker } from "./workers/attachment-archival.worker";
 import { NotificationService } from "./modules/notification/notification.service";
 import { initAutomationListeners } from "./workers/automation.listener";
 import { Queue } from "bullmq";
@@ -26,7 +28,7 @@ import { initMinio } from "./infra/minio";
 import { wsGateway } from "./ws/gateway";
 import { initRealtimeBridge } from "./ws/events";
 
-const app = new Hono<{ Variables: { tenantId: string } }>();
+const app = new Hono<{ Variables: { tenantId: string } }>({ strict: false });
 
 app.use(
   sentry(app, {
@@ -83,25 +85,39 @@ NotificationService.initListeners();
 // Initialize Automation Event Listeners
 initAutomationListeners();
 
-// Initialize Audit Archival Worker (Cron)
+// Initialize Archival Workers (Cron)
 new AuditArchivalWorker({
   host: env.REDIS_HOST,
   port: parseInt(env.REDIS_PORT),
   password: env.REDIS_PASSWORD || undefined,
 });
 
-// Schedule the nightly retention sweep
-const auditQueue = new Queue("audit-archival", {
-  connection: {
-    host: env.REDIS_HOST,
-    port: parseInt(env.REDIS_PORT),
-    password: env.REDIS_PASSWORD || undefined,
-  },
+new TicketArchivalWorker({
+  host: env.REDIS_HOST,
+  port: parseInt(env.REDIS_PORT),
+  password: env.REDIS_PASSWORD || undefined,
 });
 
-auditQueue
-  .add("nightly-sweep", {}, { repeat: { pattern: "0 2 * * *" } })
-  .catch(logger.error);
+new AttachmentArchivalWorker({
+  host: env.REDIS_HOST,
+  port: parseInt(env.REDIS_PORT),
+  password: env.REDIS_PASSWORD || undefined,
+});
+
+// Schedule the nightly retention sweeps
+const redisConnection = {
+  host: env.REDIS_HOST,
+  port: parseInt(env.REDIS_PORT),
+  password: env.REDIS_PASSWORD || undefined,
+};
+
+const auditQueue = new Queue("audit-archival", { connection: redisConnection });
+const ticketQueue = new Queue("ticket-archival", { connection: redisConnection });
+const attachmentQueue = new Queue("attachment-archival", { connection: redisConnection });
+
+auditQueue.add("nightly-sweep", {}, { repeat: { pattern: "0 2 * * *" } }).catch(logger.error);
+ticketQueue.add("nightly-sweep", {}, { repeat: { pattern: "0 2 * * *" } }).catch(logger.error);
+attachmentQueue.add("nightly-sweep", {}, { repeat: { pattern: "0 2 * * *" } }).catch(logger.error);
 
 // Initialize DB Triggers, enforce Row Level Security, then seed.
 // Ordered so RLS policies exist before any tenant traffic is served.
@@ -123,7 +139,7 @@ app.onError((err, c) => {
   return ResponseHandler.internalServerError(c);
 });
 
-const routes = new Hono()
+const routes = new Hono({ strict: false })
   .basePath("/api")
   .route("/", appRouter)
   .route("/notifications", NotificationRouter)

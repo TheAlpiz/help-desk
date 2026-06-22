@@ -1,6 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui";
+
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import {
   AlertCircle,
   AlertTriangle,
@@ -13,38 +28,23 @@ import {
   BarChart3,
 } from "lucide-react";
 import { api } from "@/lib/api";
+// ─── Helpers ─────────────────────────────────────────────────────────────
+const getArray = (res: any): any[] => {
+  if (!res) return [];
+  const r = res.data ?? res;
+  return Array.isArray(r) ? r : (Array.isArray(r?.data) ? r.data : []);
+};
 
 // ─── Shared design tokens ─────────────────────────────────────────────────────
 
-const STATUS_MAP: Record<string, { label: string; cls: string }> = {
-  open: {
-    label: "Open",
-    cls: "bg-blue-500/15 text-blue-300 border border-blue-500/20",
-  },
-  assigned: {
-    label: "Assigned",
-    cls: "bg-violet-500/15 text-violet-300 border border-violet-500/20",
-  },
-  in_progress: {
-    label: "In Progress",
-    cls: "bg-primary/15 text-primary border border-primary/20",
-  },
-  waiting_customer: {
-    label: "Waiting",
-    cls: "bg-amber-500/15 text-amber-300 border border-amber-500/20",
-  },
-  resolved: {
-    label: "Resolved",
-    cls: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20",
-  },
-  closed: {
-    label: "Closed",
-    cls: "bg-white/8 text-on-surface-variant border border-white/10",
-  },
-  reopened: {
-    label: "Reopened",
-    cls: "bg-red-500/15 text-red-300 border border-red-500/20",
-  },
+const STATUS_CLS: Record<string, string> = {
+  open: "bg-blue-500/15 text-blue-300 border border-blue-500/20",
+  assigned: "bg-violet-500/15 text-violet-300 border border-violet-500/20",
+  in_progress: "bg-primary/15 text-primary border border-primary/20",
+  waiting_customer: "bg-amber-500/15 text-amber-300 border border-amber-500/20",
+  resolved: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20",
+  closed: "bg-white/8 text-on-surface-variant border border-white/10",
+  reopened: "bg-red-500/15 text-red-300 border border-red-500/20",
 };
 
 // ─── Metric card ──────────────────────────────────────────────────────────────
@@ -95,17 +95,19 @@ function RecentTicketsTable({
   tickets: any[];
   loading: boolean;
 }) {
+  const { t } = useTranslation("dashboard");
+  const { t: tTickets } = useTranslation("tickets");
   return (
     <div className="bg-surface-container border border-outline-variant rounded-xl overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-outline-variant">
         <h3 className="text-sm font-semibold text-on-surface">
-          Recent tickets
+          {t("recentTickets")}
         </h3>
         <Link
           to="/tickets"
           className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
         >
-          View all <ArrowRight className="w-3 h-3" />
+          {t("viewAll")} <ArrowRight className="w-3 h-3" />
         </Link>
       </div>
       {loading ? (
@@ -116,7 +118,7 @@ function RecentTicketsTable({
         </div>
       ) : tickets.length === 0 ? (
         <div className="p-8 text-center text-on-surface-variant/40 text-sm">
-          No tickets yet.
+          {t("noTickets")}
         </div>
       ) : (
         <div className="divide-y divide-outline-variant">
@@ -136,9 +138,9 @@ function RecentTicketsTable({
                 </p>
               </div>
               <span
-                className={`inline-flex text-[10px] font-semibold px-2 py-0.5 rounded shrink-0 ${STATUS_MAP[ticket.status]?.cls ?? "bg-white/8 text-on-surface-variant"}`}
+                className={`inline-flex text-[10px] font-semibold px-2 py-0.5 rounded shrink-0 ${STATUS_CLS[ticket.status] ?? "bg-white/8 text-on-surface-variant"}`}
               >
-                {STATUS_MAP[ticket.status]?.label ?? ticket.status}
+                {tTickets(`statuses.${ticket.status}`, { defaultValue: ticket.status })}
               </span>
             </Link>
           ))}
@@ -151,6 +153,8 @@ function RecentTicketsTable({
 // ─── Admin / Platform Owner Dashboard ────────────────────────────────────────
 
 export function AdminDashboard() {
+  const { t } = useTranslation("dashboard");
+  const { t: tTickets } = useTranslation("tickets");
   const { data: ticketsData, isLoading: tl } = useQuery({
     queryKey: ["tickets"],
     queryFn: async () => {
@@ -178,8 +182,7 @@ export function AdminDashboard() {
     },
   });
 
-  const tickets: any[] =
-    (ticketsData as any)?.data?.data ?? (ticketsData as any)?.data ?? [];
+  const tickets = getArray(ticketsData);
   const users: any[] = (usersData as any)?.data ?? [];
   const slas: any[] = (slaData as any)?.data ?? [];
 
@@ -197,87 +200,131 @@ export function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-[15px] font-semibold text-on-surface">Overview</h1>
+        <h1 className="text-[15px] font-semibold text-on-surface">{t("admin.title")}</h1>
         <Link
           to="/tickets"
           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:bg-primary/90 transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
-          New Ticket
+          {t("newTicket")}
         </Link>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <MetricCard
-          label="Open Tickets"
+          label={t("admin.openTickets")}
           value={open.length}
           icon={<Ticket className="w-4 h-4" />}
           accent="text-primary"
           loading={tl}
-          trend="All active, non-closed tickets"
+          trend={t("admin.openTicketsTrend")}
         />
         <MetricCard
-          label="Critical"
+          label={t("admin.critical")}
           value={critical.length}
           icon={<AlertCircle className="w-4 h-4" />}
           accent={critical.length > 0 ? "text-red-400" : "text-on-surface"}
           loading={tl}
-          trend="Require immediate attention"
+          trend={t("admin.criticalTrend")}
         />
         <MetricCard
-          label="Unassigned"
+          label={t("admin.unassigned")}
           value={unassigned.length}
           icon={<AlertTriangle className="w-4 h-4" />}
           accent={unassigned.length > 0 ? "text-amber-400" : "text-on-surface"}
           loading={tl}
-          trend="Need agent assignment"
+          trend={t("admin.unassignedTrend")}
         />
         <MetricCard
-          label="Active Users"
+          label={t("admin.activeUsers")}
           value={users.length}
           icon={<Users className="w-4 h-4" />}
           loading={ul}
-          trend={`${slas.length} SLA polic${slas.length === 1 ? "y" : "ies"} active`}
+          trend={t("admin.slaPolicies", { count: slas.length })}
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <RecentTicketsTable tickets={tickets} loading={tl} />
 
-        <div className="bg-surface-container border border-outline-variant rounded-xl p-4">
+        <div className="bg-surface-container border border-outline-variant rounded-xl p-4 flex flex-col">
           <h3 className="text-sm font-semibold text-on-surface mb-4">
-            Ticket breakdown
+            {t("ticketBreakdown")} (Status)
           </h3>
-          <div className="space-y-2">
-            {Object.entries(
-              tickets.reduce((acc: Record<string, number>, t: any) => {
-                acc[t.status] = (acc[t.status] ?? 0) + 1;
-                return acc;
-              }, {}),
-            ).map(([status, count]) => {
-              const total = tickets.length || 1;
-              const pct = Math.round((count / total) * 100);
-              return (
-                <div key={status} className="flex items-center gap-3">
-                  <span className="w-24 text-xs text-on-surface-variant truncate capitalize">
-                    {status.replace("_", " ")}
-                  </span>
-                  <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary/60 rounded-full"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                  <span className="text-xs font-mono text-on-surface-variant/60 w-6 text-right">
-                    {count}
-                  </span>
-                </div>
-              );
-            })}
-            {tickets.length === 0 && !tl && (
-              <p className="text-xs text-on-surface-variant/40 text-center py-6">
-                No ticket data yet.
-              </p>
+          <div className="flex-1 min-h-[250px] relative">
+            {tickets.length === 0 ? (
+              <div className="absolute inset-0 flex items-center justify-center text-xs text-on-surface-variant/40">
+                {t("noTicketData")}
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={Object.entries(
+                      tickets.reduce((acc: any, t: any) => {
+                        acc[t.status] = (acc[t.status] ?? 0) + 1;
+                        return acc;
+                      }, {})
+                    ).map(([name, value]) => ({ name: tTickets(`statuses.${name}`, { defaultValue: name }), value }))}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {Object.keys(
+                      tickets.reduce((acc: any, t: any) => {
+                        acc[t.status] = (acc[t.status] ?? 0) + 1;
+                        return acc;
+                      }, {})
+                    ).map((entry, index) => {
+                      const colors = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#64748b"];
+                      return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
+                    })}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                    itemStyle={{ color: '#fff' }}
+                  />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-surface-container border border-outline-variant rounded-xl p-4 flex flex-col mt-4 lg:mt-0">
+          <h3 className="text-sm font-semibold text-on-surface mb-4">
+            Priority Distribution
+          </h3>
+          <div className="flex-1 min-h-[250px] relative">
+            {tickets.length === 0 ? (
+              <div className="absolute inset-0 flex items-center justify-center text-xs text-on-surface-variant/40">
+                {t("noTicketData")}
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={Object.entries(
+                    tickets.reduce((acc: any, t: any) => {
+                      const p = t.priority || "none";
+                      acc[p] = (acc[p] ?? 0) + 1;
+                      return acc;
+                    }, {})
+                  ).map(([name, value]) => ({ name: tTickets(`priorities.${name}`, { defaultValue: name }), value }))}
+                  margin={{ top: 20, right: 30, left: -20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                  <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip 
+                    cursor={{ fill: '#334155', opacity: 0.4 }}
+                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                  />
+                  <Bar dataKey="value" fill="#8b5cf6" radius={[4, 4, 0, 0]} maxBarSize={50} />
+                </BarChart>
+              </ResponsiveContainer>
             )}
           </div>
         </div>
@@ -289,6 +336,7 @@ export function AdminDashboard() {
 // ─── Supervisor Dashboard ─────────────────────────────────────────────────────
 
 export function SupervisorDashboard() {
+  const { t } = useTranslation("dashboard");
   const { data, isLoading: tl } = useQuery({
     queryKey: ["tickets"],
     queryFn: async () => {
@@ -307,7 +355,7 @@ export function SupervisorDashboard() {
     },
   });
 
-  const tickets: any[] = (data as any)?.data?.data ?? (data as any)?.data ?? [];
+  const tickets = getArray(data);
   const users: any[] = (usersData as any)?.data ?? [];
 
   const unassigned = tickets.filter(
@@ -326,33 +374,33 @@ export function SupervisorDashboard() {
   return (
     <div className="space-y-6">
       <h1 className="text-[15px] font-semibold text-on-surface">
-        Department Overview
+        {t("supervisor.title")}
       </h1>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <MetricCard
-          label="Unassigned"
+          label={t("supervisor.unassigned")}
           value={unassigned.length}
           icon={<AlertTriangle className="w-4 h-4" />}
           accent={unassigned.length > 0 ? "text-amber-400" : "text-on-surface"}
           loading={tl}
         />
         <MetricCard
-          label="Open Tickets"
+          label={t("supervisor.openTickets")}
           value={open.length}
           icon={<Ticket className="w-4 h-4" />}
           accent="text-primary"
           loading={tl}
         />
         <MetricCard
-          label="Resolved (24h)"
+          label={t("supervisor.resolved24h")}
           value={resolved24h.length}
           icon={<CheckCircle2 className="w-4 h-4" />}
           accent="text-emerald-400"
           loading={tl}
         />
         <MetricCard
-          label="Team Members"
+          label={t("supervisor.teamMembers")}
           value={users.length}
           icon={<Users className="w-4 h-4" />}
           loading={ul}
@@ -367,6 +415,7 @@ export function SupervisorDashboard() {
 // ─── Agent Dashboard ──────────────────────────────────────────────────────────
 
 export function AgentDashboard() {
+  const { t } = useTranslation("dashboard");
   const { data: ticketsData, isLoading: tl } = useQuery({
     queryKey: ["tickets"],
     queryFn: async () => {
@@ -385,9 +434,8 @@ export function AgentDashboard() {
     },
   });
 
-  const tickets: any[] =
-    (ticketsData as any)?.data?.data ?? (ticketsData as any)?.data ?? [];
-  const tasks: any[] = (tasksData as any)?.data ?? [];
+  const tickets = getArray(ticketsData);
+  const tasks = getArray(tasksData);
 
   const openTickets = tickets.filter(
     (t) => !["resolved", "closed"].includes(t.status),
@@ -401,27 +449,27 @@ export function AgentDashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-[15px] font-semibold text-on-surface">
-          My Workspace
+          {t("agent.title")}
         </h1>
         <Link
           to="/tickets"
           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-on-primary text-xs font-semibold rounded-lg hover:bg-primary/90 transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
-          New Ticket
+          {t("newTicket")}
         </Link>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
         <MetricCard
-          label="My Open Tickets"
+          label={t("agent.myOpenTickets")}
           value={openTickets.length}
           icon={<Ticket className="w-4 h-4" />}
           accent="text-primary"
           loading={tl}
         />
         <MetricCard
-          label="Pending Tasks"
+          label={t("agent.pendingTasks")}
           value={pendingTasks.length}
           icon={<TrendingUp className="w-4 h-4" />}
           accent={
@@ -430,7 +478,7 @@ export function AgentDashboard() {
           loading={taskl}
         />
         <MetricCard
-          label="Resolved"
+          label={t("agent.resolved")}
           value={resolvedTickets.length}
           icon={<CheckCircle2 className="w-4 h-4" />}
           accent="text-emerald-400"
@@ -438,7 +486,56 @@ export function AgentDashboard() {
         />
       </div>
 
-      <RecentTicketsTable tickets={openTickets} loading={tl} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <RecentTicketsTable tickets={openTickets} loading={tl} />
+        
+        <div className="bg-surface-container border border-outline-variant rounded-xl p-4 flex flex-col">
+          <h3 className="text-sm font-semibold text-on-surface mb-4">
+            {t("agent.myOpenTickets")} (Status)
+          </h3>
+          <div className="flex-1 min-h-[250px] relative">
+            {openTickets.length === 0 ? (
+              <div className="absolute inset-0 flex items-center justify-center text-xs text-on-surface-variant/40">
+                {t("noTicketData")}
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={Object.entries(
+                      openTickets.reduce((acc: any, t: any) => {
+                        acc[t.status] = (acc[t.status] ?? 0) + 1;
+                        return acc;
+                      }, {})
+                    ).map(([name, value]) => ({ name, value }))}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {Object.keys(
+                      openTickets.reduce((acc: any, t: any) => {
+                        acc[t.status] = (acc[t.status] ?? 0) + 1;
+                        return acc;
+                      }, {})
+                    ).map((entry, index) => {
+                      const colors = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#64748b"];
+                      return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
+                    })}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                    itemStyle={{ color: '#fff' }}
+                  />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -446,6 +543,7 @@ export function AgentDashboard() {
 // ─── Requester Dashboard ──────────────────────────────────────────────────────
 
 export function RequesterDashboard() {
+  const { t } = useTranslation("dashboard");
   const navigate = useNavigate();
 
   const { data, isLoading } = useQuery({
@@ -457,7 +555,7 @@ export function RequesterDashboard() {
     },
   });
 
-  const tickets: any[] = (data as any)?.data?.data ?? (data as any)?.data ?? [];
+  const tickets = getArray(data);
   const open = tickets.filter(
     (t) => !["resolved", "closed"].includes(t.status),
   );
@@ -469,31 +567,31 @@ export function RequesterDashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-[15px] font-semibold text-on-surface">
-          My Requests
+          {t("requester.title")}
         </h1>
         <Button onClick={() => navigate({ to: "/tickets" })}>
           <Plus className="w-3.5 h-3.5" />
-          New Request
+          {t("newRequest")}
         </Button>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
         <MetricCard
-          label="Open"
+          label={t("requester.open")}
           value={open.length}
           icon={<Ticket className="w-4 h-4" />}
           accent="text-primary"
           loading={isLoading}
         />
         <MetricCard
-          label="Resolved"
+          label={t("requester.resolved")}
           value={resolved.length}
           icon={<CheckCircle2 className="w-4 h-4" />}
           accent="text-emerald-400"
           loading={isLoading}
         />
         <MetricCard
-          label="Total"
+          label={t("requester.total")}
           value={tickets.length}
           icon={<BarChart3 className="w-4 h-4" />}
           loading={isLoading}

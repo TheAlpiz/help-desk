@@ -23,6 +23,7 @@ import {
   Archive,
 } from "lucide-react";
 import { useAppStore } from "@/store";
+import { useTranslation } from "react-i18next";
 
 type Command = {
   id: string;
@@ -33,32 +34,6 @@ type Command = {
   keywords?: string[];
 };
 
-const COMMANDS: Command[] = [
-  { id: "dashboard", label: "Dashboard", group: "Navigate", icon: <LayoutDashboard className="w-4 h-4" />, to: "/dashboard" },
-  { id: "tickets", label: "Tickets", group: "Navigate", icon: <Ticket className="w-4 h-4" />, to: "/tickets" },
-  { id: "tasks", label: "Tasks", group: "Navigate", icon: <ListChecks className="w-4 h-4" />, to: "/tasks" },
-  { id: "mailboxes", label: "Mailboxes", group: "Navigate", icon: <Inbox className="w-4 h-4" />, to: "/mailboxes" },
-  { id: "reports", label: "Reports", group: "Navigate", icon: <BarChart3 className="w-4 h-4" />, to: "/reports" },
-  { id: "notifications", label: "Notifications", group: "Navigate", icon: <Bell className="w-4 h-4" />, to: "/notifications" },
-  { id: "archived", label: "Archived Tickets", group: "Navigate", icon: <Archive className="w-4 h-4" />, to: "/archived", keywords: ["closed", "resolved", "archive"] },
-  { id: "search", label: "Global Search", group: "Navigate", icon: <Search className="w-4 h-4" />, to: "/search", keywords: ["find", "look", "query"] },
-  { id: "profile", label: "My Profile", group: "Account", icon: <User className="w-4 h-4" />, to: "/profile" },
-  { id: "security", label: "Security & Sessions", group: "Account", icon: <Shield className="w-4 h-4" />, to: "/account-security" },
-  { id: "api-tokens", label: "API Tokens", group: "Account", icon: <Key className="w-4 h-4" />, to: "/api-tokens" },
-  { id: "notif-prefs", label: "Notification Preferences", group: "Account", icon: <Bell className="w-4 h-4" />, to: "/notification-preferences" },
-  { id: "users", label: "Users & Roles", group: "Admin", icon: <Users className="w-4 h-4" />, to: "/users" },
-  { id: "departments", label: "Departments", group: "Admin", icon: <Building2 className="w-4 h-4" />, to: "/departments" },
-  { id: "sla", label: "SLA Policies", group: "Admin", icon: <Clock className="w-4 h-4" />, to: "/sla" },
-  { id: "roles", label: "Permissions & Roles", group: "Admin", icon: <Shield className="w-4 h-4" />, to: "/roles" },
-  { id: "macros", label: "Macros / Canned Responses", group: "Admin", icon: <Zap className="w-4 h-4" />, to: "/macros" },
-  { id: "automations", label: "Automation Rules", group: "Admin", icon: <Zap className="w-4 h-4" />, to: "/automations", keywords: ["rules", "trigger", "workflow"] },
-  { id: "audit", label: "Audit Logs", group: "Admin", icon: <FileText className="w-4 h-4" />, to: "/audit-logs" },
-  { id: "settings", label: "Settings", group: "Admin", icon: <Settings className="w-4 h-4" />, to: "/settings" },
-  { id: "whatsapp", label: "WhatsApp", group: "Channels", icon: <MessageSquare className="w-4 h-4" />, to: "/whatsapp" },
-  { id: "billing", label: "Billing", group: "Account", icon: <CreditCard className="w-4 h-4" />, to: "/billing" },
-  { id: "onboarding", label: "Setup wizard", group: "Account", icon: <LayoutDashboard className="w-4 h-4" />, to: "/onboarding" },
-];
-
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -66,6 +41,32 @@ export function CommandPalette() {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const user = useAppStore((s) => s.user);
+  const { t } = useTranslation("common");
+
+  const COMMANDS: Command[] = [
+    { id: "dashboard", label: t("commandPalette.commands.dashboard"), group: t("commandPalette.groups.navigate"), icon: <LayoutDashboard className="w-4 h-4" />, to: "/dashboard" },
+    { id: "tickets", label: t("commandPalette.commands.tickets"), group: t("commandPalette.groups.navigate"), icon: <Ticket className="w-4 h-4" />, to: "/tickets" },
+    { id: "tasks", label: t("commandPalette.commands.tasks"), group: t("commandPalette.groups.navigate"), icon: <ListChecks className="w-4 h-4" />, to: "/tasks" },
+    { id: "mailboxes", label: t("commandPalette.commands.mailboxes"), group: t("commandPalette.groups.navigate"), icon: <Inbox className="w-4 h-4" />, to: "/mailboxes" },
+    { id: "reports", label: t("commandPalette.commands.reports"), group: t("commandPalette.groups.navigate"), icon: <BarChart3 className="w-4 h-4" />, to: "/reports" },
+    { id: "notifications", label: t("commandPalette.commands.notifications"), group: t("commandPalette.groups.navigate"), icon: <Bell className="w-4 h-4" />, to: "/notifications" },
+    { id: "archived", label: t("commandPalette.commands.archived"), group: t("commandPalette.groups.navigate"), icon: <Archive className="w-4 h-4" />, to: "/archived", keywords: ["closed", "resolved", "archive"] },
+    { id: "search", label: t("commandPalette.commands.globalSearch"), group: t("commandPalette.groups.navigate"), icon: <Search className="w-4 h-4" />, to: "/search", keywords: ["find", "look", "query"] },
+    { id: "profile", label: t("commandPalette.commands.myProfile"), group: t("commandPalette.groups.account"), icon: <User className="w-4 h-4" />, to: "/profile" },
+    { id: "security", label: t("commandPalette.commands.security"), group: t("commandPalette.groups.account"), icon: <Shield className="w-4 h-4" />, to: "/account-security" },
+    { id: "api-tokens", label: t("commandPalette.commands.apiTokens"), group: t("commandPalette.groups.account"), icon: <Key className="w-4 h-4" />, to: "/api-tokens" },
+    { id: "notif-prefs", label: t("commandPalette.commands.notifPrefs"), group: t("commandPalette.groups.account"), icon: <Bell className="w-4 h-4" />, to: "/notification-preferences" },
+    { id: "users", label: t("commandPalette.commands.usersRoles"), group: t("commandPalette.groups.admin"), icon: <Users className="w-4 h-4" />, to: "/users" },
+    { id: "departments", label: t("commandPalette.commands.departments"), group: t("commandPalette.groups.admin"), icon: <Building2 className="w-4 h-4" />, to: "/departments" },
+    { id: "sla", label: t("commandPalette.commands.slaPolicies"), group: t("commandPalette.groups.admin"), icon: <Clock className="w-4 h-4" />, to: "/sla" },
+    { id: "roles", label: t("commandPalette.commands.rolesPerms"), group: t("commandPalette.groups.admin"), icon: <Shield className="w-4 h-4" />, to: "/roles" },
+    { id: "macros", label: t("commandPalette.commands.macros"), group: t("commandPalette.groups.admin"), icon: <Zap className="w-4 h-4" />, to: "/macros" },
+    { id: "automations", label: t("commandPalette.commands.automations"), group: t("commandPalette.groups.admin"), icon: <Zap className="w-4 h-4" />, to: "/automations", keywords: ["rules", "trigger", "workflow"] },
+    { id: "audit", label: t("commandPalette.commands.auditLogs"), group: t("commandPalette.groups.admin"), icon: <FileText className="w-4 h-4" />, to: "/audit-logs" },
+    { id: "settings", label: t("commandPalette.commands.settings"), group: t("commandPalette.groups.admin"), icon: <Settings className="w-4 h-4" />, to: "/settings" },
+    { id: "whatsapp", label: t("commandPalette.commands.whatsapp"), group: t("commandPalette.groups.channels"), icon: <MessageSquare className="w-4 h-4" />, to: "/whatsapp" },
+    { id: "billing", label: t("commandPalette.commands.billing"), group: t("commandPalette.groups.account"), icon: <CreditCard className="w-4 h-4" />, to: "/billing" },
+  ];
 
   const isAdmin = user?.globalRole === "ADMIN" || user?.globalRole === "SUPER_ADMIN";
 
@@ -142,7 +143,7 @@ export function CommandPalette() {
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search or jump to…"
+            placeholder={t("commandPalette.placeholder")}
             className="flex-1 bg-transparent text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none"
           />
           {query && (
@@ -156,7 +157,7 @@ export function CommandPalette() {
         {/* Results */}
         <div className="max-h-80 overflow-y-auto py-2">
           {flatFiltered.length === 0 ? (
-            <p className="text-xs text-on-surface-variant/40 text-center py-8">No results for "{query}"</p>
+            <p className="text-xs text-on-surface-variant/40 text-center py-8">{t("commandPalette.noResults", { query })}</p>
           ) : (
             Object.entries(grouped).map(([group, cmds]) => (
               <div key={group}>
@@ -188,11 +189,11 @@ export function CommandPalette() {
         <div className="flex items-center gap-3 px-4 py-2 border-t border-outline-variant">
           <span className="text-[10px] text-on-surface-variant/30 flex items-center gap-1">
             <kbd className="px-1 py-0.5 rounded bg-white/5 border border-white/10 font-mono">↑↓</kbd>
-            navigate
+            {t("commandPalette.navigate")}
           </span>
           <span className="text-[10px] text-on-surface-variant/30 flex items-center gap-1">
             <kbd className="px-1 py-0.5 rounded bg-white/5 border border-white/10 font-mono">↵</kbd>
-            select
+            {t("commandPalette.select")}
           </span>
           <span className="ml-auto text-[10px] text-on-surface-variant/20">⌘K</span>
         </div>

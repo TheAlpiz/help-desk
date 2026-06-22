@@ -4,3 +4,5 @@ export * from "./mailbox.manager";
 export * from "./sla.worker";
 export * from "./notification.worker";
 export * from "./audit-archival.worker";
+export * from "./ticket-archival.worker";
+export * from "./attachment-archival.worker";

@@ -1,0 +1,55 @@
+{
+  "title": "Tasks",
+  "new": "New Task",
+  "create": "Create Task",
+  "count_one": "{{count}} task",
+  "count_other": "{{count}} tasks",
+  "fields": {
+    "title": "Title",
+    "description": "Description",
+    "status": "Status",
+    "priority": "Priority",
+    "assignee": "Assignee",
+    "dueDate": "Due date",
+    "ticket": "Related ticket",
+    "comments": "Comments",
+    "attachments": "Attachments"
+  },
+  "statuses": {
+    "todo": "To Do",
+    "in_progress": "In Progress",
+    "blocked": "Blocked",
+    "review": "Review",
+    "done": "Done",
+    "canceled": "Canceled"
+  },
+  "actions": {
+    "updateStatus": "Update status",
+    "addComment": "Add a comment…",
+    "assign": "Assign task"
+  },
+  "dueDate": {
+    "dueIn": "Due in {{time}}",
+    "overdue": "{{time}} overdue",
+    "noDueDate": "No due date"
+  },
+  "empty": {
+    "title": "No tasks yet",
+    "create": "Create the first task"
+  },
+  "views": {
+    "kanban": "Kanban",
+    "list": "List"
+  },
+  "bulk": {
+    "selected": "{{count}} selected",
+    "moveTo": "→ {{status}}"
+  },
+  "columns": {
+    "todo": "To Do",
+    "in_progress": "In Progress",
+    "blocked": "Blocked",
+    "review": "Review",
+    "done": "Done"
+  }
+}

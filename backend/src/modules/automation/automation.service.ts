@@ -8,7 +8,11 @@ import { task } from "../task/task.schema";
 import { auditLog } from "../audit-log/audit-log.schema";
 import { user } from "../user/user.schema";
 import { department } from "../department/department.schema";
+import { organization } from "../organization/organization.schema";
 import { logger } from "../../infra/logger";
+import { emitEvent } from "../../infra/events";
+import { addBusinessDays, BusinessHoursConfig } from "../../lib/business-hours";
+import { SlaService } from "../sla/sla.service";
 
 // Crude UUID check — distinguishes a stored id from a human-readable name/email.
 const isUuid = (v: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
@@ -93,6 +97,8 @@ export const AutomationService = {
       const rules = await tx.select().from(automation)
         .where(and(eq(automation.organizationId, tenantId), eq(automation.trigger, triggerType), eq(automation.isActive, true), isNull(automation.deletedAt)));
 
+      logger.info({ triggerType, ticketId, ruleCount: rules.length, ruleIds: rules.map(r => r.id) }, "[Automation] Rules matched for event");
+
       const [t] = await tx.select().from(ticket).where(eq(ticket.id, ticketId)).limit(1);
       if (!t) return;
 
@@ -105,6 +111,12 @@ export const AutomationService = {
         if (!match) continue;
 
         const actions = rule.actions as AutomationActionDef[];
+        logger.info({ ruleId: rule.id, ruleName: rule.name, actionCount: actions.length, actions: actions.map(a => a.type) }, "[Automation] Executing rule");
+        
+        let slaNeedsReeval = false;
+        let updatedPriority: string | undefined;
+        let updatedDepartmentId: string | undefined;
+
         for (const action of actions) {
           try {
             switch (action.type) {
@@ -112,7 +124,11 @@ export const AutomationService = {
                 if (action.value) await tx.update(ticket).set({ status: action.value.toLowerCase() }).where(eq(ticket.id, ticketId));
                 break;
               case "set_priority":
-                if (action.value) await tx.update(ticket).set({ priority: action.value.toLowerCase() as any }).where(eq(ticket.id, ticketId));
+                if (action.value) {
+                  await tx.update(ticket).set({ priority: action.value.toLowerCase() as any }).where(eq(ticket.id, ticketId));
+                  slaNeedsReeval = true;
+                  updatedPriority = action.value.toLowerCase();
+                }
                 break;
               case "assign_to": {
                 if (!action.value) break;
@@ -123,7 +139,15 @@ export const AutomationService = {
                   if (!found) { logger.warn({ email: action.value }, "Automation assign_to: user not found"); break; }
                   assigneeId = found.id;
                 }
-                await tx.update(ticket).set({ assigneeId }).where(eq(ticket.id, ticketId));
+                
+                const currentTicket = await tx.select().from(ticket).where(eq(ticket.id, ticketId)).limit(1);
+                
+                if (currentTicket[0] && currentTicket[0].assigneeId !== assigneeId) {
+                  await tx.update(ticket).set({ assigneeId, status: "assigned" }).where(eq(ticket.id, ticketId));
+                  emitEvent("ticket.assigned", { ticketId, assigneeId, actorId: "system", organizationId: tenantId });
+                  await tx.insert(auditLog).values({ organizationId: tenantId, entityType: "ticket", entityId: ticketId, actorId: "system", action: "assigned", oldValues: { assigneeId: currentTicket[0].assigneeId }, newValues: { assigneeId, viaAutomation: rule.id } });
+                }
+                
                 break;
               }
               case "set_department": {
@@ -137,6 +161,8 @@ export const AutomationService = {
                   departmentId = found.id;
                 }
                 await tx.update(ticket).set({ departmentId }).where(eq(ticket.id, ticketId));
+                slaNeedsReeval = true;
+                updatedDepartmentId = departmentId;
                 break;
               }
               case "add_tag":
@@ -155,6 +181,19 @@ export const AutomationService = {
                 const creatorId = actorId ?? rule.createdById;
                 if (!creatorId) { logger.warn({ ruleId: rule.id }, "Automation create_task: no creator available"); break; }
 
+                // Deduplicate: skip if an open task with the same title already exists
+                // for this ticket (prevents double-creation when multiple SLA breach
+                // types fire the same automation, e.g. FIRST_RESPONSE + RESOLUTION).
+                const [duplicate] = await tx
+                  .select({ id: task.id })
+                  .from(task)
+                  .where(and(eq(task.ticketId, ticketId), eq(task.title, action.value.slice(0, 255))))
+                  .limit(1);
+                if (duplicate) {
+                  logger.info({ ruleId: rule.id, ticketId, title: action.value }, "Automation create_task: skipped duplicate task");
+                  break;
+                }
+
                 // Optional assignee — value may be a UUID or an email address.
                 let assigneeId: string | null = null;
                 if (action.assignee) {
@@ -168,10 +207,18 @@ export const AutomationService = {
                 }
 
                 const priority = action.priority ?? "MEDIUM";
-                const dueDate =
-                  action.dueInDays != null
-                    ? new Date(Date.now() + action.dueInDays * 24 * 60 * 60 * 1000)
-                    : null;
+                let dueDate: Date | null = null;
+                if (action.dueInDays != null) {
+                  const [orgRow] = await tx
+                    .select({ businessHoursConfig: organization.businessHoursConfig })
+                    .from(organization)
+                    .where(eq(organization.id, tenantId))
+                    .limit(1);
+                  const bh = orgRow?.businessHoursConfig as BusinessHoursConfig | null | undefined;
+                  dueDate = bh?.timezone && bh?.days
+                    ? addBusinessDays(new Date(), action.dueInDays, bh)
+                    : new Date(Date.now() + action.dueInDays * 24 * 60 * 60 * 1000);
+                }
 
                 const [createdTask] = await tx.insert(task).values({
                   organizationId: tenantId,
@@ -192,6 +239,15 @@ export const AutomationService = {
             }
           } catch (actionErr) {
             logger.warn({ actionErr, action, ticketId, ruleId: rule.id }, "Automation action failed, continuing");
+          }
+        }
+
+        if (slaNeedsReeval) {
+          const [current] = await tx.select().from(ticket).where(eq(ticket.id, ticketId)).limit(1);
+          if (current) {
+            const finalPriority = updatedPriority ?? current.priority;
+            const finalDept = updatedDepartmentId !== undefined ? updatedDepartmentId : current.departmentId;
+            await SlaService.attachSlaToTicket(tx, ticketId, tenantId, finalPriority, finalDept || undefined);
           }
         }
 

@@ -3,8 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Plus, X, Pencil, Trash2, Inbox, AlertTriangle, CheckCircle, WifiOff, Zap } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useToast } from "@/components/Toast";
-import { api, apiFetch } from "@/lib/api";
+import { api } from "@/lib/api";
 import { useAppStore } from "@/store";
 import { createMailboxSchema, updateMailboxSchema } from "@help-desk/shared";
 import { Button, Input, FormAlert, FormError, fieldErrors } from "@/components/ui";
@@ -84,10 +85,11 @@ function ModalShell({
 // ─── Form fields ──────────────────────────────────────────────────────────────
 
 function MailboxFormFields({ form }: { form: any }) {
+  const { t } = useTranslation("mailboxes");
   return (
     <div className="p-5 space-y-5">
       <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-medium text-on-surface">Email Address *</label>
+        <label className="text-xs font-medium text-on-surface">{t("fields.email")} *</label>
         <form.Field
           name="emailAddress"
           validators={{ onChange: createMailboxSchema.shape.emailAddress }}
@@ -114,7 +116,7 @@ function MailboxFormFields({ form }: { form: any }) {
         </h4>
         <div className="grid grid-cols-3 gap-2">
           <div className="col-span-2 flex flex-col gap-1.5">
-            <label className="text-[11px] font-medium text-on-surface-variant/60">Host</label>
+            <label className="text-[11px] font-medium text-on-surface-variant/60">{t("fields.imapHost")}</label>
             <form.Field
               name="imapHost"
               children={(field: any) => (
@@ -123,7 +125,7 @@ function MailboxFormFields({ form }: { form: any }) {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-medium text-on-surface-variant/60">Port</label>
+            <label className="text-[11px] font-medium text-on-surface-variant/60">{t("fields.imapPort")}</label>
             <form.Field
               name="imapPort"
               children={(field: any) => (
@@ -134,7 +136,7 @@ function MailboxFormFields({ form }: { form: any }) {
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-medium text-on-surface-variant/60">Username</label>
+            <label className="text-[11px] font-medium text-on-surface-variant/60">{t("fields.username")}</label>
             <form.Field
               name="imapUser"
               children={(field: any) => (
@@ -143,7 +145,7 @@ function MailboxFormFields({ form }: { form: any }) {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-medium text-on-surface-variant/60">Password</label>
+            <label className="text-[11px] font-medium text-on-surface-variant/60">{t("fields.password")}</label>
             <form.Field
               name="imapPassword"
               children={(field: any) => (
@@ -162,7 +164,7 @@ function MailboxFormFields({ form }: { form: any }) {
                 onChange={(e: any) => field.handleChange(e.target.checked)}
                 className="w-4 h-4 rounded border-outline-variant accent-primary"
               />
-              <span className="text-xs text-on-surface-variant">Use TLS/SSL</span>
+              <span className="text-xs text-on-surface-variant">{t("fields.useSSL")}</span>
             </label>
           )}
         />
@@ -175,7 +177,7 @@ function MailboxFormFields({ form }: { form: any }) {
         </h4>
         <div className="grid grid-cols-3 gap-2">
           <div className="col-span-2 flex flex-col gap-1.5">
-            <label className="text-[11px] font-medium text-on-surface-variant/60">Host</label>
+            <label className="text-[11px] font-medium text-on-surface-variant/60">{t("fields.smtpHost")}</label>
             <form.Field
               name="smtpHost"
               children={(field: any) => (
@@ -184,7 +186,7 @@ function MailboxFormFields({ form }: { form: any }) {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-medium text-on-surface-variant/60">Port</label>
+            <label className="text-[11px] font-medium text-on-surface-variant/60">{t("fields.smtpPort")}</label>
             <form.Field
               name="smtpPort"
               children={(field: any) => (
@@ -195,7 +197,7 @@ function MailboxFormFields({ form }: { form: any }) {
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-medium text-on-surface-variant/60">Username</label>
+            <label className="text-[11px] font-medium text-on-surface-variant/60">{t("fields.username")}</label>
             <form.Field
               name="smtpUser"
               children={(field: any) => (
@@ -204,7 +206,7 @@ function MailboxFormFields({ form }: { form: any }) {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-medium text-on-surface-variant/60">Password</label>
+            <label className="text-[11px] font-medium text-on-surface-variant/60">{t("fields.password")}</label>
             <form.Field
               name="smtpPassword"
               children={(field: any) => (
@@ -223,7 +225,7 @@ function MailboxFormFields({ form }: { form: any }) {
                 onChange={(e: any) => field.handleChange(e.target.checked)}
                 className="w-4 h-4 rounded border-outline-variant accent-primary"
               />
-              <span className="text-xs text-on-surface-variant">Use TLS/SSL</span>
+              <span className="text-xs text-on-surface-variant">{t("fields.useSSL")}</span>
             </label>
           )}
         />
@@ -238,6 +240,7 @@ function ConnectMailboxModal({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const tenantId = useAppStore((s) => s.tenantId);
+  const { t } = useTranslation("mailboxes");
 
   const form = useForm({
     defaultValues: {
@@ -253,7 +256,7 @@ function ConnectMailboxModal({ onClose }: { onClose: () => void }) {
       smtpPassword: "",
       smtpSecure: true,
     } satisfies MailboxFormValues,
-    validators: { onChange: createMailboxSchema.omit({ organizationId: true }) },
+    validators: { onChange: (createMailboxSchema as any).omit({ organizationId: true }) },
     onSubmit: async ({ value }) => {
       setError(null);
       if (!tenantId) { setError("No tenant context"); return; }
@@ -273,10 +276,8 @@ function ConnectMailboxModal({ onClose }: { onClose: () => void }) {
         if (value.smtpUser) payload.smtpUser = value.smtpUser;
         if (value.smtpPassword) payload.smtpPasswordEncrypted = value.smtpPassword;
 
-        const { res, body } = await apiFetch("/mailboxes", {
-          method: "POST",
-          body: JSON.stringify(payload),
-        });
+        const res = await api.mailboxes.index.$post({ json: payload as any });
+        const body = await res.json() as any;
         if (!res.ok) {
           setError(body?.error?.message || body?.message || "Failed to connect mailbox");
           return;
@@ -290,7 +291,7 @@ function ConnectMailboxModal({ onClose }: { onClose: () => void }) {
   });
 
   return (
-    <ModalShell title="Connect Mailbox" subtitle="Add IMAP/SMTP mailbox to ingest and send emails." onClose={onClose}>
+    <ModalShell title={t("connect")} subtitle="Add IMAP/SMTP mailbox to ingest and send emails." onClose={onClose}>
       <form onSubmit={(e) => { e.preventDefault(); e.stopPropagation(); form.handleSubmit(); }}>
         <div className="mx-5 mt-4">
           <FormAlert>{error ?? undefined}</FormAlert>
@@ -300,9 +301,9 @@ function ConnectMailboxModal({ onClose }: { onClose: () => void }) {
           <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
           <form.Subscribe
             selector={(s: any) => [s.canSubmit, s.isSubmitting]}
-            children={([canSubmit, isSubmitting]: [boolean, boolean]) => (
+            children={([canSubmit, isSubmitting]: any) => (
               <Button type="submit" disabled={!canSubmit} loading={isSubmitting}>
-                {!isSubmitting && "Connect Mailbox"}
+                {!isSubmitting && t("connect")}
               </Button>
             )}
           />
@@ -317,6 +318,7 @@ function ConnectMailboxModal({ onClose }: { onClose: () => void }) {
 function EditMailboxModal({ mailbox, onClose }: { mailbox: Mailbox; onClose: () => void }) {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation("mailboxes");
 
   const form = useForm({
     defaultValues: {
@@ -332,7 +334,7 @@ function EditMailboxModal({ mailbox, onClose }: { mailbox: Mailbox; onClose: () 
       smtpPassword: "",
       smtpSecure: mailbox.smtpSecure,
     } satisfies MailboxFormValues,
-    validators: { onChange: updateMailboxSchema },
+    validators: { onChange: updateMailboxSchema as any },
     onSubmit: async ({ value }) => {
       setError(null);
       try {
@@ -350,10 +352,8 @@ function EditMailboxModal({ mailbox, onClose }: { mailbox: Mailbox; onClose: () 
         if (value.smtpUser) payload.smtpUser = value.smtpUser;
         if (value.smtpPassword) payload.smtpPasswordEncrypted = value.smtpPassword;
 
-        const { res, body } = await apiFetch(`/mailboxes/${mailbox.id}`, {
-          method: "PUT",
-          body: JSON.stringify(payload),
-        });
+        const res = await api.mailboxes[":id"].$put({ param: { id: mailbox.id }, json: payload as any });
+        const body = await res.json() as any;
         if (!res.ok) {
           setError(body?.error?.message || body?.message || "Failed to update mailbox");
           return;
@@ -367,7 +367,7 @@ function EditMailboxModal({ mailbox, onClose }: { mailbox: Mailbox; onClose: () 
   });
 
   return (
-    <ModalShell title="Edit Mailbox" subtitle={mailbox.emailAddress} onClose={onClose}>
+    <ModalShell title={t("edit")} subtitle={mailbox.emailAddress} onClose={onClose}>
       <form onSubmit={(e) => { e.preventDefault(); e.stopPropagation(); form.handleSubmit(); }}>
         <div className="mx-5 mt-4">
           <FormAlert>{error ?? undefined}</FormAlert>
@@ -377,7 +377,7 @@ function EditMailboxModal({ mailbox, onClose }: { mailbox: Mailbox; onClose: () 
           <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
           <form.Subscribe
             selector={(s: any) => [s.canSubmit, s.isSubmitting]}
-            children={([canSubmit, isSubmitting]: [boolean, boolean]) => (
+            children={([canSubmit, isSubmitting]: any) => (
               <Button type="submit" disabled={!canSubmit} loading={isSubmitting}>
                 {!isSubmitting && "Save Changes"}
               </Button>
@@ -393,10 +393,12 @@ function EditMailboxModal({ mailbox, onClose }: { mailbox: Mailbox; onClose: () 
 
 function DeleteMailboxModal({ mailbox, onClose }: { mailbox: Mailbox; onClose: () => void }) {
   const queryClient = useQueryClient();
+  const { t } = useTranslation("mailboxes");
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const { res, body } = await apiFetch(`/mailboxes/${mailbox.id}`, { method: "DELETE" });
+      const res = await api.mailboxes[":id"].$delete({ param: { id: mailbox.id } });
+      const body = await res.json() as any;
       if (!res.ok) throw new Error(body?.error?.message || body?.message || "Failed to delete");
     },
     onSuccess: () => {
@@ -408,9 +410,9 @@ function DeleteMailboxModal({ mailbox, onClose }: { mailbox: Mailbox; onClose: (
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-surface-container border border-outline-variant rounded-xl shadow-2xl w-full max-w-sm p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-on-surface">Disconnect Mailbox</h3>
+        <h3 className="text-sm font-semibold text-on-surface">{t("actions.disconnect")}</h3>
         <p className="text-sm text-on-surface-variant leading-relaxed">
-          Disconnect{" "}
+          {t("actions.disconnect")}{" "}
           <span className="font-semibold text-on-surface">{mailbox.emailAddress}</span>?
           It will stop ingesting and sending emails.
         </p>
@@ -418,7 +420,7 @@ function DeleteMailboxModal({ mailbox, onClose }: { mailbox: Mailbox; onClose: (
         <div className="flex gap-2 justify-end">
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
           <Button variant="danger" onClick={() => mutation.mutate()} disabled={mutation.isPending} loading={mutation.isPending}>
-            {!mutation.isPending && "Disconnect"}
+            {!mutation.isPending && t("actions.disconnect")}
           </Button>
         </div>
       </div>
@@ -429,11 +431,13 @@ function DeleteMailboxModal({ mailbox, onClose }: { mailbox: Mailbox; onClose: (
 // ─── Mailbox health indicator ─────────────────────────────────────────────────
 
 function MailboxHealth({ mb }: { mb: Mailbox }) {
+  const { t } = useTranslation("mailboxes");
+
   if (!mb.isActive) {
     return (
       <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded border bg-white/8 text-on-surface-variant border-white/10">
         <WifiOff className="w-3 h-3" />
-        Inactive
+        {t("status.disconnected")}
       </span>
     );
   }
@@ -452,7 +456,7 @@ function MailboxHealth({ mb }: { mb: Mailbox }) {
   return (
     <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded border bg-emerald-500/15 text-emerald-300 border-emerald-500/20">
       <CheckCircle className="w-3 h-3" />
-      Connected
+      {t("status.connected")}
     </span>
   );
 }
@@ -461,12 +465,13 @@ function MailboxHealth({ mb }: { mb: Mailbox }) {
 
 function TestConnectionButton({ mailboxId }: { mailboxId: string }) {
   const { success, error: toastError } = useToast();
+  const { t } = useTranslation("mailboxes");
   const [testing, setTesting] = useState(false);
 
   const test = async () => {
     setTesting(true);
     try {
-      const { res } = await apiFetch(`/mailboxes/${mailboxId}/test`, { method: "POST" });
+      const res = await api.mailboxes[":id"].test.$post({ param: { id: mailboxId } });
       if (res.ok) {
         success("Connection successful");
       } else {
@@ -483,7 +488,7 @@ function TestConnectionButton({ mailboxId }: { mailboxId: string }) {
     <button
       onClick={test}
       disabled={testing}
-      title="Test connection"
+      title={t("actions.test")}
       className="p-1.5 rounded text-on-surface-variant/50 hover:text-primary hover:bg-primary/10 disabled:opacity-40 transition-colors"
     >
       <Zap className={`w-3.5 h-3.5 ${testing ? "animate-pulse" : ""}`} />
@@ -495,6 +500,7 @@ function MailboxesList() {
   const [showConnect, setShowConnect] = useState(false);
   const [editMailbox, setEditMailbox] = useState<Mailbox | null>(null);
   const [deleteMailbox, setDeleteMailbox] = useState<Mailbox | null>(null);
+  const { t } = useTranslation("mailboxes");
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["mailboxes"],
@@ -515,10 +521,10 @@ function MailboxesList() {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-[15px] font-semibold text-on-surface">Mailboxes</h1>
+          <h1 className="text-[15px] font-semibold text-on-surface">{t("title")}</h1>
           <Button onClick={() => setShowConnect(true)}>
             <Plus className="w-4 h-4" />
-            Connect Mailbox
+            {t("connect")}
           </Button>
         </div>
 
@@ -536,9 +542,9 @@ function MailboxesList() {
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
                 <Inbox className="w-5 h-5 text-primary" />
               </div>
-              <p className="text-sm font-medium text-on-surface mb-1">No mailboxes connected</p>
+              <p className="text-sm font-medium text-on-surface mb-1">{t("empty.title")}</p>
               <p className="text-xs text-on-surface-variant/40">
-                Connect IMAP/SMTP accounts to ingest and send emails.
+                {t("empty.subtitle")}
               </p>
             </div>
           ) : (
@@ -546,7 +552,7 @@ function MailboxesList() {
               <thead className="border-b border-outline-variant">
                 <tr>
                   <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">
-                    Email
+                    {t("fields.email")}
                   </th>
                   <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider hidden md:table-cell">
                     IMAP
@@ -555,7 +561,7 @@ function MailboxesList() {
                     SMTP
                   </th>
                   <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">
-                    Status
+                    {t("fields.status")}
                   </th>
                   <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider hidden lg:table-cell">
                     Last Sync
@@ -596,7 +602,7 @@ function MailboxesList() {
                         <button
                           onClick={() => setDeleteMailbox(mb)}
                           className="p-1.5 rounded text-on-surface-variant/50 hover:text-error hover:bg-error-container/20 transition-colors"
-                          title="Disconnect"
+                          title={t("actions.disconnect")}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

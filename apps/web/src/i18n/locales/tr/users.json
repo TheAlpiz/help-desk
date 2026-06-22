@@ -1,0 +1,116 @@
+{
+  "title": "Kullanıcılar",
+  "new": "Yeni Kullanıcı",
+  "invite": "Kullanıcı Davet Et",
+  "edit": "Kullanıcıyı Düzenle",
+  "count_one": "{{count}} kullanıcı",
+  "count_other": "{{count}} kullanıcı",
+  "fields": {
+    "firstName": "Ad",
+    "lastName": "Soyad",
+    "email": "E-posta",
+    "role": "Rol",
+    "department": "Departman",
+    "status": "Durum",
+    "lastLogin": "Son giriş",
+    "createdAt": "Oluşturulma",
+    "preferredLanguage": "Tercih edilen dil"
+  },
+  "roles": {
+    "admin": "Yönetici",
+    "agent": "Ajan",
+    "requester": "Talep Eden",
+    "supervisor": "Süpervizör",
+    "super_admin": "Süper Yönetici"
+  },
+  "actions": {
+    "deactivate": "Pasifleştir",
+    "activate": "Etkinleştir",
+    "resetPassword": "Şifre sıfırla",
+    "resendInvite": "Daveti yeniden gönder"
+  },
+  "empty": {
+    "title": "Henüz kullanıcı yok",
+    "subtitle": "Başlamak için ekip üyelerinizi davet edin."
+  },
+  "departments": {
+    "title": "Departmanlar",
+    "new": "Yeni Departman",
+    "count_one": "{{count}} üye",
+    "count_other": "{{count}} üye",
+    "empty": "Henüz departman yok.",
+    "noDepartments": "Departman yok"
+  },
+  "table": {
+    "pageTitle": "Kullanıcılar ve Roller",
+    "manageSubtitle": "Organizasyonunuzdaki kullanıcıları yönetin.",
+    "colName": "Ad",
+    "colEmail": "E-posta",
+    "colRole": "Rol",
+    "colStatus": "Durum",
+    "colActions": "İşlemler",
+    "selectAll": "Tümünü seç",
+    "deselectAll": "Tüm seçimleri kaldır",
+    "select": "Seç",
+    "deselect": "Seçimi kaldır",
+    "clearSelection": "Seçimi temizle",
+    "failedLoad": "Kullanıcılar yüklenemedi.",
+    "noUsers": "Henüz kullanıcı yok",
+    "inviteFirst": "İlk kullanıcıyı davet et",
+    "selected": "{{count}} seçildi",
+    "deactivate": "Pasifleştir",
+    "changeRole": "Rol değiştir",
+    "editTitle": "Düzenle",
+    "removeTitle": "Kaldır"
+  },
+  "invite": {
+    "title": "Kullanıcı Davet Et",
+    "firstNameLabel": "Ad *",
+    "lastNameLabel": "Soyad *",
+    "emailLabel": "E-posta *",
+    "roleLabel": "Rol *",
+    "passwordLabel": "Geçici Şifre *",
+    "submit": "Kullanıcı Davet Et",
+    "cancel": "İptal",
+    "required": "Zorunlu",
+    "invalidEmail": "Geçersiz e-posta",
+    "minPassword": "En az 8 karakter",
+    "failed": "Kullanıcı davet edilemedi",
+    "error": "Bir hata oluştu"
+  },
+  "editModal": {
+    "title": "Kullanıcıyı Düzenle",
+    "firstNameLabel": "Ad",
+    "lastNameLabel": "Soyad",
+    "roleLabel": "Rol",
+    "statusLabel": "Durum",
+    "statusActive": "Aktif",
+    "statusInactive": "Pasif",
+    "save": "Değişiklikleri Kaydet",
+    "cancel": "İptal",
+    "required": "Zorunlu",
+    "failed": "Kullanıcı güncellenemedi",
+    "error": "Bir hata oluştu"
+  },
+  "deleteModal": {
+    "title": "Kullanıcıyı Kaldır",
+    "confirm": "{{name}} ({{email}}) kaldırılsın mı? Bu işlem geri alınamaz.",
+    "cancel": "İptal",
+    "remove": "Kaldır",
+    "failed": "Silinemedi"
+  },
+  "drawer": {
+    "title": "Kullanıcı detayı",
+    "close": "Kapat",
+    "statusLabel": "Durum",
+    "lastLoginLabel": "Son giriş",
+    "departmentLabel": "Departman",
+    "neverLoggedIn": "Hiç",
+    "joined": "Katıldı {{date}}",
+    "editButton": "Kullanıcıyı düzenle"
+  },
+  "statuses": {
+    "active": "Aktif",
+    "inactive": "Pasif"
+  }
+}

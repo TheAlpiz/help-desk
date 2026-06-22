@@ -5,6 +5,7 @@ import { notification } from "../modules/notification/notification.schema";
 import { user } from "../modules/user/user.schema";
 import { CHANNEL_QUEUE } from "../modules/notification/notification.constants";
 import { wsGateway } from "../ws/gateway";
+import { sendPlatformEmail } from "../infra/mailer";
 
 interface NotificationJobData {
   userId: string;
@@ -67,13 +68,19 @@ export class NotificationWorker {
   }
 
   private async processEmail(job: Job<NotificationJobData>) {
-    const { userId, title, body } = job.data;
+    const { userId, title, body, actionUrl } = job.data;
     const [targetUser] = await withSuperAdminTransaction(async (tx) =>
       tx.select({ email: user.email }).from(user).where(eq(user.id, userId)).limit(1),
     );
     if (!targetUser) return;
-    // TODO: deliver via a platform transactional mailbox (SMTP). Stubbed for now.
-    console.log(`[EMAIL] -> ${targetUser.email} | ${title} | ${body}`);
+    const link = actionUrl
+      ? `<p><a href="${actionUrl}">${actionUrl}</a></p>`
+      : "";
+    await sendPlatformEmail({
+      to: targetUser.email,
+      subject: title,
+      html: `<p>${body}</p>${link}`,
+    });
   }
 
   private async processStub(channel: string, job: Job<NotificationJobData>) {

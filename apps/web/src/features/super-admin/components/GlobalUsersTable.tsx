@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { api, apiFetch } from "@/lib/api";
+import { api } from "@/lib/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { parseResponse } from "hono/client";
 import { z } from "zod";
 import { X, Pencil, Trash2, Users, UserCheck, ShieldCheck, UserCog } from "lucide-react";
 import { Button, Input, FormAlert, FormError, fieldErrors } from "@/components/ui";
+import { useTranslation } from "react-i18next";
 
 type GlobalUser = {
   id: string;
@@ -47,6 +48,8 @@ function ModalShell({ title, onClose, children }: { title: string; onClose: () =
 }
 
 function EditGlobalUserModal({ user, onClose }: { user: GlobalUser; onClose: () => void }) {
+  const { t } = useTranslation("superAdmin");
+  const { t: tCommon } = useTranslation("common");
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
@@ -61,7 +64,8 @@ function EditGlobalUserModal({ user, onClose }: { user: GlobalUser; onClose: () 
     onSubmit: async ({ value }) => {
       setError(null);
       try {
-        const { res, body } = await apiFetch(`/users/${user.id}`, { method: "PUT", body: JSON.stringify(value) });
+        const res = await api.users[":id"].$put({ param: { id: user.id }, json: value });
+        const body = await res.json() as any;
         if (!res.ok) { setError(body?.error?.message || body?.message || "Failed to update user"); return; }
         queryClient.invalidateQueries({ queryKey: ["global-users"] });
         onClose();
@@ -70,26 +74,26 @@ function EditGlobalUserModal({ user, onClose }: { user: GlobalUser; onClose: () 
   });
 
   return (
-    <ModalShell title="Edit User" onClose={onClose}>
+    <ModalShell title={t("globalUsers.editTitle")} onClose={onClose}>
       <form onSubmit={(e) => { e.preventDefault(); e.stopPropagation(); form.handleSubmit(); }} className="p-5 space-y-4">
         <FormAlert>{error ?? undefined}</FormAlert>
 
         <div className="px-3 py-2.5 bg-surface-container-low border border-outline-variant rounded-lg">
-          <p className="text-[10px] text-on-surface-variant/50 uppercase tracking-wider mb-0.5">Email (read-only)</p>
+          <p className="text-[10px] text-on-surface-variant/50 uppercase tracking-wider mb-0.5">{t("globalUsers.emailReadOnly")}</p>
           <p className="text-sm text-on-surface">{user.email}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <form.Field name="firstName" validators={{ onChange: z.string().min(1, "Required") }} children={(field) => (
+          <form.Field name="firstName" validators={{ onChange: z.string().min(1, t("globalUsers.required")) }} children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-on-surface">First Name</label>
+              <label className="text-xs font-medium text-on-surface">{t("globalUsers.firstName")}</label>
               <Input dense autoFocus value={field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(e.target.value)} />
               <FormError>{fieldErrors(field.state.meta.errors)}</FormError>
             </div>
           )} />
-          <form.Field name="lastName" validators={{ onChange: z.string().min(1, "Required") }} children={(field) => (
+          <form.Field name="lastName" validators={{ onChange: z.string().min(1, t("globalUsers.required")) }} children={(field) => (
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-on-surface">Last Name</label>
+              <label className="text-xs font-medium text-on-surface">{t("globalUsers.lastName")}</label>
               <Input dense value={field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(e.target.value)} />
               <FormError>{fieldErrors(field.state.meta.errors)}</FormError>
             </div>
@@ -98,7 +102,7 @@ function EditGlobalUserModal({ user, onClose }: { user: GlobalUser; onClose: () 
 
         <form.Field name="globalRole" children={(field) => (
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-on-surface">Global Role</label>
+            <label className="text-xs font-medium text-on-surface">{t("globalUsers.globalRole")}</label>
             <select className={selectCls} value={field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(e.target.value)}>
               {GLOBAL_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
             </select>
@@ -107,19 +111,19 @@ function EditGlobalUserModal({ user, onClose }: { user: GlobalUser; onClose: () 
 
         <form.Field name="status" children={(field) => (
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-on-surface">Status</label>
+            <label className="text-xs font-medium text-on-surface">{t("globalUsers.status")}</label>
             <select className={selectCls} value={field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(e.target.value as "active" | "inactive")}>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value="active">{tCommon("status.active")}</option>
+              <option value="inactive">{tCommon("status.inactive")}</option>
             </select>
           </div>
         )} />
 
         <div className="flex gap-2 justify-end pt-1">
-          <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button type="button" variant="secondary" onClick={onClose}>{tCommon("actions.cancel")}</Button>
           <form.Subscribe selector={(s) => [s.canSubmit, s.isSubmitting]} children={([canSubmit, isSubmitting]) => (
             <Button type="submit" disabled={!canSubmit} loading={isSubmitting}>
-              {!isSubmitting && "Save Changes"}
+              {!isSubmitting && t("globalUsers.saveChanges")}
             </Button>
           )} />
         </div>
@@ -129,26 +133,29 @@ function EditGlobalUserModal({ user, onClose }: { user: GlobalUser; onClose: () 
 }
 
 function DeleteGlobalUserModal({ user, onClose }: { user: GlobalUser; onClose: () => void }) {
+  const { t } = useTranslation("superAdmin");
+  const { t: tCommon } = useTranslation("common");
   const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: async () => {
-      const { res, body } = await apiFetch(`/users/${user.id}`, { method: "DELETE" });
+      const res = await api.users[":id"].$delete({ param: { id: user.id } });
+      const body = await res.json() as any;
       if (!res.ok) throw new Error(body?.error?.message || body?.message || "Failed to delete user");
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["global-users"] }); onClose(); },
   });
 
   return (
-    <ModalShell title="Delete User" onClose={onClose}>
+    <ModalShell title={t("globalUsers.deleteTitle")} onClose={onClose}>
       <div className="p-5 space-y-4">
         <p className="text-sm text-on-surface-variant">
-          Delete <span className="font-semibold text-on-surface">{user.firstName} {user.lastName}</span> ({user.email})? Cannot be undone.
+          {t("globalUsers.deleteConfirmPre")} <span className="font-semibold text-on-surface">{user.firstName} {user.lastName}</span> {t("globalUsers.deleteConfirmPost", { email: user.email })}
         </p>
         <FormError>{mutation.error ? (mutation.error as Error).message : undefined}</FormError>
         <div className="flex gap-2 justify-end">
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button variant="secondary" onClick={onClose}>{tCommon("actions.cancel")}</Button>
           <Button variant="danger" onClick={() => mutation.mutate()} disabled={mutation.isPending} loading={mutation.isPending}>
-            {!mutation.isPending && "Delete User"}
+            {!mutation.isPending && t("globalUsers.deleteUser")}
           </Button>
         </div>
       </div>
@@ -157,6 +164,8 @@ function DeleteGlobalUserModal({ user, onClose }: { user: GlobalUser; onClose: (
 }
 
 export function GlobalUsersTable() {
+  const { t } = useTranslation("superAdmin");
+  const { t: tCommon } = useTranslation("common");
   const [editUser, setEditUser] = useState<GlobalUser | null>(null);
   const [deleteUser, setDeleteUser] = useState<GlobalUser | null>(null);
 
@@ -180,10 +189,10 @@ export function GlobalUsersTable() {
       {/* Stats strip */}
       <div className="grid grid-cols-4 gap-3 mb-4">
         {[
-          { label: "Total Users", value: users.length, icon: <Users className="w-4 h-4" />, accent: "text-primary" },
-          { label: "Active", value: activeCount, icon: <UserCheck className="w-4 h-4" />, accent: "text-emerald-300" },
-          { label: "Admins", value: adminCount, icon: <ShieldCheck className="w-4 h-4" />, accent: "text-violet-300" },
-          { label: "Inactive", value: users.length - activeCount, icon: <UserCog className="w-4 h-4" />, accent: "text-on-surface-variant" },
+          { label: t("globalUsers.stats.total"), value: users.length, icon: <Users className="w-4 h-4" />, accent: "text-primary" },
+          { label: t("globalUsers.stats.active"), value: activeCount, icon: <UserCheck className="w-4 h-4" />, accent: "text-emerald-300" },
+          { label: t("globalUsers.stats.admins"), value: adminCount, icon: <ShieldCheck className="w-4 h-4" />, accent: "text-violet-300" },
+          { label: t("globalUsers.stats.inactive"), value: users.length - activeCount, icon: <UserCog className="w-4 h-4" />, accent: "text-on-surface-variant" },
         ].map((s) => (
           <div key={s.label} className="bg-surface-container border border-outline-variant rounded-xl p-4 flex items-center gap-3">
             <div className={`w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center ${s.accent}`}>{s.icon}</div>
@@ -199,17 +208,17 @@ export function GlobalUsersTable() {
         {isLoading ? (
           <div className="p-8 space-y-3">{[...Array(5)].map((_, i) => <div key={i} className="h-10 bg-white/5 rounded animate-pulse" />)}</div>
         ) : error ? (
-          <div className="p-8 text-center text-error text-sm">Failed to load users.</div>
+          <div className="p-8 text-center text-error text-sm">{t("globalUsers.loadFailed")}</div>
         ) : (
           <table className="w-full text-left">
             <thead className="border-b border-outline-variant">
               <tr>
-                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">User</th>
-                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider hidden md:table-cell">Email</th>
-                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">Role</th>
-                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider hidden lg:table-cell">Last Login</th>
-                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider text-right">Actions</th>
+                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("globalUsers.cols.user")}</th>
+                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider hidden md:table-cell">{t("globalUsers.cols.email")}</th>
+                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("globalUsers.cols.role")}</th>
+                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("globalUsers.cols.status")}</th>
+                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider hidden lg:table-cell">{t("globalUsers.cols.lastLogin")}</th>
+                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider text-right">{t("globalUsers.cols.actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant">
@@ -235,12 +244,12 @@ export function GlobalUsersTable() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-on-surface-variant/60 hidden lg:table-cell">
-                    {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString() : "Never"}
+                    {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString() : t("globalUsers.never")}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => setEditUser(u)} className="p-1.5 rounded text-on-surface-variant/50 hover:text-on-surface hover:bg-white/5 transition-colors" title="Edit"><Pencil className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => setDeleteUser(u)} className="p-1.5 rounded text-on-surface-variant/50 hover:text-error hover:bg-error-container/20 transition-colors" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => setEditUser(u)} className="p-1.5 rounded text-on-surface-variant/50 hover:text-on-surface hover:bg-white/5 transition-colors" title={tCommon("actions.edit")}><Pencil className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => setDeleteUser(u)} className="p-1.5 rounded text-on-surface-variant/50 hover:text-error hover:bg-error-container/20 transition-colors" title={tCommon("actions.delete")}><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </td>
                 </tr>
@@ -250,7 +259,7 @@ export function GlobalUsersTable() {
                   <td colSpan={6} className="px-4 py-16 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"><Users className="w-5 h-5 text-primary" /></div>
-                      <p className="text-sm font-medium text-on-surface">No users found</p>
+                      <p className="text-sm font-medium text-on-surface">{t("globalUsers.noUsers")}</p>
                     </div>
                   </td>
                 </tr>

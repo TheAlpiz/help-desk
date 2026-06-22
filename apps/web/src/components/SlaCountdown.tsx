@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Clock, AlertTriangle, CheckCircle } from "lucide-react";
 
 interface SlaCountdownProps {
   targetAt: string | null;
   met: boolean | null;
   label?: string;
+  ticketStatus?: string | null;
 }
 
 function formatDuration(ms: number): string {
@@ -15,26 +17,39 @@ function formatDuration(ms: number): string {
   return `${m}m`;
 }
 
-export function SlaCountdown({ targetAt, met, label = "SLA" }: SlaCountdownProps) {
+const CLOSED_STATUSES = new Set(["resolved", "closed"]);
+
+export function SlaCountdown({ targetAt, met, label = "SLA", ticketStatus }: SlaCountdownProps) {
+  const { t } = useTranslation("sla");
   const [now, setNow] = useState(Date.now());
+  const isClosed = ticketStatus ? CLOSED_STATUSES.has(ticketStatus) : false;
 
   useEffect(() => {
-    if (met || !targetAt) return;
+    if (met || !targetAt || isClosed) return;
     const id = setInterval(() => setNow(Date.now()), 30000);
     return () => clearInterval(id);
-  }, [met, targetAt]);
+  }, [met, targetAt, isClosed]);
 
   if (met === true) {
     return (
       <div className="flex items-center gap-1.5 text-emerald-400">
         <CheckCircle className="w-3.5 h-3.5 shrink-0" />
-        <span className="text-xs font-medium">{label} met</span>
+        <span className="text-xs font-medium">{t("countdown.met", { label })}</span>
+      </div>
+    );
+  }
+
+  if (isClosed) {
+    return (
+      <div className="flex items-center gap-1.5 text-on-surface-variant/40">
+        <CheckCircle className="w-3.5 h-3.5 shrink-0" />
+        <span className="text-xs font-medium">{t("countdown.closed")}</span>
       </div>
     );
   }
 
   if (!targetAt) {
-    return <span className="text-xs text-on-surface-variant/30">No SLA</span>;
+    return <span className="text-xs text-on-surface-variant/30">{t("countdown.noSla")}</span>;
   }
 
   const target = new Date(targetAt).getTime();
@@ -54,7 +69,7 @@ export function SlaCountdown({ targetAt, met, label = "SLA" }: SlaCountdownProps
         <Clock className="w-3.5 h-3.5 shrink-0" />
       )}
       <span className="text-xs font-medium font-mono">
-        {isBreached ? `Breached ${formatDuration(Math.abs(remaining))} ago` : formatDuration(remaining)}
+        {isBreached ? t("countdown.breached", { duration: formatDuration(Math.abs(remaining)) }) : formatDuration(remaining)}
       </span>
     </div>
   );

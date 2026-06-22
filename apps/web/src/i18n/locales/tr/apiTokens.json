@@ -1,0 +1,32 @@
+{
+  "title": "API Anahtarları",
+  "subtitle": "API entegrasyonları için kişisel erişim anahtarları oluşturun.",
+  "comingSoon": {
+    "title": "Kişisel API anahtarları",
+    "description": "Alpis'i araçlarınız, betikleriniz, CI hatlarınız ve üçüncü taraf hizmetlerle entegre etmek için kapsamlı erişim anahtarları oluşturun.",
+    "badge": "Geliştiriliyor",
+    "eta": "Q3 2025",
+    "features": {
+      "scopes": {
+        "label": "İnce taneli kapsamlar",
+        "description": "Her anahtarı tam olarak ihtiyaç duyduğu izinlerle sınırlayın — tickets:read, users:write ve daha fazlası."
+      },
+      "secure": {
+        "label": "Tasarım gereği güvenli",
+        "description": "Anahtarlar oluşturulduğunda bir kez gösterilir. Yalnızca karma öneki saklanır — sır asla."
+      },
+      "revocation": {
+        "label": "Anında iptal",
+        "description": "Diğer entegrasyonları etkilemeden herhangi bir anahtarı anında iptal edin."
+      },
+      "lastUsed": {
+        "label": "Son kullanım takibi",
+        "description": "Eski anahtarları denetlemek ve temizlemek için her anahtarın en son ne zaman kullanıldığını görün."
+      },
+      "restAccess": {
+        "label": "Tam REST erişimi",
+        "description": "Herhangi bir API isteğini doğrulayın — talepleri listeleyin, durumları güncelleyin, otomasyonları tetikleyin."
+      }
+    }
+  }
+}

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Shield, Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { api } from "@/lib/api";
 import { ErrorState, getErrorVariant } from "@/components/ErrorState";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/_auth/audit-logs")({
   component: AuditLogs,
@@ -12,6 +13,7 @@ export const Route = createFileRoute("/_auth/audit-logs")({
 const PAGE_SIZE = 30;
 
 function AuditLogs() {
+  const { t } = useTranslation("audit-logs");
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
   const [action, setAction] = useState("");
@@ -41,10 +43,10 @@ function AuditLogs() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Shield className="w-4 h-4 text-on-surface-variant" />
-          <h1 className="text-[15px] font-semibold text-on-surface">Audit Log</h1>
+          <h1 className="text-[15px] font-semibold text-on-surface">{t("title")}</h1>
           {total > 0 && (
             <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-white/8 text-on-surface-variant border border-white/10">
-              {total.toLocaleString()} events
+              {t("events", { count: total.toLocaleString() })}
             </span>
           )}
         </div>
@@ -54,7 +56,7 @@ function AuditLogs() {
             <input
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-              placeholder="Search actor, entity..."
+              placeholder={t("search")}
               className="pl-8 pr-3 py-2 bg-surface-container border border-outline-variant rounded-lg text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary/50 w-52 transition-colors"
             />
             {search && (
@@ -66,7 +68,7 @@ function AuditLogs() {
           <input
             value={action}
             onChange={(e) => { setAction(e.target.value); setPage(0); }}
-            placeholder="Filter by action..."
+            placeholder={t("filterAction")}
             className="px-3 py-2 bg-surface-container border border-outline-variant rounded-lg text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary/50 w-40 transition-colors"
           />
         </div>
@@ -84,9 +86,9 @@ function AuditLogs() {
         ) : logs.length === 0 ? (
           <div className="p-16 text-center">
             <Shield className="w-8 h-8 text-on-surface-variant/20 mx-auto mb-3" />
-            <p className="text-sm font-medium text-on-surface">No audit events</p>
+            <p className="text-sm font-medium text-on-surface">{t("empty.title")}</p>
             <p className="text-xs text-on-surface-variant/40 mt-1">
-              {search || action ? "No events match your filter" : "System events will appear here"}
+              {search || action ? t("empty.filtered") : t("empty.noFilter")}
             </p>
           </div>
         ) : (
@@ -94,11 +96,11 @@ function AuditLogs() {
             <table className="w-full text-left">
               <thead className="border-b border-outline-variant">
                 <tr>
-                  <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">Time</th>
-                  <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">Actor</th>
-                  <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">Action</th>
-                  <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">Entity</th>
-                  <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider hidden lg:table-cell">Entity ID</th>
+                  <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("table.time")}</th>
+                  <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("table.actor")}</th>
+                  <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("table.action")}</th>
+                  <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("table.entity")}</th>
+                  <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider hidden lg:table-cell">{t("table.entityId")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant">
@@ -108,7 +110,7 @@ function AuditLogs() {
                       {new Date(log.createdAt).toLocaleString()}
                     </td>
                     <td className="px-4 py-3 text-xs text-on-surface font-mono">
-                      {log.actorId?.slice(0, 8) ?? "system"}
+                      {log.actorId?.slice(0, 8) ?? t("system")}
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
@@ -129,7 +131,7 @@ function AuditLogs() {
             {totalPages > 1 && (
               <div className="flex items-center justify-between px-4 py-3 border-t border-outline-variant">
                 <span className="text-xs text-on-surface-variant/60">
-                  Page {page + 1} of {totalPages}
+                  {t("pagination", { page: page + 1, total: totalPages })}
                 </span>
                 <div className="flex items-center gap-1">
                   <button

@@ -1,0 +1,159 @@
+{
+  "title": "SLA",
+  "new": "Yeni SLA Politikası",
+  "edit": "SLA Politikasını Düzenle",
+  "count_one": "{{count}} politika",
+  "count_other": "{{count}} politika",
+  "tabs": {
+    "policies": "Politikalar",
+    "breach": "İhlal Panosu",
+    "hours": "Çalışma Saatleri",
+    "escalation": "Yükseltme Kuralları"
+  },
+  "priorities": {
+    "any": "Herhangi bir öncelik",
+    "low": "Düşük",
+    "medium": "Orta",
+    "high": "Yüksek",
+    "critical": "Kritik"
+  },
+  "fields": {
+    "name": "Ad",
+    "firstResponseHours": "İlk yanıt (saat)",
+    "resolutionHours": "Çözüm (saat)",
+    "department": "Departman",
+    "priority": "Öncelik",
+    "businessHours": "Yalnızca çalışma saatleri"
+  },
+  "table": {
+    "intro": "Yanıt ve çözüm süresi hedeflerini tanımlayın.",
+    "newPolicy": "Yeni Politika",
+    "loadError": "SLA politikaları yüklenemedi.",
+    "policyName": "Politika Adı",
+    "firstResponse": "İlk Yanıt",
+    "resolution": "Çözüm",
+    "department": "Departman",
+    "priority": "Öncelik",
+    "status": "Durum",
+    "actions": "İşlemler",
+    "any": "Herhangi",
+    "active": "Etkin",
+    "inactive": "Pasif",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "emptyTitle": "Henüz SLA politikası yok",
+    "createFirst": "İlk politikayı oluştur"
+  },
+  "duration": {
+    "min": "{{count}} dk",
+    "hours": "{{count}}s",
+    "hoursMins": "{{hours}}s {{mins}}dk"
+  },
+  "modal": {
+    "createTitle": "Yeni SLA Politikası",
+    "editTitle": "SLA Politikasını Düzenle",
+    "deleteTitle": "SLA Politikasını Sil",
+    "policyName": "Politika Adı *",
+    "policyNamePlaceholder": "örn. Standart SLA",
+    "firstResponseMin": "İlk Yanıt (dk) *",
+    "resolutionMin": "Çözüm (dk) *",
+    "departmentOptional": "Departman (isteğe bağlı)",
+    "anyDepartment": "Herhangi bir departman",
+    "priorityOptional": "Öncelik (isteğe bağlı)",
+    "catchAllHint": "Genel bir politika için departman/öncelik alanlarını boş bırakın. Daha belirli politikalar önceliklidir.",
+    "activePolicy": "Etkin politika",
+    "cancel": "İptal",
+    "createPolicy": "Politika Oluştur",
+    "saveChanges": "Değişiklikleri Kaydet",
+    "deleteConfirmPre": "Silinsin mi:",
+    "deleteConfirmPost": "? Geri alınamaz.",
+    "delete": "Sil",
+    "errors": {
+      "nameRequired": "Ad gereklidir",
+      "minMinute": "En az 1 dakika",
+      "createFailed": "SLA politikası oluşturulamadı",
+      "updateFailed": "SLA politikası güncellenemedi",
+      "deleteFailed": "Silinemedi",
+      "generic": "Bir hata oluştu"
+    }
+  },
+  "breach": {
+    "title": "SLA İhlali Panosu",
+    "breached": "İhlal Edildi",
+    "atRisk": "Risk Altında",
+    "atRiskWindow": "Risk altında (< 2sa)",
+    "totalActive": "Toplam aktif",
+    "healthy": "Sağlıklı",
+    "noBreaches": "İhlal edilmiş SLA yok",
+    "atRiskTickets": "Risk altındaki talepler",
+    "resolution": "Çözüm",
+    "firstResponse": "İlk yanıt",
+    "allWithinTitle": "Tüm talepler SLA içinde",
+    "allWithinSubtitle": "Hiçbir talep SLA ihlali riski altında değil"
+  },
+  "businessHours": {
+    "title": "Çalışma Saatleri",
+    "description": "SLA sayacının çalışacağı saatleri yapılandırın. Bu saatler dışında SLA sayaçları duraklar.",
+    "timezone": "Saat dilimi",
+    "colDay": "Gün",
+    "colOn": "Açık",
+    "colStart": "Başlangıç",
+    "colEnd": "Bitiş",
+    "save": "Programı kaydet",
+    "saved": "Çalışma saatleri kaydedildi",
+    "saveFailed": "Kaydetme başarısız",
+    "days": {
+      "Monday": "Pazartesi",
+      "Tuesday": "Salı",
+      "Wednesday": "Çarşamba",
+      "Thursday": "Perşembe",
+      "Friday": "Cuma",
+      "Saturday": "Cumartesi",
+      "Sunday": "Pazar"
+    }
+  },
+  "escalation": {
+    "intro": "SLA koşulları karşılandığında kurallar otomatik olarak çalışır.",
+    "addRule": "Kural ekle",
+    "empty": "Yükseltme kuralı yok. Başlamak için bir tane ekleyin.",
+    "newRule": "Yeni kural",
+    "ruleName": "Kural adı",
+    "deleteRule": "Kuralı sil",
+    "enableRule": "Kuralı etkinleştir",
+    "disableRule": "Kuralı devre dışı bırak",
+    "when": "Ne zaman",
+    "threshold": "Eşik (dakika)",
+    "thenDo": "Şunu yap",
+    "save": "Kuralları kaydet",
+    "loadError": "Kurallar yüklenemedi",
+    "createFailed": "Oluşturma başarısız",
+    "updateFailed": "Güncelleme başarısız",
+    "deleteFailed": "Silme başarısız",
+    "toggleFailed": "Değiştirme başarısız",
+    "saved": "Yükseltme kuralları kaydedildi",
+    "needsAction": "\"{{name}}\" kuralı en az bir işlem gerektirir",
+    "conditions": {
+      "breach_imminent": "SLA ihlali yakın (eşik içinde)",
+      "first_breach": "İlk SLA ihlali",
+      "repeated_breach": "Tekrarlanan SLA ihlali",
+      "no_response": "Eşik içinde temsilci yanıtı yok"
+    },
+    "actions": {
+      "notify_agent": "Atanan temsilciye bildir",
+      "notify_manager": "Ekip yöneticisine bildir",
+      "reassign": "Uygun temsilciye yeniden ata",
+      "add_tag": "Yükseltildi etiketi ekle",
+      "increase_priority": "Talep önceliğini artır"
+    }
+  },
+  "empty": {
+    "title": "SLA politikası yok",
+    "subtitle": "Yanıt ve çözüm sürelerini takip etmek için politikalar oluşturun."
+  },
+  "countdown": {
+    "met": "{{label}} karşılandı",
+    "closed": "Talep kapatıldı",
+    "noSla": "SLA yok",
+    "breached": "{{duration}} önce ihlal edildi"
+  }
+}

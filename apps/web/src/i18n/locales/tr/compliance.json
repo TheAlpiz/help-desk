@@ -1,0 +1,30 @@
+{
+  "title": "Uyumluluk",
+  "subtitle": "Uyumluluk durumu, veri sahibi hakları ve yasal tutmalar.",
+  "dashboard": {
+    "title": "Uyumluluk Paneli",
+    "description": "GDPR, SOC 2 ve ISO 27001 uyumluluk durumunu yönetin, veri sahibi taleplerini karşılayın ve yasal tutmalar oluşturun — hepsi tek bir yerden."
+  },
+  "features": {
+    "frameworkTracking": {
+      "label": "Çerçeve takibi",
+      "description": "GDPR, SOC 2 Tip II, ISO 27001 ve HIPAA denetim geçiş oranlarını gerçek zamanlı izleyin."
+    },
+    "dataSubjectRequests": {
+      "label": "Veri sahibi talepleri",
+      "description": "Erişim, silme, taşınabilirlik ve düzeltme taleplerini alın ve işleme koyun."
+    },
+    "legalHolds": {
+      "label": "Yasal tutmalar",
+      "description": "Dava veya denetimler için biletleri ve verileri dondurun, çözümlenince serbest bırakın."
+    },
+    "automatedChecks": {
+      "label": "Otomatik uyumluluk kontrolleri",
+      "description": "Gecelik taramalar şifreleme, MFA, oturum ve veri eşleme açıklarını ortaya çıkarır."
+    },
+    "auditReports": {
+      "label": "Denetime hazır raporlar",
+      "description": "Denetçiler için tek tıkla tam uyumluluk raporu dışa aktarın."
+    }
+  }
+}

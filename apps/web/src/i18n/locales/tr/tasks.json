@@ -1,0 +1,55 @@
+{
+  "title": "Görevler",
+  "new": "Yeni Görev",
+  "create": "Görev Oluştur",
+  "count_one": "{{count}} görev",
+  "count_other": "{{count}} görev",
+  "fields": {
+    "title": "Başlık",
+    "description": "Açıklama",
+    "status": "Durum",
+    "priority": "Öncelik",
+    "assignee": "Atanan",
+    "dueDate": "Bitiş tarihi",
+    "ticket": "İlgili talep",
+    "comments": "Yorumlar",
+    "attachments": "Ekler"
+  },
+  "statuses": {
+    "todo": "Yapılacak",
+    "in_progress": "İşlemde",
+    "blocked": "Engellendi",
+    "review": "İnceleniyor",
+    "done": "Tamamlandı",
+    "canceled": "İptal Edildi"
+  },
+  "actions": {
+    "updateStatus": "Durumu güncelle",
+    "addComment": "Yorum ekle…",
+    "assign": "Görevi ata"
+  },
+  "dueDate": {
+    "dueIn": "{{time}} içinde sona erer",
+    "overdue": "{{time}} gecikmiş",
+    "noDueDate": "Bitiş tarihi yok"
+  },
+  "empty": {
+    "title": "Henüz görev yok",
+    "create": "İlk görevi oluştur"
+  },
+  "views": {
+    "kanban": "Kanban",
+    "list": "Liste"
+  },
+  "bulk": {
+    "selected": "{{count}} seçili",
+    "moveTo": "→ {{status}}"
+  },
+  "columns": {
+    "todo": "Yapılacak",
+    "in_progress": "İşlemde",
+    "blocked": "Engellendi",
+    "review": "İnceleniyor",
+    "done": "Tamamlandı"
+  }
+}

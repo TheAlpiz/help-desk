@@ -3,6 +3,7 @@ import { z } from "zod";
 import { useEffect, useState } from "react";
 import { Ticket, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { api } from "../lib/api";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/verify-email")({
   validateSearch: z.object({ token: z.string().optional() }),
@@ -12,6 +13,7 @@ export const Route = createFileRoute("/verify-email")({
 type State = "pending" | "success" | "error" | "no-token";
 
 function VerifyEmail() {
+  const { t } = useTranslation("auth");
   const { token } = Route.useSearch();
   const [state, setState] = useState<State>(token ? "pending" : "no-token");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -56,9 +58,9 @@ function VerifyEmail() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-on-surface tracking-tight mb-1">
-                Verifying…
+                {t("verifyEmail.pendingTitle")}
               </h1>
-              <p className="text-sm text-on-surface-variant">Confirming your email address.</p>
+              <p className="text-sm text-on-surface-variant">{t("verifyEmail.pendingSubtitle")}</p>
             </div>
           </>
         )}
@@ -70,17 +72,17 @@ function VerifyEmail() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-on-surface tracking-tight mb-1">
-                Email verified
+                {t("verifyEmail.successTitle")}
               </h1>
               <p className="text-sm text-on-surface-variant leading-relaxed">
-                Your email address has been confirmed. You can now sign in.
+                {t("verifyEmail.successMessage")}
               </p>
             </div>
             <Link
               to="/login"
               className="inline-flex items-center justify-center gap-2 py-2.5 px-4 text-sm font-medium bg-primary text-on-primary rounded-lg hover:bg-primary/90 transition-colors active:scale-[0.99]"
             >
-              Sign in
+              {t("verifyEmail.signIn")}
             </Link>
           </>
         )}
@@ -92,17 +94,17 @@ function VerifyEmail() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-on-surface tracking-tight mb-1">
-                Verification failed
+                {t("verifyEmail.errorTitle")}
               </h1>
               <p className="text-sm text-on-surface-variant leading-relaxed">
-                {errorMsg ?? "This link may have expired or already been used."}
+                {errorMsg ?? t("verifyEmail.errorFallback")}
               </p>
             </div>
             <Link
               to="/login"
               className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
             >
-              Back to sign in
+              {t("verifyEmail.backToSignIn")}
             </Link>
           </>
         )}
@@ -114,17 +116,17 @@ function VerifyEmail() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-on-surface tracking-tight mb-1">
-                Invalid link
+                {t("verifyEmail.noTokenTitle")}
               </h1>
               <p className="text-sm text-on-surface-variant">
-                This verification link is missing a token.
+                {t("verifyEmail.noTokenMessage")}
               </p>
             </div>
             <Link
               to="/login"
               className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
             >
-              Back to sign in
+              {t("verifyEmail.backToSignIn")}
             </Link>
           </>
         )}

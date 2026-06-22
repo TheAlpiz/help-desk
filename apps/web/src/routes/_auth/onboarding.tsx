@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { authFetch } from "@/lib/api";
+import { api } from "@/lib/api";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
@@ -25,13 +25,7 @@ const STEPS = [
   { id: "done", label: "All set!", icon: CheckCircle },
 ] as const;
 
-function getAuthHeaders() {
-  const state = useAppStore.getState();
-  const h: Record<string, string> = { "Content-Type": "application/json" };
-  if (state.accessToken) h["Authorization"] = `Bearer ${state.accessToken}`;
-  if (state.tenantId) h["X-Tenant-ID"] = state.tenantId;
-  return h;
-}
+
 
 function OrgStep({ onNext }: { onNext: () => void }) {
   const [name, setName] = useState("");
@@ -40,11 +34,29 @@ function OrgStep({ onNext }: { onNext: () => void }) {
   const save = useMutation({
     mutationFn: async () => {
       if (!name.trim()) return;
-      await authFetch("/api/organizations", {
-        method: "PUT",
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ name, supportEmail }),
+      
+      const tenantId = useAppStore.getState().tenantId!;
+      
+      // 1. Update org name
+      const resOrg = await api.organizations[":id"].$put({
+        param: { id: tenantId },
+        json: { name } as any,
       });
+      if (!resOrg.ok) throw new Error("Failed to update org");
+
+      // 2. Update support email via branding endpoint
+      if (supportEmail.trim()) {
+        const currentRes = await (api.organizations as any).branding.$get();
+        const currentBranding = currentRes.ok ? (await currentRes.json())?.data || {} : {};
+        
+        const resBranding = await (api.organizations as any).branding.$put({
+          json: { 
+            ...currentBranding,
+            supportEmail: supportEmail.trim() 
+          } as any,
+        });
+        if (!resBranding.ok) throw new Error("Failed to update support email");
+      }
     },
     onSuccess: onNext,
     onError: onNext,
@@ -81,10 +93,8 @@ function MailboxStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => voi
 
   const connect = useMutation({
     mutationFn: async () => {
-      const res = await authFetch("/api/mailboxes", {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify({
+      const res = await api.mailboxes.index.$post({
+        json: {
           emailAddress: email,
           imapHost,
           imapPort: 993,
@@ -94,7 +104,7 @@ function MailboxStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => voi
           smtpSecure: true,
           username: email,
           password: imapPassword,
-        }),
+        } as any,
       });
       if (!res.ok) throw new Error("Failed");
     },
@@ -134,10 +144,8 @@ function TeamStep({ onNext }: { onNext: () => void }) {
       const valid = emails.filter((e) => e.includes("@"));
       await Promise.allSettled(
         valid.map((email) =>
-          authFetch("/api/users/invite", {
-            method: "POST",
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ email, globalRole: "AGENT" }),
+          api.users.index.$post({
+            json: { email, globalRole: "AGENT" } as any,
           }),
         ),
       );

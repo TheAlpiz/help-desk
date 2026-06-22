@@ -18,11 +18,11 @@ export const session = pgTable("session", {
   // If a token that has already been rotated is presented again, that is a replay →
   // we revoke the whole chain (reuse detection).
   rotatedToTokenHash: varchar("rotated_to_token_hash", { length: 64 }),
-  reuseDetectedAt: timestamp("reuse_detected_at"),
+  reuseDetectedAt: timestamp("reuse_detected_at", { withTimezone: true }),
   userAgent: varchar("user_agent", { length: 512 }),
   ipAddress: varchar("ip_address", { length: 45 }),
-  expiresAt: timestamp("expires_at").notNull(),
-  revokedAt: timestamp("revoked_at"),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
   ...timestamps,
 });
 

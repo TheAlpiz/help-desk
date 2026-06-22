@@ -1,0 +1,122 @@
+{
+  "title": "Reports",
+  "tabs": {
+    "analytics": "Analytics",
+    "builder": "Report Builder",
+    "scheduled": "Scheduled",
+    "saved": "Saved"
+  },
+  "dashboard": {
+    "title": "Analytics & Reports",
+    "exportCsv": "Export CSV",
+    "range": "Range:",
+    "dateFrom": "Date from",
+    "dateTo": "Date to",
+    "presets": {
+      "7": "Last 7 days",
+      "30": "Last 30 days",
+      "90": "Last 90 days",
+      "365": "This year"
+    },
+    "kpi": {
+      "totalTickets": "Total Tickets",
+      "resolutionRate": "Resolution Rate",
+      "slaCompliance": "SLA Compliance",
+      "taskCompletion": "Task Completion"
+    },
+    "charts": {
+      "byStatus": "Tickets by Status",
+      "slaCompliance": "SLA Compliance",
+      "agentPerformance": "Agent Performance",
+      "taskCompletion": "Task Completion"
+    },
+    "sla": {
+      "firstResponse": "First Response",
+      "withSla": "With SLA",
+      "met": "Met"
+    },
+    "agent": {
+      "unassigned": "Unassigned",
+      "resolved": "{{count}} resolved"
+    },
+    "task": {
+      "completionRate": "Completion rate",
+      "total": "Total",
+      "completed": "Completed",
+      "overdue": "Overdue"
+    },
+    "empty": "No data yet",
+    "emptyAgents": "No resolved tickets yet"
+  },
+  "analytics": {
+    "openTickets": "Open tickets",
+    "resolved": "Resolved",
+    "avgResolutionHours": "Avg resolution (hrs)",
+    "slaCompliance": "SLA compliance",
+    "byStatus": "By status",
+    "byPriority": "By priority",
+    "byAgent": "By agent",
+    "byDepartment": "By department",
+    "period": "Period",
+    "last7days": "Last 7 days",
+    "last30days": "Last 30 days",
+    "last90days": "Last 90 days",
+    "custom": "Custom range"
+  },
+  "builder": {
+    "title": "Report Builder",
+    "description": "Build custom queries over tickets, tasks, SLA policies, and audit logs with a no-code interface.",
+    "dataset": "Dataset",
+    "metric": "Metric",
+    "groupBy": "Group by",
+    "filters": "Filters",
+    "addFilter": "Add filter",
+    "noFilters": "No filters — all records included",
+    "rowLimit": "Row limit",
+    "runQuery": "Run query",
+    "saveReport": "Save report",
+    "exportCsv": "Export CSV",
+    "features": {
+      "datasetLabel": "Dataset & metric picker",
+      "datasetDesc": "Choose count, avg resolution time, SLA compliance rate, and more.",
+      "groupingLabel": "Grouping & filters",
+      "groupingDesc": "Group by status, priority, assignee, department, or date with any combination of filters.",
+      "exportLabel": "Export",
+      "exportDesc": "Export results as CSV directly from the builder."
+    }
+  },
+  "scheduled": {
+    "title": "Scheduled Reports",
+    "description": "Deliver reports automatically on a daily, weekly, or monthly cadence via email, Slack, or webhook.",
+    "activeCount": "{{count}} active schedules",
+    "newSchedule": "New schedule",
+    "frequency": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly"
+    },
+    "channel": {
+      "email": "Email",
+      "slack": "Slack",
+      "webhook": "Webhook"
+    },
+    "features": {
+      "schedulingLabel": "Flexible scheduling",
+      "schedulingDesc": "Daily, weekly, and monthly delivery with configurable run times.",
+      "deliveryLabel": "Multi-channel delivery",
+      "deliveryDesc": "Send to email addresses, Slack channels, or any webhook URL."
+    }
+  },
+  "saved": {
+    "title": "Saved Reports",
+    "description": "Save any report configuration and run it again with one click, or pin it to your dashboard.",
+    "saveNew": "Save new report",
+    "empty": "No saved reports",
+    "features": {
+      "saveLabel": "Save any query",
+      "saveDesc": "Persist dataset, filters, and groupings for instant re-runs.",
+      "exportLabel": "One-click export",
+      "exportDesc": "Download saved reports as CSV or PDF at any time."
+    }
+  }
+}

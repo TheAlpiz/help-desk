@@ -1,0 +1,69 @@
+{
+  "title": "Profil",
+  "subtitle": "Kişisel bilgilerinizi yönetin.",
+  "sections": {
+    "personalInfo": "Kişisel bilgiler",
+    "preferences": "Tercihler",
+    "language": "Dil",
+    "theme": "Tema",
+    "timezone": "Saat dilimi",
+    "locale": "Yerel ayar"
+  },
+  "fields": {
+    "firstName": "Ad",
+    "lastName": "Soyad",
+    "email": "E-posta adresi",
+    "phone": "Telefon",
+    "avatar": "Fotoğraf",
+    "bio": "Biyografi",
+    "preferredLanguage": "Tercih edilen dil",
+    "timezone": "Saat dilimi",
+    "role": "Rol",
+    "locale": "Yerel ayar"
+  },
+  "emailHint": "E-posta değişiklikleri doğrulama gerektirir — yöneticinizle iletişime geçin.",
+  "save": "Profili kaydet",
+  "saved": "Profil kaydedildi",
+  "saveChanges": "Değişiklikleri kaydet",
+  "savedChanges": "Kaydedildi!",
+  "savePreferences": "Tercihleri kaydet",
+  "savedPreferences": "Kaydedildi!",
+  "preferencesSaved": "Tercihler kaydedildi",
+  "profileUpdated": "Profil güncellendi",
+  "profileUpdateFailed": "Değişiklikler kaydedilemedi",
+  "languageSaved": "Dil tercihi kaydedildi",
+  "theme": {
+    "system": "Sistem",
+    "light": "Açık",
+    "dark": "Koyu"
+  },
+  "links": {
+    "changePassword": "Şifre değiştir",
+    "notificationPreferences": "Bildirim tercihleri",
+    "apiTokens": "API anahtarları"
+  },
+  "changePassword": {
+    "title": "Şifre Değiştir",
+    "current": "Mevcut şifre",
+    "new": "Yeni şifre",
+    "confirm": "Yeni şifreyi onayla",
+    "submit": "Şifreyi güncelle",
+    "success": "Şifre başarıyla güncellendi.",
+    "minLength": "Şifre en az 8 karakter olmalıdır",
+    "mismatch": "Şifreler eşleşmiyor",
+    "currentRequired": "Mevcut şifrenizi girin",
+    "failed": "Şifre güncellenemedi"
+  },
+  "security": {
+    "title": "Hesap Güvenliği",
+    "subtitle": "Şifrenizi ve aktif oturumlarınızı yönetin.",
+    "twoFactor": "İki faktörlü doğrulama",
+    "activeSessions": "Aktif oturumlar",
+    "revokeAll": "Tüm oturumları sonlandır",
+    "signOutAll": "Tümünden çıkış yap",
+    "noSessions": "Aktif oturum bulunamadı",
+    "unknownDevice": "Bilinmeyen cihaz",
+    "sessionRevoked": "Oturum sonlandırıldı",
+    "sessionsLoadError": "Oturumlar yüklenemedi. Lütfen tekrar deneyin."
+  }
+}

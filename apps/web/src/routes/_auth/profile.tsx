@@ -1,11 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { authFetch } from "@/lib/api";
+import { api } from "@/lib/api";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { User, Camera, Save, Moon, Sun, Monitor } from "lucide-react";
 import { useAppStore } from "@/store";
 import { useToast } from "@/components/Toast";
 import { Button, Input } from "@/components/ui";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { type SupportedLanguage } from "@/i18n";
 
 export const Route = createFileRoute("/_auth/profile")({
   component: Profile,
@@ -28,32 +31,7 @@ const TIMEZONES = [
   "Australia/Sydney",
 ];
 
-const LOCALES = [
-  { value: "en-US", label: "English (US)" },
-  { value: "en-GB", label: "English (UK)" },
-  { value: "tr-TR", label: "Türkçe" },
-  { value: "de-DE", label: "Deutsch" },
-  { value: "fr-FR", label: "Français" },
-  { value: "es-ES", label: "Español" },
-  { value: "pt-BR", label: "Português (BR)" },
-  { value: "ar-SA", label: "العربية" },
-];
-
 type ThemeMode = "system" | "light" | "dark";
-
-const THEME_OPTIONS: {
-  value: ThemeMode;
-  label: string;
-  icon: React.ReactNode;
-}[] = [
-  {
-    value: "system",
-    label: "System",
-    icon: <Monitor className="w-3.5 h-3.5" />,
-  },
-  { value: "light", label: "Light", icon: <Sun className="w-3.5 h-3.5" /> },
-  { value: "dark", label: "Dark", icon: <Moon className="w-3.5 h-3.5" /> },
-];
 
 const PREF_KEY = "helpdesk-prefs";
 
@@ -72,6 +50,8 @@ const selectCls =
   "w-full px-3 py-2 bg-surface-container-high border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors";
 
 function PreferencesSection() {
+  const { t } = useTranslation("profile");
+  const userId = useAppStore((s) => s.user?.id);
   const saved = loadPrefs();
   const [theme, setTheme] = useState<ThemeMode>(saved.theme ?? "system");
   const [locale, setLocale] = useState<string>(saved.locale ?? "en-US");
@@ -81,20 +61,60 @@ function PreferencesSection() {
   const [saved2, setSaved2] = useState(false);
   const { success } = useToast();
 
+  const THEME_OPTIONS: {
+    value: ThemeMode;
+    label: string;
+    icon: React.ReactNode;
+  }[] = [
+    {
+      value: "system",
+      label: t("theme.system"),
+      icon: <Monitor className="w-3.5 h-3.5" />,
+    },
+    {
+      value: "light",
+      label: t("theme.light"),
+      icon: <Sun className="w-3.5 h-3.5" />,
+    },
+    {
+      value: "dark",
+      label: t("theme.dark"),
+      icon: <Moon className="w-3.5 h-3.5" />,
+    },
+  ];
+
   const apply = () => {
     savePrefs({ theme, locale, timezone });
     document.documentElement.setAttribute("data-theme", theme);
     setSaved2(true);
     setTimeout(() => setSaved2(false), 2000);
-    success("Preferences saved");
+    success(t("preferencesSaved"));
+  };
+
+  const handleLanguageChange = async (lang: SupportedLanguage) => {
+    if (!userId) return;
+    try {
+      await api.users[":id"].$put({
+        param: { id: userId },
+        json: { preferredLanguage: lang } as any,
+      });
+      success(t("languageSaved"));
+    } catch {
+      // Language is already changed in the UI via LanguageSwitcher internally;
+      // backend persistence failure is non-blocking.
+    }
   };
 
   return (
     <div className="bg-surface-container border border-outline-variant rounded-xl p-5 space-y-5">
-      <h3 className="text-sm font-semibold text-on-surface">Preferences</h3>
+      <h3 className="text-sm font-semibold text-on-surface">
+        {t("sections.preferences")}
+      </h3>
 
       <div className="space-y-2">
-        <label className="text-xs font-medium text-on-surface">Theme</label>
+        <label className="text-xs font-medium text-on-surface">
+          {t("sections.theme")}
+        </label>
         <div className="flex items-center gap-2">
           {THEME_OPTIONS.map((opt) => (
             <button
@@ -114,22 +134,19 @@ function PreferencesSection() {
       </div>
 
       <div className="space-y-2">
-        <label className="text-xs font-medium text-on-surface">Language</label>
-        <select
-          value={locale}
-          onChange={(e) => setLocale(e.target.value)}
-          className={selectCls}
-        >
-          {LOCALES.map((l) => (
-            <option key={l.value} value={l.value}>
-              {l.label}
-            </option>
-          ))}
-        </select>
+        <label className="text-xs font-medium text-on-surface">
+          {t("fields.preferredLanguage")}
+        </label>
+        <LanguageSwitcher
+          variant="inline"
+          onLanguageChange={handleLanguageChange}
+        />
       </div>
 
       <div className="space-y-2">
-        <label className="text-xs font-medium text-on-surface">Timezone</label>
+        <label className="text-xs font-medium text-on-surface">
+          {t("sections.timezone")}
+        </label>
         <select
           value={timezone}
           onChange={(e) => setTimezone(e.target.value)}
@@ -146,7 +163,7 @@ function PreferencesSection() {
       <div className="flex justify-end">
         <Button onClick={apply}>
           <Save className="w-3.5 h-3.5" />
-          {saved2 ? "Saved!" : "Save preferences"}
+          {saved2 ? t("savedPreferences") : t("savePreferences")}
         </Button>
       </div>
     </div>
@@ -154,6 +171,7 @@ function PreferencesSection() {
 }
 
 function Profile() {
+  const { t } = useTranslation("profile");
   const { user, setUser } = useAppStore();
   const { success, error: toastError } = useToast();
   const qc = useQueryClient();
@@ -164,17 +182,9 @@ function Profile() {
 
   const updateMutation = useMutation({
     mutationFn: async () => {
-      const state = useAppStore.getState();
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-      };
-      if (state.accessToken)
-        headers["Authorization"] = `Bearer ${state.accessToken}`;
-      if (state.tenantId) headers["X-Tenant-ID"] = state.tenantId;
-      const res = await authFetch(`/api/users/${user!.id}`, {
-        method: "PUT",
-        headers,
-        body: JSON.stringify({ firstName, lastName }),
+      const res = await api.users[":id"].$put({
+        param: { id: user!.id },
+        json: { firstName, lastName } as any,
       });
       if (!res.ok) throw new Error("Failed to update profile");
       return res.json();
@@ -187,10 +197,10 @@ function Profile() {
           firstName: updated.firstName,
           lastName: updated.lastName,
         });
-      success("Profile updated");
+      success(t("profileUpdated"));
       qc.invalidateQueries({ queryKey: ["me"] });
     },
-    onError: () => toastError("Failed to save changes"),
+    onError: () => toastError(t("profileUpdateFailed")),
   });
 
   const initials = `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase();
@@ -212,10 +222,10 @@ function Profile() {
         </div>
         <div className="flex-1">
           <h1 className="text-[15px] font-semibold text-on-surface">
-            My Profile
+            {t("title")}
           </h1>
           <p className="text-xs text-on-surface-variant mt-1">
-            Manage your personal information.
+            {t("subtitle")}
           </p>
         </div>
       </div>
@@ -223,37 +233,37 @@ function Profile() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-surface-container border border-outline-variant rounded-xl p-5 space-y-4">
           <h3 className="text-sm font-semibold text-on-surface">
-            Personal information
+            {t("sections.personalInfo")}
           </h3>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-medium text-on-surface">
-                First name
+                {t("fields.firstName")}
               </label>
               <Input
                 dense
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                placeholder="First name"
+                placeholder={t("fields.firstName")}
               />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-medium text-on-surface">
-                Last name
+                {t("fields.lastName")}
               </label>
               <Input
                 dense
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                placeholder="Last name"
+                placeholder={t("fields.lastName")}
               />
             </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-on-surface">
-              Email address
+              {t("fields.email")}
             </label>
             <Input
               dense
@@ -262,12 +272,14 @@ function Profile() {
               className="opacity-60 cursor-not-allowed"
             />
             <p className="text-[10px] text-on-surface-variant/40">
-              Email changes require verification — contact your admin.
+              {t("emailHint")}
             </p>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-on-surface">Role</label>
+            <label className="text-xs font-medium text-on-surface">
+              {t("fields.role")}
+            </label>
             <Input
               dense
               value={user?.globalRole?.toLowerCase().replace("_", " ") ?? ""}
@@ -283,7 +295,7 @@ function Profile() {
               loading={updateMutation.isPending}
             >
               <Save className="w-3.5 h-3.5" />
-              Save changes
+              {t("saveChanges")}
             </Button>
           </div>
         </div>
@@ -293,12 +305,12 @@ function Profile() {
 
           <div className="bg-surface-container border border-outline-variant rounded-xl divide-y divide-outline-variant overflow-hidden">
             {[
-              { label: "Change password", href: "/account-security" },
+              { label: t("links.changePassword"), href: "/account-security" },
               {
-                label: "Notification preferences",
+                label: t("links.notificationPreferences"),
                 href: "/notification-preferences",
               },
-              { label: "API tokens", href: "/api-tokens" },
+              { label: t("links.apiTokens"), href: "/api-tokens" },
             ].map(({ label, href }) => (
               <Link
                 key={href}

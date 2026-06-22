@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { authFetch } from "@/lib/api";
+import { useTranslation } from "react-i18next";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
@@ -31,7 +31,13 @@ import { useAppStore } from "@/store";
 import { api } from "@/lib/api";
 import { createTicketSchema } from "@help-desk/shared";
 import { ErrorState, getErrorVariant } from "@/components/ErrorState";
-import { Button, Input, FormAlert, FormError, fieldErrors } from "@/components/ui";
+import {
+  Button,
+  Input,
+  FormAlert,
+  FormError,
+  fieldErrors,
+} from "@/components/ui";
 
 export const Route = createFileRoute("/_auth/tickets/")({
   component: TicketsList,
@@ -41,14 +47,15 @@ export const Route = createFileRoute("/_auth/tickets/")({
 
 const PAGE_SIZE = 25;
 
-const STATUS_MAP: Record<string, { label: string; cls: string }> = {
-  open: { label: "Open", cls: "bg-blue-500/15 text-blue-300 border border-blue-500/20" },
-  assigned: { label: "Assigned", cls: "bg-violet-500/15 text-violet-300 border border-violet-500/20" },
-  in_progress: { label: "In Progress", cls: "bg-primary/15 text-primary border border-primary/20" },
-  waiting_customer: { label: "Waiting", cls: "bg-amber-500/15 text-amber-300 border border-amber-500/20" },
-  resolved: { label: "Resolved", cls: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20" },
-  closed: { label: "Closed", cls: "bg-white/8 text-on-surface-variant border border-white/10" },
-  reopened: { label: "Reopened", cls: "bg-red-500/15 text-red-300 border border-red-500/20" },
+const STATUS_CLS: Record<string, string> = {
+  open: "bg-blue-500/15 text-blue-300 border border-blue-500/20",
+  assigned: "bg-violet-500/15 text-violet-300 border border-violet-500/20",
+  in_progress: "bg-primary/15 text-primary border border-primary/20",
+  waiting_customer: "bg-amber-500/15 text-amber-300 border border-amber-500/20",
+  resolved: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20",
+  closed: "bg-white/8 text-on-surface-variant border border-white/10",
+  reopened: "bg-red-500/15 text-red-300 border border-red-500/20",
+  archived: "bg-gray-500/15 text-gray-400 border border-gray-500/30",
 };
 
 const PRIORITY_ICON: Record<string, React.ReactNode> = {
@@ -68,7 +75,6 @@ const selectCls =
 
 type SmartView = {
   id: string;
-  label: string;
   icon: React.ReactNode;
   statusFilter?: string;
   assignedToMe?: boolean;
@@ -77,72 +83,98 @@ type SmartView = {
 };
 
 const SMART_VIEWS: SmartView[] = [
-  { id: "all", label: "All tickets", icon: <Ticket className="w-3.5 h-3.5" /> },
-  { id: "open", label: "Open", icon: <Inbox className="w-3.5 h-3.5" />, statusFilter: "open" },
-  { id: "mine", label: "My tickets", icon: <User className="w-3.5 h-3.5" />, assignedToMe: true },
-  { id: "unassigned", label: "Unassigned", icon: <Ticket className="w-3.5 h-3.5" />, unassigned: true, statusFilter: "open" },
-  { id: "critical", label: "Critical", icon: <AlertOctagon className="w-3.5 h-3.5" />, priority: "critical" },
-  { id: "waiting", label: "Waiting", icon: <Clock className="w-3.5 h-3.5" />, statusFilter: "waiting_customer" },
-  { id: "resolved", label: "Resolved", icon: <CheckCheck className="w-3.5 h-3.5" />, statusFilter: "resolved" },
+  { id: "all", icon: <Ticket className="w-3.5 h-3.5" /> },
+  { id: "open", icon: <Inbox className="w-3.5 h-3.5" />, statusFilter: "open" },
+  { id: "mine", icon: <User className="w-3.5 h-3.5" />, assignedToMe: true },
+  {
+    id: "unassigned",
+    icon: <Ticket className="w-3.5 h-3.5" />,
+    unassigned: true,
+    statusFilter: "open",
+  },
+  {
+    id: "critical",
+    icon: <AlertOctagon className="w-3.5 h-3.5" />,
+    priority: "critical",
+  },
+  {
+    id: "waiting",
+    icon: <Clock className="w-3.5 h-3.5" />,
+    statusFilter: "waiting_customer",
+  },
+  {
+    id: "resolved",
+    icon: <CheckCheck className="w-3.5 h-3.5" />,
+    statusFilter: "resolved",
+  },
 ];
 
 // ─── Create ticket modal ──────────────────────────────────────────────────────
 
 // ─── Ticket templates ─────────────────────────────────────────────────────────
 
-const TICKET_TEMPLATES: Array<{ label: string; subject: string; message: string; priority: "low" | "medium" | "high" | "critical" }> = [
+const TICKET_TEMPLATES: Array<{
+  id: string;
+  subject: string;
+  message: string;
+  priority: "low" | "medium" | "high" | "critical";
+}> = [
   {
-    label: "Password reset",
+    id: "passwordReset",
     subject: "Password reset request",
-    message: "Hi, I need help resetting my password. I've tried the self-service flow but it's not working.",
+    message:
+      "Hi, I need help resetting my password. I've tried the self-service flow but it's not working.",
     priority: "medium",
   },
   {
-    label: "Account access",
+    id: "accountAccess",
     subject: "Cannot access my account",
-    message: "I'm unable to log in to my account. Could you please help me regain access?",
+    message:
+      "I'm unable to log in to my account. Could you please help me regain access?",
     priority: "high",
   },
   {
-    label: "Bug report",
+    id: "bugReport",
     subject: "Bug: [Brief description]",
-    message: "Steps to reproduce:\n1. \n2. \n\nExpected behavior:\n\nActual behavior:\n\nEnvironment (browser, OS):",
+    message:
+      "Steps to reproduce:\n1. \n2. \n\nExpected behavior:\n\nActual behavior:\n\nEnvironment (browser, OS):",
     priority: "high",
   },
   {
-    label: "Feature request",
+    id: "featureRequest",
     subject: "Feature request: [Feature name]",
-    message: "I'd like to request the following feature:\n\nProblem it solves:\n\nProposed solution:",
+    message:
+      "I'd like to request the following feature:\n\nProblem it solves:\n\nProposed solution:",
     priority: "low",
   },
   {
-    label: "Billing inquiry",
+    id: "billingInquiry",
     subject: "Billing question",
-    message: "I have a question about my recent invoice/charge. Could you please clarify the following:",
+    message:
+      "I have a question about my recent invoice/charge. Could you please clarify the following:",
     priority: "medium",
   },
 ];
 
 function CreateTicketModal({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation("tickets");
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showMacros, setShowMacros] = useState(false);
   const [selectedMacroId, setSelectedMacroId] = useState<string | null>(null);
 
-  const { accessToken, tenantId } = useAppStore.getState();
-  const macroHeaders = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${accessToken}`,
-    "X-Tenant-ID": tenantId ?? "",
-  };
-
   const { data: macros = [] } = useQuery({
     queryKey: ["macros"],
     queryFn: async () => {
-      const res = await authFetch("/api/macros", { headers: macroHeaders });
-      const json = await res.json();
-      return (json?.data ?? []) as Array<{ id: string; name: string; description?: string; actions: any[] }>;
+      const res = await api.macros.index.$get();
+      const json = (await res.json()) as any;
+      return (json?.data ?? []) as Array<{
+        id: string;
+        name: string;
+        description?: string;
+        actions: any[];
+      }>;
     },
   });
 
@@ -154,31 +186,34 @@ function CreateTicketModal({ onClose }: { onClose: () => void }) {
       initialMessage: "",
       priority: "medium" as "low" | "medium" | "high" | "critical",
     },
-    validators: { onChange: createTicketSchema },
+    validators: { onChange: createTicketSchema as any },
     onSubmit: async ({ value }) => {
       setError(null);
       try {
         const res = await api.tickets.index.$post({ json: value });
         if (!res.ok) {
           const body = (await res.json()) as any;
-          setError(body?.error?.message || body?.message || "Failed to create ticket");
+          setError(
+            body?.error?.message ||
+              body?.message ||
+              t("modal.errors.createFailed"),
+          );
           return;
         }
         const created = (await res.json()) as any;
         const newTicketId = created?.data?.id ?? created?.id;
 
         if (selectedMacroId && newTicketId) {
-          await authFetch(`/api/macros/${selectedMacroId}/apply`, {
-            method: "POST",
-            headers: macroHeaders,
-            body: JSON.stringify({ ticketId: newTicketId }),
+          await api.macros[":id"].apply.$post({
+            param: { id: selectedMacroId },
+            json: { ticketId: newTicketId },
           });
         }
 
         queryClient.invalidateQueries({ queryKey: ["tickets"] });
         onClose();
       } catch (err: any) {
-        setError(err.message || "An error occurred");
+        setError(err.message || t("modal.errors.generic"));
       }
     },
   });
@@ -187,7 +222,9 @@ function CreateTicketModal({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-surface-container border border-outline-variant rounded-xl shadow-2xl w-full max-w-lg">
         <div className="flex items-center justify-between px-5 py-4 border-b border-outline-variant">
-          <h3 className="text-sm font-semibold text-on-surface">Create Ticket</h3>
+          <h3 className="text-sm font-semibold text-on-surface">
+            {t("modal.createTitle")}
+          </h3>
           <div className="flex items-center gap-2">
             <div className="relative">
               <button
@@ -195,14 +232,14 @@ function CreateTicketModal({ onClose }: { onClose: () => void }) {
                 onClick={() => setShowTemplates((v) => !v)}
                 className="inline-flex items-center gap-1.5 text-xs text-on-surface-variant/60 hover:text-on-surface border border-outline-variant px-2.5 py-1 rounded-lg hover:bg-white/5 transition-colors"
               >
-                Templates
+                {t("modal.templates")}
                 <ChevronDownIcon className="w-3 h-3" />
               </button>
               {showTemplates && (
                 <div className="absolute right-0 mt-1 w-52 bg-surface-container border border-outline-variant rounded-xl shadow-xl z-10 overflow-hidden">
                   {TICKET_TEMPLATES.map((tpl) => (
                     <button
-                      key={tpl.label}
+                      key={tpl.id}
                       type="button"
                       onClick={() => {
                         form.setFieldValue("subject", tpl.subject);
@@ -212,37 +249,49 @@ function CreateTicketModal({ onClose }: { onClose: () => void }) {
                       }}
                       className="w-full text-left px-3 py-2 text-xs text-on-surface-variant hover:bg-white/5 hover:text-on-surface transition-colors border-b border-outline-variant/50 last:border-0"
                     >
-                      {tpl.label}
+                      {t(`templates.${tpl.id}`)}
                     </button>
                   ))}
                 </div>
               )}
             </div>
-            <button onClick={onClose} aria-label="Close dialog" className="text-on-surface-variant hover:text-on-surface transition-colors">
+            <button
+              onClick={onClose}
+              aria-label={t("modal.closeDialog")}
+              className="text-on-surface-variant hover:text-on-surface transition-colors"
+            >
               <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
         <form
-          onSubmit={(e) => { e.preventDefault(); e.stopPropagation(); form.handleSubmit(); }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
+          }}
           className="p-5 space-y-4"
         >
           <FormAlert>{error ?? undefined}</FormAlert>
 
           <form.Field
             name="subject"
-            validators={{ onChange: z.string().min(1, "Subject is required") }}
+            validators={{
+              onChange: z.string().min(1, t("modal.errors.subjectRequired")),
+            }}
             children={(field) => (
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-on-surface">Subject *</label>
+                <label className="text-xs font-medium text-on-surface">
+                  {t("modal.subjectLabel")}
+                </label>
                 <Input
                   dense
                   autoFocus
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Brief description of the issue"
+                  placeholder={t("modal.subjectPlaceholder")}
                 />
                 <FormError>{fieldErrors(field.state.meta.errors)}</FormError>
               </div>
@@ -251,17 +300,21 @@ function CreateTicketModal({ onClose }: { onClose: () => void }) {
 
           <form.Field
             name="initialMessage"
-            validators={{ onChange: z.string().min(1, "Message is required") }}
+            validators={{
+              onChange: z.string().min(1, t("modal.errors.messageRequired")),
+            }}
             children={(field) => (
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-on-surface">Message *</label>
+                <label className="text-xs font-medium text-on-surface">
+                  {t("modal.messageLabel")}
+                </label>
                 <textarea
                   className={textareaCls}
                   rows={5}
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Describe the issue in detail..."
+                  placeholder={t("modal.messagePlaceholder")}
                 />
                 <FormError>{fieldErrors(field.state.meta.errors)}</FormError>
               </div>
@@ -272,17 +325,24 @@ function CreateTicketModal({ onClose }: { onClose: () => void }) {
             name="priority"
             children={(field) => (
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-on-surface">Priority</label>
+                <label className="text-xs font-medium text-on-surface">
+                  {t("modal.priorityLabel")}
+                </label>
                 <select
                   className={selectCls}
                   value={field.state.value}
                   onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value as "low" | "medium" | "high" | "critical")}
+                  onChange={(e) =>
+                    field.handleChange(
+                      e.target.value as "low" | "medium" | "high" | "critical",
+                    )
+                  }
                 >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="critical">Critical</option>
+                  {(["low", "medium", "high", "critical"] as const).map((p) => (
+                    <option key={p} value={p}>
+                      {t(`priorities.${p}`)}
+                    </option>
+                  ))}
                 </select>
               </div>
             )}
@@ -298,40 +358,61 @@ function CreateTicketModal({ onClose }: { onClose: () => void }) {
               <span className="flex items-center gap-1.5">
                 <Zap className="w-3.5 h-3.5 text-primary/70" />
                 {selectedMacro ? (
-                  <span className="text-on-surface font-medium">{selectedMacro.name}</span>
+                  <span className="text-on-surface font-medium">
+                    {selectedMacro.name}
+                  </span>
                 ) : (
-                  "Apply macro after creation (optional)"
+                  t("modal.macroOptional")
                 )}
               </span>
-              <ChevronDownIcon className={`w-3 h-3 transition-transform ${showMacros ? "rotate-180" : ""}`} />
+              <ChevronDownIcon
+                className={`w-3 h-3 transition-transform ${showMacros ? "rotate-180" : ""}`}
+              />
             </button>
             {showMacros && (
               <div className="border-t border-outline-variant bg-surface-container-high max-h-44 overflow-y-auto">
                 <button
                   type="button"
-                  onClick={() => { setSelectedMacroId(null); setShowMacros(false); }}
+                  onClick={() => {
+                    setSelectedMacroId(null);
+                    setShowMacros(false);
+                  }}
                   className={`w-full text-left px-3 py-2 text-xs transition-colors border-b border-outline-variant/50 ${!selectedMacroId ? "text-primary bg-primary/5" : "text-on-surface-variant hover:bg-white/5 hover:text-on-surface"}`}
                 >
-                  None
+                  {t("modal.macroNone")}
                 </button>
                 {macros.length === 0 && (
-                  <p className="px-3 py-2 text-xs text-on-surface-variant/40 italic">No macros defined yet</p>
+                  <p className="px-3 py-2 text-xs text-on-surface-variant/40 italic">
+                    {t("modal.macroEmpty")}
+                  </p>
                 )}
                 {macros.map((m) => (
                   <button
                     key={m.id}
                     type="button"
-                    onClick={() => { setSelectedMacroId(m.id); setShowMacros(false); }}
+                    onClick={() => {
+                      setSelectedMacroId(m.id);
+                      setShowMacros(false);
+                    }}
                     className={`w-full text-left px-3 py-2 text-xs transition-colors border-b border-outline-variant/50 last:border-0 ${selectedMacroId === m.id ? "text-primary bg-primary/5" : "text-on-surface-variant hover:bg-white/5 hover:text-on-surface"}`}
                   >
                     <div className="font-medium text-on-surface">{m.name}</div>
-                    {m.description && <div className="text-[10px] text-on-surface-variant/50">{m.description}</div>}
+                    {m.description && (
+                      <div className="text-[10px] text-on-surface-variant/50">
+                        {m.description}
+                      </div>
+                    )}
                     <div className="flex flex-wrap gap-1 mt-0.5">
-                      {(m.actions ?? []).slice(0, 4).map((a: any, i: number) => (
-                        <span key={i} className="px-1 py-0.5 rounded bg-white/5 text-[10px] text-on-surface-variant/50 border border-white/8">
-                          {a.type?.replace(/_/g, " ")}
-                        </span>
-                      ))}
+                      {(m.actions ?? [])
+                        .slice(0, 4)
+                        .map((a: any, i: number) => (
+                          <span
+                            key={i}
+                            className="px-1 py-0.5 rounded bg-white/5 text-[10px] text-on-surface-variant/50 border border-white/8"
+                          >
+                            {a.type?.replace(/_/g, " ")}
+                          </span>
+                        ))}
                     </div>
                   </button>
                 ))}
@@ -340,12 +421,21 @@ function CreateTicketModal({ onClose }: { onClose: () => void }) {
           </div>
 
           <div className="flex gap-2 justify-end pt-1">
-            <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+            <Button type="button" variant="secondary" onClick={onClose}>
+              {t("modal.cancel")}
+            </Button>
             <form.Subscribe
               selector={(s) => [s.canSubmit, s.isSubmitting]}
               children={([canSubmit, isSubmitting]) => (
-                <Button type="submit" disabled={!canSubmit} loading={isSubmitting}>
-                  {!isSubmitting && (selectedMacroId ? "Create & Apply Macro" : "Create Ticket")}
+                <Button
+                  type="submit"
+                  disabled={!canSubmit}
+                  loading={isSubmitting}
+                >
+                  {!isSubmitting &&
+                    (selectedMacroId
+                      ? t("modal.createAndApply")
+                      : t("modal.createTicket"))}
                 </Button>
               )}
             />
@@ -369,10 +459,11 @@ function BulkToolbar({
   onStatusChange: (status: string) => void;
   isPending: boolean;
 }) {
+  const { t } = useTranslation("tickets");
   return (
     <div className="flex items-center gap-3 px-4 py-2.5 bg-primary/10 border border-primary/20 rounded-xl">
       <span className="text-xs font-semibold text-primary">
-        {selectedIds.length} selected
+        {t("bulk.selected", { count: selectedIds.length })}
       </span>
       <div className="flex items-center gap-1.5 ml-auto">
         <button
@@ -381,7 +472,7 @@ function BulkToolbar({
           className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-emerald-300 border border-emerald-500/20 bg-emerald-500/10 rounded-lg hover:bg-emerald-500/20 disabled:opacity-40 transition-colors"
         >
           <CheckCheck className="w-3 h-3" />
-          Resolve
+          {t("bulk.resolve")}
         </button>
         <button
           disabled={isPending}
@@ -389,7 +480,7 @@ function BulkToolbar({
           className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-on-surface-variant border border-outline-variant rounded-lg hover:bg-white/5 disabled:opacity-40 transition-colors"
         >
           <XCircle className="w-3 h-3" />
-          Close
+          {t("bulk.close")}
         </button>
         <button
           disabled={isPending}
@@ -397,14 +488,14 @@ function BulkToolbar({
           className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-amber-300 border border-amber-500/20 bg-amber-500/10 rounded-lg hover:bg-amber-500/20 disabled:opacity-40 transition-colors"
         >
           <Clock className="w-3 h-3" />
-          Wait
+          {t("bulk.wait")}
         </button>
         <button
           onClick={onClear}
           className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-on-surface-variant hover:text-on-surface transition-colors"
         >
           <X className="w-3 h-3" />
-          Deselect
+          {t("bulk.deselect")}
         </button>
       </div>
     </div>
@@ -424,6 +515,7 @@ function Pagination({
   pageSize: number;
   onPage: (p: number) => void;
 }) {
+  const { t } = useTranslation("tickets");
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const from = Math.min(page * pageSize + 1, total);
   const to = Math.min((page + 1) * pageSize, total);
@@ -431,7 +523,9 @@ function Pagination({
   return (
     <div className="flex items-center justify-between px-4 py-3 border-t border-outline-variant">
       <span className="text-xs text-on-surface-variant/60">
-        {total === 0 ? "0 results" : `${from}–${to} of ${total}`}
+        {total === 0
+          ? t("list.noResults")
+          : t("list.pagination", { from, to, total })}
       </span>
       <div className="flex items-center gap-1">
         <button
@@ -473,14 +567,26 @@ function Pagination({
 type SortField = "subject" | "status" | "priority" | "createdAt";
 type SortDir = "asc" | "desc";
 
-function SortIcon({ field, sortBy, sortDir }: { field: SortField; sortBy: SortField; sortDir: SortDir }) {
-  if (sortBy !== field) return <ChevronsUpDown className="w-3 h-3 opacity-30 inline ml-1" />;
-  return sortDir === "asc"
-    ? <ChevronUp className="w-3 h-3 inline ml-1 text-primary" />
-    : <ChevronDownIcon className="w-3 h-3 inline ml-1 text-primary" />;
+function SortIcon({
+  field,
+  sortBy,
+  sortDir,
+}: {
+  field: SortField;
+  sortBy: SortField;
+  sortDir: SortDir;
+}) {
+  if (sortBy !== field)
+    return <ChevronsUpDown className="w-3 h-3 opacity-30 inline ml-1" />;
+  return sortDir === "asc" ? (
+    <ChevronUp className="w-3 h-3 inline ml-1 text-primary" />
+  ) : (
+    <ChevronDownIcon className="w-3 h-3 inline ml-1 text-primary" />
+  );
 }
 
 function TicketsList() {
+  const { t } = useTranslation("tickets");
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -520,27 +626,36 @@ function TicketsList() {
         sortBy,
         sortDir,
       };
-      if (view.statusFilter) params.status = view.statusFilter;
-      if (statusFilter && !view.statusFilter) params.status = statusFilter;
+      if (view.statusFilter) {
+        params.status = view.statusFilter;
+      } else if (statusFilter) {
+        params.status = statusFilter;
+      } else {
+        params.status = "open,assigned,in_progress,waiting_customer,resolved,closed,reopened";
+      }
       if (view.priority) params.priority = view.priority;
-      if (view.assignedToMe && currentUser?.id) params.assigneeId = currentUser.id;
+      if (view.assignedToMe && currentUser?.id)
+        params.assigneeId = currentUser.id;
       if (view.unassigned) params.unassigned = "true";
 
       const res = await api.tickets.index.$get({ query: params as any });
-      if (!res.ok) throw new Error("Failed to fetch tickets");
+      if (!res.ok) throw new Error(t("list.fetchError"));
       return res.json();
     },
   });
 
   const raw = (data as any)?.data ?? {};
-  const tickets: any[] = Array.isArray(raw) ? raw : raw.data ?? [];
+  const tickets: any[] = Array.isArray(raw) ? raw : (raw.data ?? []);
   const total: number = raw.total ?? tickets.length;
 
   const filtered = search
-    ? tickets.filter((t: any) => t.subject.toLowerCase().includes(search.toLowerCase()))
+    ? tickets.filter((t: any) =>
+        t.subject.toLowerCase().includes(search.toLowerCase()),
+      )
     : tickets;
 
-  const allSelected = filtered.length > 0 && filtered.every((t: any) => selected.has(t.id));
+  const allSelected =
+    filtered.length > 0 && filtered.every((t: any) => selected.has(t.id));
 
   const toggleAll = () => {
     if (allSelected) {
@@ -571,7 +686,10 @@ function TicketsList() {
     mutationFn: async (status: string) => {
       await Promise.all(
         Array.from(selected).map((id) =>
-          api.tickets[":id"]["status"].$put({ param: { id }, json: { status: status as any } }),
+          api.tickets[":id"]["status"].$put({
+            param: { id },
+            json: { status: status as any },
+          }),
         ),
       );
     },
@@ -599,7 +717,7 @@ function TicketsList() {
               }`}
             >
               {v.icon}
-              {v.label}
+              {t(`views.${v.id}`)}
             </button>
           ))}
         </div>
@@ -607,7 +725,7 @@ function TicketsList() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-[15px] font-semibold text-on-surface">
-            {view.label}
+            {t(`views.${view.id}`)}
           </h1>
           <div className="flex items-center gap-2">
             <div className="relative">
@@ -615,8 +733,11 @@ function TicketsList() {
               <input
                 type="text"
                 value={search}
-                onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-                placeholder="Search tickets..."
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(0);
+                }}
+                placeholder={t("list.searchPlaceholder")}
                 className="pl-8 pr-3 py-2 bg-surface-container border border-outline-variant rounded-lg text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary/50 w-48 transition-colors"
               />
               {search && (
@@ -631,18 +752,24 @@ function TicketsList() {
 
             <select
               value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value); setPage(0); setSelected(new Set()); }}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPage(0);
+                setSelected(new Set());
+              }}
               className="px-3 py-2 bg-surface-container border border-outline-variant rounded-lg text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors"
             >
-              <option value="">All statuses</option>
-              {Object.entries(STATUS_MAP).map(([k, v]) => (
-                <option key={k} value={k}>{v.label}</option>
+              <option value="">{t("list.allStatuses")}</option>
+              {Object.keys(STATUS_CLS).filter(k => k !== "archived").map((k) => (
+                <option key={k} value={k}>
+                  {t(`statuses.${k}`)}
+                </option>
               ))}
             </select>
 
             <Button onClick={() => setShowCreate(true)}>
               <Plus className="w-4 h-4" />
-              New Ticket
+              {t("list.newTicket")}
             </Button>
           </div>
         </div>
@@ -662,7 +789,10 @@ function TicketsList() {
           {isLoading ? (
             <div className="p-8 space-y-3">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-10 bg-white/5 rounded animate-pulse" />
+                <div
+                  key={i}
+                  className="h-10 bg-white/5 rounded animate-pulse"
+                />
               ))}
             </div>
           ) : error ? (
@@ -677,7 +807,15 @@ function TicketsList() {
                 <thead className="border-b border-outline-variant">
                   <tr>
                     <th className="px-4 py-3 w-8">
-                      <button onClick={toggleAll} aria-label={allSelected ? "Deselect all tickets" : "Select all tickets"} className="text-on-surface-variant/40 hover:text-on-surface-variant transition-colors">
+                      <button
+                        onClick={toggleAll}
+                        aria-label={
+                          allSelected
+                            ? t("list.deselectAll")
+                            : t("list.selectAll")
+                        }
+                        className="text-on-surface-variant/40 hover:text-on-surface-variant transition-colors"
+                      >
                         {allSelected ? (
                           <CheckSquare className="w-4 h-4 text-primary" />
                         ) : (
@@ -687,18 +825,42 @@ function TicketsList() {
                     </th>
                     <th className="px-2 py-3 w-6" />
                     <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">
-                      <button onClick={() => toggleSort("subject")} className="inline-flex items-center gap-0.5 hover:text-on-surface transition-colors">
-                        Subject <SortIcon field="subject" sortBy={sortBy} sortDir={sortDir} />
+                      <button
+                        onClick={() => toggleSort("subject")}
+                        className="inline-flex items-center gap-0.5 hover:text-on-surface transition-colors"
+                      >
+                        {t("list.colSubject")}{" "}
+                        <SortIcon
+                          field="subject"
+                          sortBy={sortBy}
+                          sortDir={sortDir}
+                        />
                       </button>
                     </th>
                     <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">
-                      <button onClick={() => toggleSort("status")} className="inline-flex items-center gap-0.5 hover:text-on-surface transition-colors">
-                        Status <SortIcon field="status" sortBy={sortBy} sortDir={sortDir} />
+                      <button
+                        onClick={() => toggleSort("status")}
+                        className="inline-flex items-center gap-0.5 hover:text-on-surface transition-colors"
+                      >
+                        {t("list.colStatus")}{" "}
+                        <SortIcon
+                          field="status"
+                          sortBy={sortBy}
+                          sortDir={sortDir}
+                        />
                       </button>
                     </th>
                     <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider hidden md:table-cell">
-                      <button onClick={() => toggleSort("createdAt")} className="inline-flex items-center gap-0.5 hover:text-on-surface transition-colors">
-                        Created <SortIcon field="createdAt" sortBy={sortBy} sortDir={sortDir} />
+                      <button
+                        onClick={() => toggleSort("createdAt")}
+                        className="inline-flex items-center gap-0.5 hover:text-on-surface transition-colors"
+                      >
+                        {t("list.colCreated")}{" "}
+                        <SortIcon
+                          field="createdAt"
+                          sortBy={sortBy}
+                          sortDir={sortDir}
+                        />
                       </button>
                     </th>
                   </tr>
@@ -740,9 +902,11 @@ function TicketsList() {
                         </td>
                         <td className="px-4 py-3">
                           <span
-                            className={`inline-flex text-[10px] font-semibold px-2 py-0.5 rounded ${STATUS_MAP[ticket.status]?.cls ?? "bg-white/8 text-on-surface-variant"}`}
+                            className={`inline-flex text-[10px] font-semibold px-2 py-0.5 rounded ${STATUS_CLS[ticket.status] ?? "bg-white/8 text-on-surface-variant"}`}
                           >
-                            {STATUS_MAP[ticket.status]?.label ?? ticket.status}
+                            {t(`statuses.${ticket.status}`, {
+                              defaultValue: ticket.status,
+                            })}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-xs text-on-surface-variant/50 hidden md:table-cell font-mono">
@@ -759,14 +923,22 @@ function TicketsList() {
                             <Ticket className="w-5 h-5 text-primary" />
                           </div>
                           <p className="text-sm font-medium text-on-surface">
-                            {search ? "No tickets match your search" : statusFilter ? `No ${STATUS_MAP[statusFilter]?.label.toLowerCase()} tickets` : "No tickets yet"}
+                            {search
+                              ? t("list.noSearch")
+                              : statusFilter
+                                ? t("list.noStatus", {
+                                    status: t(`statuses.${statusFilter}`, {
+                                      defaultValue: statusFilter,
+                                    }).toLowerCase(),
+                                  })
+                                : t("list.empty")}
                           </p>
                           {!search && !statusFilter && (
                             <button
                               onClick={() => setShowCreate(true)}
                               className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
                             >
-                              Create the first ticket
+                              {t("list.createFirst")}
                             </button>
                           )}
                         </div>
@@ -780,7 +952,10 @@ function TicketsList() {
                 page={page}
                 total={total}
                 pageSize={PAGE_SIZE}
-                onPage={(p) => { setPage(p); setSelected(new Set()); }}
+                onPage={(p) => {
+                  setPage(p);
+                  setSelected(new Set());
+                }}
               />
             </>
           )}

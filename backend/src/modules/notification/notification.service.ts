@@ -6,6 +6,7 @@ import { notification } from "./notification.schema";
 import { notificationPreference } from "./notification-preference.schema";
 import { user } from "../user/user.schema";
 import { ticket } from "../ticket/ticket.schema";
+import { departmentMember } from "../department/department-member.schema";
 import { onEvent } from "../../infra/events";
 import {
   NotificationChannel,
@@ -148,18 +149,33 @@ export const NotificationService = {
 
       const HANDLER_ROLES = ["AGENT", "SUPERVISOR", "ADMIN", "SUPER_ADMIN"];
 
-      const conditions = [
-        eq(user.organizationId, organizationId),
-        eq(user.status, "active"),
-        inArray(user.globalRole, HANDLER_ROLES),
-      ];
-      // Department-routed tickets only ping that department's members.
-      if (t?.departmentId) conditions.push(eq(user.departmentId, t.departmentId));
-
-      const staff = await tx
-        .select({ id: user.id })
-        .from(user)
-        .where(and(...conditions));
+      let staff: { id: string }[];
+      if (t?.departmentId) {
+        // Department-routed ticket: ping only members of that department.
+        staff = await tx
+          .select({ id: user.id })
+          .from(user)
+          .innerJoin(departmentMember, eq(departmentMember.userId, user.id))
+          .where(
+            and(
+              eq(user.organizationId, organizationId),
+              eq(user.status, "active"),
+              inArray(user.globalRole, HANDLER_ROLES),
+              eq(departmentMember.departmentId, t.departmentId),
+            ),
+          );
+      } else {
+        staff = await tx
+          .select({ id: user.id })
+          .from(user)
+          .where(
+            and(
+              eq(user.organizationId, organizationId),
+              eq(user.status, "active"),
+              inArray(user.globalRole, HANDLER_ROLES),
+            ),
+          );
+      }
 
       return staff.map((s) => s.id);
     });

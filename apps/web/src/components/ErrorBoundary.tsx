@@ -85,7 +85,7 @@ export function ErrorPage({ error, reset, inline = false }: ErrorPageProps) {
   const { kind, status, message } = classifyError(error);
   const cfg = KIND_CONFIG[kind];
   const Icon = cfg.icon;
-  const isDev = import.meta.env.DEV;
+  const isDev = (import.meta as any).env.DEV;
   const stack = (error as any)?.stack as string | undefined;
 
   const inner = (
@@ -158,7 +158,7 @@ export function ErrorPage({ error, reset, inline = false }: ErrorPageProps) {
   if (inline) return inner;
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6 relative overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-background flex items-center justify-center p-6 overflow-hidden">
       <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-error/5 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/3 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
@@ -202,7 +202,7 @@ export class ErrorBoundary extends Component<EBProps, EBState> {
   }
 
   componentDidCatch(error: unknown, info: ErrorInfo) {
-    if (import.meta.env.DEV) {
+    if ((import.meta as any).env.DEV) {
       console.error("[ErrorBoundary]", error, info.componentStack);
     }
   }

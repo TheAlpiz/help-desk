@@ -5,12 +5,14 @@ import { useState } from "react";
 import { api } from "../lib/api";
 import { forgotPasswordSchema } from "@help-desk/shared";
 import { Button, Input, FormError, Label, fieldErrors } from "@/components/ui";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/forgot-password")({
   component: ForgotPassword,
 });
 
 function ForgotPassword() {
+  const { t } = useTranslation("auth");
   const [submitted, setSubmitted] = useState(false);
 
   const form = useForm({
@@ -41,12 +43,10 @@ function ForgotPassword() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-on-surface tracking-tight mb-1">
-                Check your inbox
+                {t("forgotPassword.successTitle")}
               </h1>
               <p className="text-sm text-on-surface-variant leading-relaxed">
-                If an account exists for that address, a password reset link has
-                been sent. Check your spam folder if it doesn't arrive within a
-                few minutes.
+                {t("forgotPassword.successMessage")}
               </p>
             </div>
             <Link
@@ -54,17 +54,17 @@ function ForgotPassword() {
               className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              Back to sign in
+              {t("forgotPassword.backToSignIn")}
             </Link>
           </div>
         ) : (
           <>
             <div>
               <h1 className="text-2xl font-bold text-on-surface tracking-tight mb-1">
-                Forgot password?
+                {t("forgotPassword.title")}
               </h1>
               <p className="text-sm text-on-surface-variant">
-                Enter your email and we'll send a reset link.
+                {t("forgotPassword.subtitle")}
               </p>
             </div>
 
@@ -81,7 +81,7 @@ function ForgotPassword() {
                 validators={{ onChange: forgotPasswordSchema.shape.email }}
                 children={(field) => (
                   <div className="flex flex-col gap-1.5">
-                    <Label htmlFor={field.name}>Work email</Label>
+                    <Label htmlFor={field.name}>{t("forgotPassword.workEmail")}</Label>
                     <Input
                       id={field.name}
                       name={field.name}
@@ -90,7 +90,7 @@ function ForgotPassword() {
                       value={field.state.value}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="you@company.com"
+                      placeholder={t("forgotPassword.emailPlaceholder")}
                     />
                     <FormError>
                       {fieldErrors(field.state.meta.errors)}
@@ -108,7 +108,7 @@ function ForgotPassword() {
                     disabled={!canSubmit}
                     loading={isSubmitting}
                   >
-                    {!isSubmitting && "Send reset link"}
+                    {!isSubmitting && t("forgotPassword.submit")}
                   </Button>
                 )}
               />
@@ -119,7 +119,7 @@ function ForgotPassword() {
               className="inline-flex items-center gap-2 text-sm text-on-surface-variant hover:text-on-surface transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              Back to sign in
+              {t("forgotPassword.backToSignIn")}
             </Link>
           </>
         )}

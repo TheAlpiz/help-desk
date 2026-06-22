@@ -123,6 +123,12 @@ export class SlaWorker {
 
     if (!t) return;
 
+    // If the ticket's SLA policy has been changed since this job was scheduled, abort.
+    if (t.slaId !== policyId) {
+      console.log(`SLA: Obsolete check for ticket ${ticketId} (policy changed)`);
+      return;
+    }
+
     if (checkType === "first_response_check") {
       if (
         t.firstResponseMet ||

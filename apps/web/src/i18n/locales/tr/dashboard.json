@@ -1,0 +1,58 @@
+{
+  "title": "Kontrol Paneli",
+  "stats": {
+    "openTickets": "Açık talepler",
+    "resolvedToday": "Bugün çözüldü",
+    "avgResolution": "Ort. çözüm",
+    "slaCompliance": "SLA uyumu",
+    "activeAgents": "Aktif ajanlar",
+    "pendingTasks": "Bekleyen görevler"
+  },
+  "charts": {
+    "ticketsByStatus": "Duruma göre talepler",
+    "ticketsByPriority": "Önceliğe göre talepler",
+    "ticketVolume": "Talep hacmi",
+    "agentPerformance": "Ajan performansı",
+    "resolutionTrend": "Çözüm trendi"
+  },
+  "recentTickets": "Son talepler",
+  "topAgents": "En iyi ajanlar",
+  "noData": "Bu dönem için veri yok.",
+  "viewAll": "Tümünü gör",
+  "noTickets": "Henüz talep yok.",
+  "noTicketData": "Henüz talep verisi yok.",
+  "newTicket": "Yeni Talep",
+  "newRequest": "Yeni İstek",
+  "ticketBreakdown": "Talep dağılımı",
+  "admin": {
+    "title": "Genel Bakış",
+    "openTickets": "Açık Talepler",
+    "openTicketsTrend": "Tüm aktif, kapatılmamış talepler",
+    "critical": "Kritik",
+    "criticalTrend": "Acil dikkat gerektiriyor",
+    "unassigned": "Atanmamış",
+    "unassignedTrend": "Ajan ataması gerekiyor",
+    "activeUsers": "Aktif Kullanıcılar",
+    "slaPolicies_one": "{{count}} SLA politikası aktif",
+    "slaPolicies_other": "{{count}} SLA politikası aktif"
+  },
+  "supervisor": {
+    "title": "Departman Genel Bakışı",
+    "unassigned": "Atanmamış",
+    "openTickets": "Açık Talepler",
+    "resolved24h": "Çözüldü (24 saat)",
+    "teamMembers": "Ekip Üyeleri"
+  },
+  "agent": {
+    "title": "Çalışma Alanım",
+    "myOpenTickets": "Açık Taleplerim",
+    "pendingTasks": "Bekleyen Görevler",
+    "resolved": "Çözüldü"
+  },
+  "requester": {
+    "title": "İsteklerim",
+    "open": "Açık",
+    "resolved": "Çözüldü",
+    "total": "Toplam"
+  }
+}

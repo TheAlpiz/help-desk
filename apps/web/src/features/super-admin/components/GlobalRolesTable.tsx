@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, X, ShieldCheck, Trash2 } from "lucide-react";
 import { PERMISSION_CATALOG, type PermissionEntry } from "@/lib/permissions-catalog";
-import { api, apiFetch, authHeaders } from "@/lib/api";
+import { api } from "@/lib/api";
 import { Button, Input, FormAlert, FormError } from "@/components/ui";
+import { useTranslation } from "react-i18next";
 
 type GlobalRole = { id: string; name: string; description: string | null; isSystem: boolean; createdAt: string; };
 type Permission = { id: string; roleId: string; resource: string; action: string; };
@@ -56,6 +57,8 @@ function PermissionPicker({ selected, onChange }: { selected: PermissionEntry[];
 }
 
 function CreateGlobalRoleModal({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation("superAdmin");
+  const { t: tCommon } = useTranslation("common");
   const queryClient = useQueryClient();
   const [step, setStep] = useState<"details" | "permissions">("details");
   const [form, setForm] = useState({ name: "", description: "" });
@@ -69,7 +72,10 @@ function CreateGlobalRoleModal({ onClose }: { onClose: () => void }) {
       if (!res.ok) throw new Error(roleBody?.error?.message || "Failed to create role");
       const newRole: GlobalRole = roleBody.data;
       if (selectedPermissions.length > 0) {
-        const permRes = await fetch(`/api/permissions/by-role/${newRole.id}`, { method: "PUT", headers: authHeaders(), credentials: "include", body: JSON.stringify({ entries: selectedPermissions }) });
+        const permRes = await api.permissions["by-role"][":roleId"].$put({
+          param: { roleId: newRole.id },
+          json: { entries: selectedPermissions },
+        });
         if (!permRes.ok) throw new Error("Role created, but permissions failed to save");
       }
       return newRole;
@@ -88,13 +94,13 @@ function CreateGlobalRoleModal({ onClose }: { onClose: () => void }) {
             <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${step === "details" ? "bg-primary text-on-primary" : "bg-emerald-500/20 text-emerald-300"}`}>
               {step === "details" ? "1" : "✓"}
             </div>
-            <span className={`text-xs font-medium ${step === "details" ? "text-primary" : "text-on-surface-variant/50"}`}>Role Details</span>
+            <span className={`text-xs font-medium ${step === "details" ? "text-primary" : "text-on-surface-variant/50"}`}>{t("globalRoles.createModal.stepDetails")}</span>
             <span className="text-on-surface-variant/30 mx-1 text-xs">→</span>
             <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${step === "permissions" ? "bg-primary text-on-primary" : "bg-surface-container-high text-on-surface-variant/40"}`}>2</div>
-            <span className={`text-xs font-medium ${step === "permissions" ? "text-primary" : "text-on-surface-variant/40"}`}>Permissions</span>
+            <span className={`text-xs font-medium ${step === "permissions" ? "text-primary" : "text-on-surface-variant/40"}`}>{t("globalRoles.createModal.stepPermissions")}</span>
           </div>
           <h3 className="text-sm font-semibold text-on-surface">
-            {step === "details" ? "Create Global Role" : `Set Permissions — "${form.name}"`}
+            {step === "details" ? t("globalRoles.createModal.titleCreate") : t("globalRoles.createModal.titlePermissions", { name: form.name })}
           </h3>
         </div>
 
@@ -103,36 +109,36 @@ function CreateGlobalRoleModal({ onClose }: { onClose: () => void }) {
           {step === "details" ? (
             <div className="space-y-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-on-surface">Role Name *</label>
-                <Input dense type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Support Lead" autoFocus />
+                <label className="text-xs font-medium text-on-surface">{t("globalRoles.createModal.nameLabel")}</label>
+                <Input dense type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t("globalRoles.createModal.namePlaceholder")} autoFocus />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-on-surface">Description</label>
-                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Describe this role's responsibilities..." rows={3} className={textareaCls} />
+                <label className="text-xs font-medium text-on-surface">{t("globalRoles.createModal.descLabel")}</label>
+                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder={t("globalRoles.createModal.descPlaceholder")} rows={3} className={textareaCls} />
               </div>
             </div>
           ) : (
             <div>
-              <p className="text-xs text-on-surface-variant/60 mb-4">Select the permissions this role should have.</p>
+              <p className="text-xs text-on-surface-variant/60 mb-4">{t("globalRoles.createModal.selectPermissions")}</p>
               <PermissionPicker selected={selectedPermissions} onChange={setSelectedPermissions} />
-              <p className="text-xs text-on-surface-variant/40 mt-3">{selectedPermissions.length} permission{selectedPermissions.length !== 1 ? "s" : ""} selected</p>
+              <p className="text-xs text-on-surface-variant/40 mt-3">{t("globalRoles.createModal.permissionsSelected", { count: selectedPermissions.length })}</p>
             </div>
           )}
         </div>
 
         <div className="px-5 py-4 border-t border-outline-variant flex gap-2 justify-between shrink-0">
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button variant="secondary" onClick={onClose}>{tCommon("actions.cancel")}</Button>
           <div className="flex gap-2">
             {step === "permissions" && (
-              <Button variant="secondary" onClick={() => setStep("details")}>Back</Button>
+              <Button variant="secondary" onClick={() => setStep("details")}>{tCommon("actions.back")}</Button>
             )}
             {step === "details" ? (
               <Button onClick={() => setStep("permissions")} disabled={!form.name.trim()}>
-                Next: Permissions →
+                {t("globalRoles.createModal.next")}
               </Button>
             ) : (
               <Button onClick={() => mutation.mutate()} disabled={mutation.isPending} loading={mutation.isPending}>
-                {!mutation.isPending && "Create Role"}
+                {!mutation.isPending && t("globalRoles.createModal.createRole")}
               </Button>
             )}
           </div>
@@ -143,6 +149,8 @@ function CreateGlobalRoleModal({ onClose }: { onClose: () => void }) {
 }
 
 function RolePermissionsDrawer({ role, onClose }: { role: GlobalRole; onClose: () => void }) {
+  const { t } = useTranslation("superAdmin");
+  const { t: tCommon } = useTranslation("common");
   const queryClient = useQueryClient();
 
   const { data: permResponse, isLoading } = useQuery({
@@ -160,7 +168,10 @@ function RolePermissionsDrawer({ role, onClose }: { role: GlobalRole; onClose: (
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch(`/api/permissions/by-role/${role.id}`, { method: "PUT", headers: authHeaders(), credentials: "include", body: JSON.stringify({ entries: effectiveSelected }) });
+      const res = await api.permissions["by-role"][":roleId"].$put({
+        param: { roleId: role.id },
+        json: { entries: effectiveSelected },
+      });
       if (!res.ok) throw new Error("Failed to save permissions");
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["global-role-permissions", role.id] }); onClose(); },
@@ -171,8 +182,8 @@ function RolePermissionsDrawer({ role, onClose }: { role: GlobalRole; onClose: (
       <div className="bg-surface-container border border-outline-variant rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
         <div className="px-5 py-4 border-b border-outline-variant shrink-0 flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-on-surface">Edit Permissions</h3>
-            <p className="text-xs text-on-surface-variant/60 mt-0.5">Global role: <span className="text-on-surface font-medium">{role.name}</span></p>
+            <h3 className="text-sm font-semibold text-on-surface">{t("globalRoles.permissionsDrawer.title")}</h3>
+            <p className="text-xs text-on-surface-variant/60 mt-0.5">{t("globalRoles.permissionsDrawer.globalRoleLabel")} <span className="text-on-surface font-medium">{role.name}</span></p>
           </div>
           <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface transition-colors"><X className="w-4 h-4" /></button>
         </div>
@@ -184,11 +195,11 @@ function RolePermissionsDrawer({ role, onClose }: { role: GlobalRole; onClose: (
           )}
         </div>
         <div className="px-5 py-4 border-t border-outline-variant flex items-center justify-between shrink-0">
-          <span className="text-xs text-on-surface-variant/40">{effectiveSelected.length} selected</span>
+          <span className="text-xs text-on-surface-variant/40">{t("globalRoles.permissionsDrawer.selected", { count: effectiveSelected.length })}</span>
           <div className="flex gap-2">
-            <Button variant="secondary" onClick={onClose}>Cancel</Button>
+            <Button variant="secondary" onClick={onClose}>{tCommon("actions.cancel")}</Button>
             <Button onClick={() => mutation.mutate()} disabled={mutation.isPending || role.isSystem} loading={mutation.isPending}>
-              {!mutation.isPending && "Save Permissions"}
+              {!mutation.isPending && t("globalRoles.permissionsDrawer.savePermissions")}
             </Button>
           </div>
         </div>
@@ -198,6 +209,8 @@ function RolePermissionsDrawer({ role, onClose }: { role: GlobalRole; onClose: (
 }
 
 function DeleteRoleModal({ role, onClose }: { role: GlobalRole; onClose: () => void }) {
+  const { t } = useTranslation("superAdmin");
+  const { t: tCommon } = useTranslation("common");
   const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: async () => {
@@ -213,15 +226,15 @@ function DeleteRoleModal({ role, onClose }: { role: GlobalRole; onClose: () => v
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-surface-container border border-outline-variant rounded-xl shadow-2xl w-full max-w-sm p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-on-surface">Delete Global Role</h3>
+        <h3 className="text-sm font-semibold text-on-surface">{t("globalRoles.deleteModal.title")}</h3>
         <p className="text-sm text-on-surface-variant">
-          Delete <span className="font-semibold text-on-surface">{role.name}</span>? All associated permissions will be removed. Cannot be undone.
+          {t("globalRoles.deleteModal.confirmPre")} <span className="font-semibold text-on-surface">{role.name}</span>{t("globalRoles.deleteModal.confirmPost")}
         </p>
         <FormError>{mutation.error ? (mutation.error as Error).message : undefined}</FormError>
         <div className="flex gap-2 justify-end">
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button variant="secondary" onClick={onClose}>{tCommon("actions.cancel")}</Button>
           <Button variant="danger" onClick={() => mutation.mutate()} disabled={mutation.isPending} loading={mutation.isPending}>
-            {!mutation.isPending && "Delete"}
+            {!mutation.isPending && tCommon("actions.delete")}
           </Button>
         </div>
       </div>
@@ -230,6 +243,8 @@ function DeleteRoleModal({ role, onClose }: { role: GlobalRole; onClose: () => v
 }
 
 export function GlobalRolesTable() {
+  const { t } = useTranslation("superAdmin");
+  const { t: tCommon } = useTranslation("common");
   const [showCreate, setShowCreate] = useState(false);
   const [editRole, setEditRole] = useState<GlobalRole | null>(null);
   const [deleteRole, setDeleteRole] = useState<GlobalRole | null>(null);
@@ -252,10 +267,10 @@ export function GlobalRolesTable() {
       {deleteRole && <DeleteRoleModal role={deleteRole} onClose={() => setDeleteRole(null)} />}
 
       <div className="flex items-center justify-between mb-4">
-        <p className="text-xs text-on-surface-variant/50">System-wide roles shared across all tenants.</p>
+        <p className="text-xs text-on-surface-variant/50">{t("globalRoles.systemWideDesc")}</p>
         <Button onClick={() => setShowCreate(true)}>
           <Plus className="w-4 h-4" />
-          New Global Role
+          {t("globalRoles.newRole")}
         </Button>
       </div>
 
@@ -263,15 +278,15 @@ export function GlobalRolesTable() {
         {isLoading ? (
           <div className="p-8 space-y-3">{[...Array(4)].map((_, i) => <div key={i} className="h-10 bg-white/5 rounded animate-pulse" />)}</div>
         ) : error ? (
-          <div className="p-8 text-center text-error text-sm">Failed to load global roles.</div>
+          <div className="p-8 text-center text-error text-sm">{t("globalRoles.loadFailed")}</div>
         ) : (
           <table className="w-full text-left">
             <thead className="border-b border-outline-variant">
               <tr>
-                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">Name</th>
-                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">Description</th>
-                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">Type</th>
-                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider text-right">Actions</th>
+                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("globalRoles.cols.name")}</th>
+                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("globalRoles.cols.description")}</th>
+                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("globalRoles.cols.type")}</th>
+                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider text-right">{t("globalRoles.cols.actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant">
@@ -281,17 +296,17 @@ export function GlobalRolesTable() {
                   <td className="px-4 py-3 text-sm text-on-surface-variant/60">{role.description || "—"}</td>
                   <td className="px-4 py-3">
                     {role.isSystem
-                      ? <span className="inline-flex text-[10px] font-semibold px-2 py-0.5 rounded border bg-violet-500/15 text-violet-300 border-violet-500/20">System</span>
-                      : <span className="inline-flex text-[10px] font-semibold px-2 py-0.5 rounded border bg-white/8 text-on-surface-variant border-white/10">Custom</span>
+                      ? <span className="inline-flex text-[10px] font-semibold px-2 py-0.5 rounded border bg-violet-500/15 text-violet-300 border-violet-500/20">{t("globalRoles.typeSystem")}</span>
+                      : <span className="inline-flex text-[10px] font-semibold px-2 py-0.5 rounded border bg-white/8 text-on-surface-variant border-white/10">{t("globalRoles.typeCustom")}</span>
                     }
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => setEditRole(role)} className="p-1.5 rounded text-on-surface-variant/50 hover:text-primary hover:bg-primary/10 transition-colors" title="Edit Permissions">
+                      <button onClick={() => setEditRole(role)} className="p-1.5 rounded text-on-surface-variant/50 hover:text-primary hover:bg-primary/10 transition-colors" title={t("globalRoles.permissionsDrawer.editPermissions")}>
                         <ShieldCheck className="w-3.5 h-3.5" />
                       </button>
                       {!role.isSystem && (
-                        <button onClick={() => setDeleteRole(role)} className="p-1.5 rounded text-on-surface-variant/50 hover:text-error hover:bg-error-container/20 transition-colors" title="Delete">
+                        <button onClick={() => setDeleteRole(role)} className="p-1.5 rounded text-on-surface-variant/50 hover:text-error hover:bg-error-container/20 transition-colors" title={tCommon("actions.delete")}>
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       )}
@@ -304,8 +319,8 @@ export function GlobalRolesTable() {
                   <td colSpan={4} className="px-4 py-16 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"><ShieldCheck className="w-5 h-5 text-primary" /></div>
-                      <p className="text-sm font-medium text-on-surface">No global roles yet</p>
-                      <button onClick={() => setShowCreate(true)} className="text-xs text-primary hover:text-primary/80 font-medium transition-colors">Create first role</button>
+                      <p className="text-sm font-medium text-on-surface">{t("globalRoles.noRoles")}</p>
+                      <button onClick={() => setShowCreate(true)} className="text-xs text-primary hover:text-primary/80 font-medium transition-colors">{t("globalRoles.createFirst")}</button>
                     </div>
                   </td>
                 </tr>

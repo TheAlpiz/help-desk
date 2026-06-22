@@ -1,0 +1,32 @@
+{
+  "title": "API Tokens",
+  "subtitle": "Create personal access tokens for API integrations.",
+  "comingSoon": {
+    "title": "Personal API tokens",
+    "description": "Generate scoped access tokens to integrate Alpis with your tools, scripts, CI pipelines, and third-party services.",
+    "badge": "In development",
+    "eta": "Q3 2025",
+    "features": {
+      "scopes": {
+        "label": "Fine-grained scopes",
+        "description": "Limit each token to exactly the permissions it needs — tickets:read, users:write, and more."
+      },
+      "secure": {
+        "label": "Secure by design",
+        "description": "Tokens are shown once at creation. Only a hashed prefix is stored — never the secret."
+      },
+      "revocation": {
+        "label": "Instant revocation",
+        "description": "Revoke any token immediately without affecting other integrations."
+      },
+      "lastUsed": {
+        "label": "Last-used tracking",
+        "description": "See exactly when each token was last used to audit and clean up stale keys."
+      },
+      "restAccess": {
+        "label": "Full REST access",
+        "description": "Authenticate any API request — list tickets, update statuses, trigger automations."
+      }
+    }
+  }
+}

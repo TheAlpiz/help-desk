@@ -1,0 +1,50 @@
+{
+  "main": {
+    "dashboard": "Dashboard",
+    "tickets": "Tickets",
+    "archived": "Archived",
+    "tasks": "Tasks",
+    "notifications": "Notifications",
+    "mailboxes": "Mailboxes",
+    "reports": "Reports",
+    "search": "Search"
+  },
+  "admin": {
+    "heading": "Administration",
+    "users": "Users & Roles",
+    "departments": "Departments",
+    "sla": "SLA Policies",
+    "roles": "Permissions",
+    "macros": "Macros",
+    "automations": "Automations",
+    "export": "Export",
+    "compliance": "Compliance",
+    "auditLog": "Audit Log",
+    "settings": "Settings"
+  },
+  "super": {
+    "heading": "Platform",
+    "organizations": "Organizations",
+    "globalUsers": "Global Users",
+    "globalRoles": "Global Roles"
+  },
+  "user": {
+    "profile": "Profile",
+    "accountSecurity": "Account Security",
+    "preferences": "Preferences",
+    "apiTokens": "API Tokens",
+    "billing": "Billing",
+    "logout": "Sign out"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "allCaughtUp": "All caught up",
+    "viewAll": "View all notifications →"
+  },
+  "verifyEmail": {
+    "message": "Please verify your email address to secure your account.",
+    "resend": "Resend verification email",
+    "sending": "Sending…",
+    "sent": "Verification email sent — check your inbox."
+  }
+}

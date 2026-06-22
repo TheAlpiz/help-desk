@@ -7,6 +7,7 @@ export const getAuditLogsQuerySchema = z.object({
   action: z.string().optional(),
   from: z.string().datetime().optional(),
   to: z.string().datetime().optional(),
+  search: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
   offset: z.coerce.number().int().min(0).default(0),
 });

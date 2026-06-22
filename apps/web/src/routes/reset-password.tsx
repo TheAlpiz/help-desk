@@ -6,6 +6,7 @@ import { useState } from "react";
 import { api } from "../lib/api";
 import { resetPasswordSchema } from "@help-desk/shared";
 import { Button, Input, FormError, FormAlert, Label, fieldErrors } from "@/components/ui";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/reset-password")({
   validateSearch: z.object({ token: z.string().optional() }),
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/reset-password")({
 });
 
 function ResetPassword() {
+  const { t } = useTranslation("auth");
   const { token } = Route.useSearch();
   const navigate = useNavigate();
   const [success, setSuccess] = useState(false);
@@ -45,16 +47,16 @@ function ResetPassword() {
             <AlertCircle className="w-5 h-5 text-error" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-on-surface mb-1">Invalid link</h1>
+            <h1 className="text-xl font-bold text-on-surface mb-1">{t("resetPassword.invalidTitle")}</h1>
             <p className="text-sm text-on-surface-variant">
-              This reset link is missing a token. Request a new one.
+              {t("resetPassword.invalidMessage")}
             </p>
           </div>
           <Link
             to="/forgot-password"
             className="inline-flex items-center justify-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
           >
-            Request password reset
+            {t("resetPassword.requestReset")}
           </Link>
         </div>
       </div>
@@ -76,10 +78,10 @@ function ResetPassword() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-on-surface tracking-tight mb-1">
-              Password updated
+              {t("resetPassword.successTitle")}
             </h1>
             <p className="text-sm text-on-surface-variant leading-relaxed">
-              Your password has been reset. Redirecting to sign in…
+              {t("resetPassword.successMessage")}
             </p>
           </div>
           <Link
@@ -87,7 +89,7 @@ function ResetPassword() {
             className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Go to sign in
+            {t("resetPassword.goToSignIn")}
           </Link>
         </div>
       </div>
@@ -106,9 +108,9 @@ function ResetPassword() {
 
         <div>
           <h1 className="text-2xl font-bold text-on-surface tracking-tight mb-1">
-            Set new password
+            {t("resetPassword.title")}
           </h1>
-          <p className="text-sm text-on-surface-variant">Must be at least 8 characters.</p>
+          <p className="text-sm text-on-surface-variant">{t("resetPassword.subtitle")}</p>
         </div>
 
         {submitError && <FormAlert>{submitError}</FormAlert>}
@@ -126,7 +128,7 @@ function ResetPassword() {
             validators={{ onChange: resetPasswordSchema.shape.password }}
             children={(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor={field.name}>New password</Label>
+                <Label htmlFor={field.name}>{t("resetPassword.newPassword")}</Label>
                 <Input
                   id={field.name}
                   name={field.name}
@@ -148,14 +150,14 @@ function ResetPassword() {
               onChangeListenTo: ["password"],
               onChange: ({ value, fieldApi }) => {
                 if (value !== fieldApi.form.getFieldValue("password")) {
-                  return "Passwords do not match";
+                  return t("resetPassword.passwordMismatch");
                 }
                 return undefined;
               },
             }}
             children={(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor={field.name}>Confirm password</Label>
+                <Label htmlFor={field.name}>{t("resetPassword.confirmPassword")}</Label>
                 <Input
                   id={field.name}
                   name={field.name}
@@ -175,7 +177,7 @@ function ResetPassword() {
             selector={(state) => [state.canSubmit, state.isSubmitting]}
             children={([canSubmit, isSubmitting]) => (
               <Button type="submit" fullWidth disabled={!canSubmit} loading={isSubmitting}>
-                {!isSubmitting && "Reset password"}
+                {!isSubmitting && t("resetPassword.submit")}
               </Button>
             )}
           />
@@ -186,7 +188,7 @@ function ResetPassword() {
           className="inline-flex items-center gap-2 text-sm text-on-surface-variant hover:text-on-surface transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to sign in
+          {t("resetPassword.backToSignIn")}
         </Link>
       </div>
     </div>

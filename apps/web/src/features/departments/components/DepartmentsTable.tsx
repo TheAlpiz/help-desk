@@ -3,7 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { Plus, X, Pencil, Trash2, Building2, Users } from "lucide-react";
-import { useAppStore } from "@/store";
+import { useTranslation } from "react-i18next";
+import { api } from "@/lib/api";
 import { createDepartmentSchema, updateDepartmentSchema } from "@help-desk/shared";
 import { Button, Input, FormAlert, FormError, fieldErrors } from "@/components/ui";
 
@@ -16,22 +17,7 @@ type Department = {
   updatedAt: string | null;
 };
 
-function getAuthHeaders() {
-  const state = useAppStore.getState();
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (state.accessToken) headers["Authorization"] = `Bearer ${state.accessToken}`;
-  if (state.tenantId) headers["X-Tenant-ID"] = state.tenantId;
-  return headers;
-}
 
-async function apiFetch(path: string, init: RequestInit = {}) {
-  const res = await fetch(`/api${path}`, {
-    ...init,
-    headers: { ...getAuthHeaders(), ...(init.headers ?? {}) },
-  });
-  const body = await res.json();
-  return { res, body };
-}
 
 function ModalShell({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
@@ -55,6 +41,7 @@ function DeptFormBody({ form, error, onClose, submitLabel }: {
   onClose: () => void;
   submitLabel: string;
 }) {
+  const { t } = useTranslation("common");
   return (
     <form
       onSubmit={(e) => { e.preventDefault(); e.stopPropagation(); form.handleSubmit(); }}
@@ -64,17 +51,17 @@ function DeptFormBody({ form, error, onClose, submitLabel }: {
 
       <form.Field
         name="name"
-        validators={{ onChange: z.string().min(1, "Name is required") }}
+        validators={{ onChange: z.string().min(1, t("departments.form.nameRequired")) }}
         children={(field: any) => (
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-on-surface">Name *</label>
+            <label className="text-xs font-medium text-on-surface">{t("departments.cols.name")} *</label>
             <Input
               dense
               autoFocus
               value={field.state.value}
               onBlur={field.handleBlur}
               onChange={(e: any) => field.handleChange(e.target.value)}
-              placeholder="e.g. Support"
+              placeholder={t("departments.form.namePlaceholder")}
             />
             <FormError>{fieldErrors(field.state.meta.errors)}</FormError>
           </div>
@@ -85,21 +72,21 @@ function DeptFormBody({ form, error, onClose, submitLabel }: {
         name="description"
         children={(field: any) => (
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-on-surface">Description</label>
+            <label className="text-xs font-medium text-on-surface">{t("departments.cols.description")}</label>
             <textarea
               className="w-full px-3 py-2 bg-surface-container-high border border-outline-variant rounded-lg text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/60 transition-colors resize-none"
               rows={3}
               value={field.state.value}
               onBlur={field.handleBlur}
               onChange={(e: any) => field.handleChange(e.target.value)}
-              placeholder="Describe this department..."
+              placeholder={t("departments.form.descPlaceholder")}
             />
           </div>
         )}
       />
 
       <div className="flex gap-2 justify-end pt-1">
-        <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+        <Button type="button" variant="secondary" onClick={onClose}>{t("actions.cancel")}</Button>
         <form.Subscribe
           selector={(s: any) => [s.canSubmit, s.isSubmitting]}
           children={([canSubmit, isSubmitting]: [boolean, boolean]) => (
@@ -116,24 +103,26 @@ function DeptFormBody({ form, error, onClose, submitLabel }: {
 function CreateDepartmentModal({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation("common");
 
   const form = useForm({
     defaultValues: { name: "", description: "" },
-    validators: { onChange: createDepartmentSchema },
+    validators: { onChange: createDepartmentSchema as any },
     onSubmit: async ({ value }) => {
       setError(null);
       try {
-        const { res, body } = await apiFetch("/departments", { method: "POST", body: JSON.stringify(value) });
-        if (!res.ok) { setError(body?.error?.message || body?.message || "Failed to create department"); return; }
+        const res = await api.departments.index.$post({ json: value as any });
+        const body = await res.json() as any;
+        if (!res.ok) { setError(body?.error?.message || body?.message || t("departments.form.createFailed")); return; }
         queryClient.invalidateQueries({ queryKey: ["departments"] });
         onClose();
-      } catch (err: any) { setError(err.message || "An error occurred"); }
+      } catch (err: any) { setError(err.message || t("errors.generic")); }
     },
   });
 
   return (
-    <ModalShell title="New Department" onClose={onClose}>
-      <DeptFormBody form={form} error={error} onClose={onClose} submitLabel="Create" />
+    <ModalShell title={t("departments.form.createTitle")} onClose={onClose}>
+      <DeptFormBody form={form} error={error} onClose={onClose} submitLabel={t("actions.create")} />
     </ModalShell>
   );
 }
@@ -141,49 +130,53 @@ function CreateDepartmentModal({ onClose }: { onClose: () => void }) {
 function EditDepartmentModal({ dept, onClose }: { dept: Department; onClose: () => void }) {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation("common");
 
   const form = useForm({
     defaultValues: { name: dept.name, description: dept.description ?? "" },
-    validators: { onChange: updateDepartmentSchema },
+    validators: { onChange: updateDepartmentSchema as any },
     onSubmit: async ({ value }) => {
       setError(null);
       try {
-        const { res, body } = await apiFetch(`/departments/${dept.id}`, { method: "PUT", body: JSON.stringify(value) });
-        if (!res.ok) { setError(body?.error?.message || body?.message || "Failed to update department"); return; }
+        const res = await api.departments[":id"].$put({ param: { id: dept.id }, json: value });
+        const body = await res.json() as any;
+        if (!res.ok) { setError(body?.error?.message || body?.message || t("departments.form.updateFailed")); return; }
         queryClient.invalidateQueries({ queryKey: ["departments"] });
         onClose();
-      } catch (err: any) { setError(err.message || "An error occurred"); }
+      } catch (err: any) { setError(err.message || t("errors.generic")); }
     },
   });
 
   return (
-    <ModalShell title="Edit Department" onClose={onClose}>
-      <DeptFormBody form={form} error={error} onClose={onClose} submitLabel="Save Changes" />
+    <ModalShell title={t("departments.form.editTitle")} onClose={onClose}>
+      <DeptFormBody form={form} error={error} onClose={onClose} submitLabel={t("departments.form.saveChanges")} />
     </ModalShell>
   );
 }
 
 function DeleteDepartmentConfirm({ dept, onClose }: { dept: Department; onClose: () => void }) {
   const queryClient = useQueryClient();
+  const { t } = useTranslation("common");
   const mutation = useMutation({
     mutationFn: async () => {
-      const { res, body } = await apiFetch(`/departments/${dept.id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error(body?.error?.message || body?.message || "Failed to delete");
+      const res = await api.departments[":id"].$delete({ param: { id: dept.id } });
+      const body = await res.json() as any;
+      if (!res.ok) throw new Error(body?.error?.message || body?.message || t("departments.delete.failed"));
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["departments"] }); onClose(); },
   });
 
   return (
-    <ModalShell title="Delete Department" onClose={onClose}>
+    <ModalShell title={t("departments.delete.title")} onClose={onClose}>
       <div className="p-5 space-y-4">
         <p className="text-sm text-on-surface-variant">
-          Delete <span className="font-semibold text-on-surface">{dept.name}</span>? Cannot be undone.
+          {t("departments.delete.confirmPrefix")} <span className="font-semibold text-on-surface">{dept.name}</span>{t("departments.delete.confirmSuffix")}
         </p>
         <FormError>{mutation.error ? (mutation.error as Error).message : undefined}</FormError>
         <div className="flex gap-2 justify-end">
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button variant="secondary" onClick={onClose}>{t("actions.cancel")}</Button>
           <Button variant="danger" onClick={() => mutation.mutate()} disabled={mutation.isPending} loading={mutation.isPending}>
-            {!mutation.isPending && "Delete"}
+            {!mutation.isPending && t("actions.delete")}
           </Button>
         </div>
       </div>
@@ -193,11 +186,13 @@ function DeleteDepartmentConfirm({ dept, onClose }: { dept: Department; onClose:
 
 function DeptMembersDrawer({ dept, onClose }: { dept: Department; onClose: () => void }) {
   const qc = useQueryClient();
+  const { t } = useTranslation("common");
 
   const { data: membersData, isLoading } = useQuery({
     queryKey: ["dept-members", dept.id],
     queryFn: async () => {
-      const { body } = await apiFetch(`/departments/${dept.id}/members`);
+      const res = await (api.departments[":id"] as any).members.$get({ param: { id: dept.id } });
+      const body = await res.json() as any;
       return body ?? { data: [] };
     },
   });
@@ -205,7 +200,8 @@ function DeptMembersDrawer({ dept, onClose }: { dept: Department; onClose: () =>
   const { data: usersData } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const { body } = await apiFetch("/users");
+      const res = await api.users.index.$get();
+      const body = await res.json() as any;
       return body ?? { data: [] };
     },
   });
@@ -217,7 +213,7 @@ function DeptMembersDrawer({ dept, onClose }: { dept: Department; onClose: () =>
 
   const addMember = useMutation({
     mutationFn: async (userId: string) => {
-      const { res } = await apiFetch(`/departments/${dept.id}/members`, { method: "POST", body: JSON.stringify({ userId }) });
+      const res = await api.departments[":id"].members.$post({ param: { id: dept.id }, json: { userId } });
       if (!res.ok) throw new Error("Failed");
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["dept-members", dept.id] }),
@@ -225,7 +221,7 @@ function DeptMembersDrawer({ dept, onClose }: { dept: Department; onClose: () =>
 
   const removeMember = useMutation({
     mutationFn: async (userId: string) => {
-      const { res } = await apiFetch(`/departments/${dept.id}/members/${userId}`, { method: "DELETE" });
+      const res = await api.departments[":id"].members[":userId"].$delete({ param: { id: dept.id, userId } });
       if (!res.ok) throw new Error("Failed");
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["dept-members", dept.id] }),
@@ -238,7 +234,7 @@ function DeptMembersDrawer({ dept, onClose }: { dept: Department; onClose: () =>
         <div className="flex items-center justify-between px-5 py-4 border-b border-outline-variant">
           <div>
             <h3 className="text-sm font-semibold text-on-surface">{dept.name}</h3>
-            <p className="text-[11px] text-on-surface-variant/50">Members ({members.length})</p>
+            <p className="text-[11px] text-on-surface-variant/50">{t("departments.members.title", { count: members.length })}</p>
           </div>
           <button onClick={onClose} aria-label="Close" className="text-on-surface-variant/40 hover:text-on-surface transition-colors">
             <X className="w-4 h-4" />
@@ -251,7 +247,7 @@ function DeptMembersDrawer({ dept, onClose }: { dept: Department; onClose: () =>
           ) : (
             <>
               {members.length === 0 ? (
-                <p className="text-xs text-on-surface-variant/40 text-center py-4">No members yet</p>
+                <p className="text-xs text-on-surface-variant/40 text-center py-4">{t("departments.members.noMembers")}</p>
               ) : (
                 <div className="space-y-1">
                   {members.map((m: any) => (
@@ -267,7 +263,7 @@ function DeptMembersDrawer({ dept, onClose }: { dept: Department; onClose: () =>
                         onClick={() => removeMember.mutate(m.id)}
                         disabled={removeMember.isPending}
                         className="text-on-surface-variant/30 hover:text-error transition-colors"
-                        aria-label={`Remove ${m.firstName}`}
+                        aria-label={t("departments.members.remove", { name: m.firstName })}
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -278,7 +274,7 @@ function DeptMembersDrawer({ dept, onClose }: { dept: Department; onClose: () =>
 
               {available.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-2">Add member</p>
+                  <p className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-2">{t("departments.members.addMember")}</p>
                   <div className="space-y-1">
                     {available.map((u: any) => (
                       <button
@@ -312,11 +308,13 @@ export function DepartmentsTable() {
   const [editDept, setEditDept] = useState<Department | null>(null);
   const [deleteDept, setDeleteDept] = useState<Department | null>(null);
   const [membersDrawer, setMembersDrawer] = useState<Department | null>(null);
+  const { t } = useTranslation("common");
 
   const { data: response, isLoading, error } = useQuery({
     queryKey: ["departments"],
     queryFn: async () => {
-      const { body } = await apiFetch("/departments");
+      const res = await api.departments.index.$get();
+      const body = await res.json() as any;
       return body as { data: Department[] };
     },
   });
@@ -331,10 +329,10 @@ export function DepartmentsTable() {
       {membersDrawer && <DeptMembersDrawer dept={membersDrawer} onClose={() => setMembersDrawer(null)} />}
 
       <div className="flex items-center justify-between mb-4">
-        <p className="text-xs text-on-surface-variant/50">Manage your organization's departments.</p>
+        <p className="text-xs text-on-surface-variant/50">{t("departments.subtitle")}</p>
         <Button onClick={() => setShowCreate(true)}>
           <Plus className="w-4 h-4" />
-          New Department
+          {t("departments.newDepartment")}
         </Button>
       </div>
 
@@ -344,14 +342,14 @@ export function DepartmentsTable() {
             {[...Array(4)].map((_, i) => <div key={i} className="h-10 bg-white/5 rounded animate-pulse" />)}
           </div>
         ) : error ? (
-          <div className="p-8 text-center text-error text-sm">Failed to load departments.</div>
+          <div className="p-8 text-center text-error text-sm">{t("departments.loadFailed")}</div>
         ) : (
           <table className="w-full text-left">
             <thead className="border-b border-outline-variant">
               <tr>
-                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">Name</th>
-                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">Description</th>
-                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider text-right">Actions</th>
+                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("departments.cols.name")}</th>
+                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("departments.cols.description")}</th>
+                <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider text-right">{t("departments.cols.actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant">
@@ -364,22 +362,22 @@ export function DepartmentsTable() {
                       <button
                         onClick={() => setMembersDrawer(dept)}
                         className="p-1.5 rounded text-on-surface-variant/50 hover:text-primary hover:bg-primary/10 transition-colors"
-                        title="Manage members"
-                        aria-label="Manage members"
+                        title={t("departments.manageMembers")}
+                        aria-label={t("departments.manageMembers")}
                       >
                         <Users className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => setEditDept(dept)}
                         className="p-1.5 rounded text-on-surface-variant/50 hover:text-on-surface hover:bg-white/5 transition-colors"
-                        title="Edit"
+                        title={t("actions.edit")}
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => setDeleteDept(dept)}
                         className="p-1.5 rounded text-on-surface-variant/50 hover:text-error hover:bg-error-container/20 transition-colors"
-                        title="Delete"
+                        title={t("actions.delete")}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -394,12 +392,12 @@ export function DepartmentsTable() {
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                         <Building2 className="w-5 h-5 text-primary" />
                       </div>
-                      <p className="text-sm font-medium text-on-surface">No departments yet</p>
+                      <p className="text-sm font-medium text-on-surface">{t("departments.empty.title")}</p>
                       <button
                         onClick={() => setShowCreate(true)}
                         className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
                       >
-                        Create first department
+                        {t("departments.empty.create")}
                       </button>
                     </div>
                   </td>

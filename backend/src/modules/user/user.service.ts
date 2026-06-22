@@ -1,11 +1,27 @@
-import { eq } from "drizzle-orm";
+import { eq, and, or, ilike } from "drizzle-orm";
 import { withTenantTransaction, withSuperAdminTransaction } from "../../infra/db";
 import { user, NewUser } from "./user.schema";
 
 export const UserService = {
-  findAll: async (tenantId: string) => {
+  findAll: async (tenantId: string, opts?: { search?: string; limit?: number; offset?: number }) => {
     return withTenantTransaction(tenantId, async (tx) => {
-      return tx.select().from(user).where(eq(user.organizationId, tenantId));
+      let where = eq(user.organizationId, tenantId) as any;
+      
+      if (opts?.search) {
+        const searchCondition = or(
+          ilike(user.firstName, `%${opts.search}%`),
+          ilike(user.lastName, `%${opts.search}%`),
+          ilike(user.email, `%${opts.search}%`)
+        );
+        where = and(where, searchCondition);
+      }
+
+      const query = tx.select().from(user).where(where);
+      
+      if (opts?.limit) query.limit(opts.limit);
+      if (opts?.offset) query.offset(opts.offset);
+
+      return query;
     });
   },
 

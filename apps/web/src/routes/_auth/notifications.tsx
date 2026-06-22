@@ -1,49 +1,49 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { authFetch } from "@/lib/api";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { api } from "@/lib/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Bell, CheckCheck, Filter } from "lucide-react";
 import { useAppStore } from "@/store";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/_auth/notifications")({
   component: NotificationsList,
 });
 
-const FILTER_OPTIONS = [
-  { key: "all", label: "All" },
-  { key: "unread", label: "Unread" },
-  { key: "read", label: "Read" },
-] as const;
-
-type FilterKey = (typeof FILTER_OPTIONS)[number]["key"];
-
-const TYPE_LABELS: Record<string, string> = {
-  ticket_assigned: "Ticket Assigned",
-  ticket_reply: "Ticket Reply",
-  ticket_closed: "Ticket Closed",
-  sla_breach: "SLA Breach",
-  mention: "Mention",
-  task_assigned: "Task Assigned",
-  system: "System",
-};
+type FilterKey = "all" | "unread" | "read";
 
 function NotificationsList() {
+  const { t } = useTranslation("notifications");
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { accessToken, tenantId } = useAppStore();
   const [filterKey, setFilterKey] = useState<FilterKey>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
-  const headers = {
-    Authorization: `Bearer ${accessToken ?? ""}`,
-    "X-Tenant-ID": tenantId ?? "",
+  const FILTER_OPTIONS: { key: FilterKey; label: string }[] = [
+    { key: "all", label: t("filter.all") },
+    { key: "unread", label: t("filter.unread") },
+    { key: "read", label: t("filter.read") },
+  ];
+
+  const TYPE_LABELS: Record<string, string> = {
+    ticket_assigned: t("types.ticket_assigned"),
+    ticket_reply: t("types.ticket_reply"),
+    ticket_closed: t("types.ticket_closed"),
+    sla_breach: t("types.sla_breach"),
+    sla_escalation: t("types.sla_escalation", "SLA Escalation"),
+    mention: t("types.mention"),
+    task_assigned: t("types.task_assigned"),
+    system: t("types.system"),
   };
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
-      const res = await authFetch("/api/notifications", { headers });
+      const res = await api.notifications.index.$get();
+      const body = await res.json() as any;
       if (!res.ok) throw new Error("Failed to fetch notifications");
-      return res.json();
+      return body;
     },
   });
 
@@ -51,10 +51,9 @@ function NotificationsList() {
 
   const markOneMutation = useMutation({
     mutationFn: async (id: string) => {
-      await authFetch(`/api/notifications/${id}/read`, {
-        method: "PATCH",
-        headers: { ...headers, "Content-Type": "application/json" },
-        body: JSON.stringify({ isRead: true }),
+      await api.notifications[":id"].read.$patch({
+        param: { id },
+        json: { isRead: true } as any,
       });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
@@ -65,10 +64,9 @@ function NotificationsList() {
       const unread = all.filter((n: any) => !n.isRead);
       await Promise.all(
         unread.map((n: any) =>
-          authFetch(`/api/notifications/${n.id}/read`, {
-            method: "PATCH",
-            headers: { ...headers, "Content-Type": "application/json" },
-            body: JSON.stringify({ isRead: true }),
+          api.notifications[":id"].read.$patch({
+            param: { id: n.id },
+            json: { isRead: true } as any,
           }),
         ),
       );
@@ -92,10 +90,10 @@ function NotificationsList() {
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2">
-          <h1 className="text-[15px] font-semibold text-on-surface">Notifications</h1>
+          <h1 className="text-[15px] font-semibold text-on-surface">{t("title")}</h1>
           {unreadCount > 0 && (
             <span className="inline-flex text-[10px] font-semibold px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/20">
-              {unreadCount} unread
+              {t("unread", { count: unreadCount })}
             </span>
           )}
         </div>
@@ -105,7 +103,7 @@ function NotificationsList() {
           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-on-surface-variant border border-outline-variant rounded-lg hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           <CheckCheck className="w-3.5 h-3.5" />
-          {markAllMutation.isPending ? "Marking..." : "Mark all read"}
+          {markAllMutation.isPending ? t("marking") : t("markAllRead")}
         </button>
       </div>
 
@@ -136,9 +134,9 @@ function NotificationsList() {
               className="px-2.5 py-1 text-xs bg-surface-container-high border border-outline-variant rounded-lg text-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary/50 transition-colors"
               aria-label="Filter by type"
             >
-              <option value="all">All types</option>
-              {types.map((t: any) => (
-                <option key={t} value={t}>{TYPE_LABELS[t] ?? t}</option>
+              <option value="all">{t("filter.allTypes")}</option>
+              {types.map((type: any) => (
+                <option key={type} value={type}>{TYPE_LABELS[type] ?? type}</option>
               ))}
             </select>
           </>
@@ -160,10 +158,10 @@ function NotificationsList() {
               <Bell className="w-5 h-5 text-primary" />
             </div>
             <p className="text-sm font-medium text-on-surface">
-              {all.length === 0 ? "All caught up" : "No matches"}
+              {all.length === 0 ? t("empty.allCaughtUp") : t("empty.noMatches")}
             </p>
             <p className="text-xs text-on-surface-variant/40 mt-1">
-              {all.length === 0 ? "No notifications yet." : "Try a different filter."}
+              {all.length === 0 ? t("empty.allCaughtUpSub") : t("empty.noMatchesSub")}
             </p>
           </div>
         ) : (
@@ -173,24 +171,27 @@ function NotificationsList() {
                 key={n.id}
                 onClick={() => {
                   if (!n.isRead) markOneMutation.mutate(n.id);
+                  if (n.actionUrl) {
+                    navigate({ to: n.actionUrl });
+                  }
                 }}
                 className={`flex items-start gap-3 px-4 py-3 transition-colors ${
                   !n.isRead
                     ? "bg-primary/5 hover:bg-primary/8 cursor-pointer"
-                    : "hover:bg-white/3"
+                    : "hover:bg-white/3 cursor-pointer"
                 }`}
-                title={!n.isRead ? "Click to mark as read" : undefined}
+                title={!n.isRead ? t("markRead") : undefined}
               >
                 <div className={`w-1.5 h-1.5 mt-1.5 rounded-full shrink-0 ${!n.isRead ? "bg-primary" : "bg-transparent"}`} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <p className="text-sm font-medium text-on-surface truncate">
-                        {TYPE_LABELS[n.type] ?? n.type ?? "Notification"}
+                        {n.title ?? TYPE_LABELS[n.type] ?? n.type ?? t("types.notification")}
                       </p>
                       {n.type && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-on-surface-variant/50 border border-white/10 shrink-0">
-                          {n.type}
+                          {TYPE_LABELS[n.type] ?? n.type}
                         </span>
                       )}
                     </div>
@@ -199,7 +200,7 @@ function NotificationsList() {
                     </span>
                   </div>
                   <p className="text-xs text-on-surface-variant mt-0.5 leading-relaxed">
-                    {n.message ?? n.payload?.message ?? ""}
+                    {n.body ?? n.message ?? n.payload?.message ?? ""}
                   </p>
                 </div>
               </div>
@@ -210,7 +211,7 @@ function NotificationsList() {
 
       {notifications.length > 0 && (
         <p className="text-[10px] text-on-surface-variant/30 text-right">
-          {notifications.length} of {all.length} notifications
+          {t("ofNotifications", { shown: notifications.length, total: all.length })}
         </p>
       )}
     </div>

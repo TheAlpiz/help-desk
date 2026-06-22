@@ -1,12 +1,24 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray, ilike } from "drizzle-orm";
 import { department, NewDepartment } from "./department.schema";
+import { departmentMember } from "./department-member.schema";
 import { user } from "../user/user.schema";
 import { withTenantTransaction } from "../../infra/db";
 
 export const DepartmentService = {
-  findAll: async (tenantId: string) => {
+  findAll: async (tenantId: string, opts?: { search?: string; limit?: number; offset?: number }) => {
     return withTenantTransaction(tenantId, async (tx) => {
-      return tx.select().from(department).where(eq(department.organizationId, tenantId));
+      let where = eq(department.organizationId, tenantId) as any;
+      
+      if (opts?.search) {
+        where = and(where, ilike(department.name, `%${opts.search}%`));
+      }
+
+      const query = tx.select().from(department).where(where);
+      
+      if (opts?.limit) query.limit(opts.limit);
+      if (opts?.offset) query.offset(opts.offset);
+
+      return query;
     });
   },
 
@@ -56,28 +68,52 @@ export const DepartmentService = {
           globalRole: user.globalRole,
           status: user.status,
         })
-        .from(user)
-        .where(eq(user.departmentId, departmentId));
+        .from(departmentMember)
+        .innerJoin(user, eq(user.id, departmentMember.userId))
+        .where(eq(departmentMember.departmentId, departmentId));
     });
   },
 
   addMember: async (tenantId: string, departmentId: string, userId: string) => {
     return withTenantTransaction(tenantId, async (tx) => {
       const result = await tx
-        .update(user)
-        .set({ departmentId })
-        .where(eq(user.id, userId))
-        .returning({ id: user.id, departmentId: user.departmentId });
-      return result[0];
+        .insert(departmentMember)
+        .values({ organizationId: tenantId, departmentId, userId })
+        .onConflictDoNothing()
+        .returning();
+      return result[0] ?? { departmentId, userId };
     });
   },
 
   removeMember: async (tenantId: string, departmentId: string, userId: string) => {
     return withTenantTransaction(tenantId, async (tx) => {
       await tx
-        .update(user)
-        .set({ departmentId: null })
-        .where(and(eq(user.id, userId), eq(user.departmentId, departmentId)));
+        .delete(departmentMember)
+        .where(and(eq(departmentMember.departmentId, departmentId), eq(departmentMember.userId, userId)));
+    });
+  },
+
+  // Department ids a user belongs to — drives ABAC ticket visibility.
+  memberDepartmentIds: async (tenantId: string, userId: string): Promise<string[]> => {
+    return withTenantTransaction(tenantId, async (tx) => {
+      const rows = await tx
+        .select({ departmentId: departmentMember.departmentId })
+        .from(departmentMember)
+        .where(eq(departmentMember.userId, userId));
+      return rows.map((r) => r.departmentId);
+    });
+  },
+
+  // Full department rows a user belongs to — for the user-detail UI.
+  departmentsOfUser: async (tenantId: string, userId: string) => {
+    return withTenantTransaction(tenantId, async (tx) => {
+      const memberRows = await tx
+        .select({ departmentId: departmentMember.departmentId })
+        .from(departmentMember)
+        .where(eq(departmentMember.userId, userId));
+      const ids = memberRows.map((r) => r.departmentId);
+      if (ids.length === 0) return [];
+      return tx.select().from(department).where(inArray(department.id, ids));
     });
   },
 };

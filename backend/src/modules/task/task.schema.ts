@@ -15,7 +15,7 @@ export const task = pgTable("task", {
   description: text("description"),
   status: varchar("status", { length: 50 }).default("TODO").notNull(),
   priority: varchar("priority", { length: 50 }).default("MEDIUM").notNull(),
-  dueDate: timestamp("due_date"),
+  dueDate: timestamp("due_date", { withTimezone: true }),
   ...timestamps,
 });
 

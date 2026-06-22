@@ -1,0 +1,36 @@
+{
+  "title": "WhatsApp",
+  "subtitle": "Konuşmaları yönetmek için WhatsApp Business hesaplarını bağlayın.",
+  "comingSoon": {
+    "title": "WhatsApp Business entegrasyonu",
+    "description": "WhatsApp konuşmalarını Alpis'e getirin — e-posta ve portal talepleriyle birlikte tek birleşik gelen kutusunda yönetin.",
+    "badge": "Yakında",
+    "eta": "Q3 2025",
+    "features": {
+      "multiNumber": {
+        "label": "Çoklu numara desteği",
+        "description": "Birden fazla WhatsApp Business numarasını farklı departmanlara veya posta kutularına bağlayın."
+      },
+      "autoTicket": {
+        "label": "Otomatik talep oluşturma",
+        "description": "Gelen WhatsApp mesajları, tam konuşma iş parçacığıyla anında talep oluşturur."
+      },
+      "sessionWindow": {
+        "label": "Oturum penceresi takibi",
+        "description": "Akıllı yeniden etkileşim istemleriyle 24 saatlik mesajlaşma penceresine uyar."
+      },
+      "agentAssignment": {
+        "label": "Temsilci atama",
+        "description": "WhatsApp taleplerini e-posta talepleriyle aynı kurallarla temsilcilere ve ekiplere yönlendirin."
+      },
+      "templates": {
+        "label": "Şablon mesajlar",
+        "description": "Proaktif iletişim için önceden onaylanmış WhatsApp mesaj şablonları gönderin."
+      },
+      "analytics": {
+        "label": "Kanal analitiği",
+        "description": "Kanala göre ayrılmış yanıt süreleri, çözüm oranları ve CSAT puanları."
+      }
+    }
+  }
+}

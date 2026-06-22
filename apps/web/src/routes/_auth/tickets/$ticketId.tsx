@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { authFetch } from "@/lib/api";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useRef, useCallback } from "react";
 import DOMPurify from "dompurify";
@@ -22,14 +22,15 @@ export const Route = createFileRoute("/_auth/tickets/$ticketId")({
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
-const STATUS_MAP: Record<string, { label: string; cls: string }> = {
-  open: { label: "Open", cls: "bg-blue-500/15 text-blue-300 border border-blue-500/20" },
-  assigned: { label: "Assigned", cls: "bg-violet-500/15 text-violet-300 border border-violet-500/20" },
-  in_progress: { label: "In Progress", cls: "bg-primary/15 text-primary border border-primary/20" },
-  waiting_customer: { label: "Waiting", cls: "bg-amber-500/15 text-amber-300 border border-amber-500/20" },
-  resolved: { label: "Resolved", cls: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20" },
-  closed: { label: "Closed", cls: "bg-white/8 text-on-surface-variant border border-white/10" },
-  reopened: { label: "Reopened", cls: "bg-red-500/15 text-red-300 border border-red-500/20" },
+const STATUS_CLS: Record<string, string> = {
+  open: "bg-blue-500/15 text-blue-300 border border-blue-500/20",
+  assigned: "bg-violet-500/15 text-violet-300 border border-violet-500/20",
+  in_progress: "bg-primary/15 text-primary border border-primary/20",
+  waiting_customer: "bg-amber-500/15 text-amber-300 border border-amber-500/20",
+  resolved: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20",
+  closed: "bg-white/8 text-on-surface-variant border border-white/10",
+  reopened: "bg-red-500/15 text-red-300 border border-red-500/20",
+  archived: "bg-gray-500/15 text-gray-400 border border-gray-500/30",
 };
 
 const PRIORITY_ICON: Record<string, React.ReactNode> = {
@@ -40,7 +41,7 @@ const PRIORITY_ICON: Record<string, React.ReactNode> = {
 };
 
 const TICKET_STATUSES = [
-  "open", "assigned", "in_progress", "waiting_customer", "resolved", "closed", "reopened",
+  "open", "assigned", "in_progress", "waiting_customer", "resolved", "closed", "reopened", "archived"
 ] as const;
 
 const TICKET_PRIORITIES = ["low", "medium", "high", "critical"] as const;
@@ -51,6 +52,7 @@ const selectCls =
 // ─── Requester/contact panel ──────────────────────────────────────────────────
 
 function RequesterPanel({ ticket }: { ticket: any }) {
+  const { t } = useTranslation("tickets");
   const contact = ticket.contact;
   const requester = contact ?? ticket.requester;
   if (!requester) return null;
@@ -60,7 +62,7 @@ function RequesterPanel({ ticket }: { ticket: any }) {
 
   return (
     <div className="bg-surface-container border border-outline-variant rounded-xl p-4 space-y-3">
-      <h3 className="text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">Requester</h3>
+      <h3 className="text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("detail.requester")}</h3>
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center text-xs font-semibold text-primary shrink-0">
           {initials}
@@ -101,7 +103,7 @@ function RequesterPanel({ ticket }: { ticket: any }) {
           className="flex items-center gap-1.5 text-[11px] text-primary/70 hover:text-primary transition-colors pt-1"
         >
           <ExternalLink className="w-3 h-3" />
-          View contact profile
+          {t("detail.viewContactProfile")}
         </a>
       )}
     </div>
@@ -111,6 +113,7 @@ function RequesterPanel({ ticket }: { ticket: any }) {
 // ─── Properties panel ─────────────────────────────────────────────────────────
 
 function TicketProperties({ ticket, ticketId }: { ticket: any; ticketId: string }) {
+  const { t } = useTranslation("tickets");
   const queryClient = useQueryClient();
 
   const statusMutation = useMutation({
@@ -119,7 +122,7 @@ function TicketProperties({ ticket, ticketId }: { ticket: any; ticketId: string 
         param: { id: ticketId },
         json: { status },
       });
-      if (!res.ok) throw new Error("Failed to update status");
+      if (!res.ok) throw new Error(t("errors.failedStatus"));
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ticket", ticketId] }),
   });
@@ -130,7 +133,7 @@ function TicketProperties({ ticket, ticketId }: { ticket: any; ticketId: string 
         param: { id: ticketId },
         json: { priority },
       });
-      if (!res.ok) throw new Error("Failed to update priority");
+      if (!res.ok) throw new Error(t("errors.failedPriority"));
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ticket", ticketId] }),
   });
@@ -162,7 +165,7 @@ function TicketProperties({ ticket, ticketId }: { ticket: any; ticketId: string 
         param: { id: ticketId },
         json: { departmentId },
       });
-      if (!res.ok) throw new Error("Transfer failed");
+      if (!res.ok) throw new Error(t("errors.transferFailed"));
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ticket", ticketId] }),
   });
@@ -173,7 +176,7 @@ function TicketProperties({ ticket, ticketId }: { ticket: any; ticketId: string 
         param: { id: ticketId },
         json: { assigneeId },
       });
-      if (!res.ok) throw new Error("Failed to assign ticket");
+      if (!res.ok) throw new Error(t("errors.failedAssign"));
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ticket", ticketId] }),
   });
@@ -184,12 +187,12 @@ function TicketProperties({ ticket, ticketId }: { ticket: any; ticketId: string 
   return (
     <div className="flex flex-col gap-3">
       <div className="bg-surface-container border border-outline-variant rounded-xl p-4 space-y-4">
-        <h3 className="text-xs font-semibold text-on-surface">Properties</h3>
+        <h3 className="text-xs font-semibold text-on-surface">{t("detail.properties")}</h3>
 
         {/* Status */}
         <div className="space-y-1">
           <label className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">
-            Status
+            {t("fields.status")}
           </label>
           <select
             className={selectCls}
@@ -201,7 +204,7 @@ function TicketProperties({ ticket, ticketId }: { ticket: any; ticketId: string 
           >
             {TICKET_STATUSES.map((s) => (
               <option key={s} value={s}>
-                {s.replace("_", " ")}
+                {t(`statuses.${s}`)}
               </option>
             ))}
           </select>
@@ -210,7 +213,7 @@ function TicketProperties({ ticket, ticketId }: { ticket: any; ticketId: string 
         {/* Priority */}
         <div className="space-y-1">
           <label className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">
-            Priority
+            {t("fields.priority")}
           </label>
           <select
             className={selectCls}
@@ -222,7 +225,7 @@ function TicketProperties({ ticket, ticketId }: { ticket: any; ticketId: string 
           >
             {TICKET_PRIORITIES.map((p) => (
               <option key={p} value={p}>
-                {p}
+                {t(`priorities.${p}`)}
               </option>
             ))}
           </select>
@@ -231,7 +234,7 @@ function TicketProperties({ ticket, ticketId }: { ticket: any; ticketId: string 
         {/* Assignee */}
         <div className="space-y-1">
           <label className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">
-            Assignee
+            {t("fields.assignee")}
           </label>
           <select
             className={selectCls}
@@ -241,7 +244,7 @@ function TicketProperties({ ticket, ticketId }: { ticket: any; ticketId: string 
               if (e.target.value) assignMutation.mutate(e.target.value);
             }}
           >
-            <option value="">Unassigned</option>
+            <option value="">{t("detail.unassigned")}</option>
             {users.map((u: any) => (
               <option key={u.id} value={u.id}>
                 {u.firstName} {u.lastName}
@@ -253,7 +256,7 @@ function TicketProperties({ ticket, ticketId }: { ticket: any; ticketId: string 
         {/* Department / Transfer */}
         <div className="space-y-1">
           <label className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">
-            Department
+            {t("fields.department")}
           </label>
           <select
             className={selectCls}
@@ -261,7 +264,7 @@ function TicketProperties({ ticket, ticketId }: { ticket: any; ticketId: string 
             disabled={transferMutation.isPending || departments.length === 0}
             onChange={(e) => e.target.value && transferMutation.mutate(e.target.value)}
           >
-            <option value="">No department</option>
+            <option value="">{t("detail.noDepartment")}</option>
             {departments.map((d: any) => (
               <option key={d.id} value={d.id}>{d.name}</option>
             ))}
@@ -271,19 +274,20 @@ function TicketProperties({ ticket, ticketId }: { ticket: any; ticketId: string 
         {/* SLA */}
         <div className="space-y-1">
           <p className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">
-            SLA
+            {t("fields.sla")}
           </p>
           <SlaCountdown
             targetAt={ticket.firstResponseTargetAt ?? null}
             met={ticket.firstResponseMet ?? null}
-            label="First response"
+            label={t("detail.slaFirstResponse")}
+            ticketStatus={ticket.status}
           />
         </div>
 
         {/* Created */}
         <div className="space-y-1 pt-2 border-t border-outline-variant">
           <p className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">
-            Created
+            {t("fields.createdAt")}
           </p>
           <p className="text-xs font-mono text-on-surface-variant/50">
             {new Date(ticket.createdAt).toLocaleString()}
@@ -292,7 +296,7 @@ function TicketProperties({ ticket, ticketId }: { ticket: any; ticketId: string 
       </div>
 
       {anyPending && (
-        <p className="text-xs text-on-surface-variant/50 text-center">Saving...</p>
+        <p className="text-xs text-on-surface-variant/50 text-center">{t("detail.saving")}</p>
       )}
 
       <FormError>
@@ -307,18 +311,14 @@ function TicketProperties({ ticket, ticketId }: { ticket: any; ticketId: string 
 // ─── Tags panel ───────────────────────────────────────────────────────────────
 
 function TicketTags({ ticketId }: { ticketId: string }) {
+  const { t } = useTranslation("tickets");
   const queryClient = useQueryClient();
   const [input, setInput] = useState("");
-
-  const store = useAppStore.getState();
-  const tagHeaders: Record<string, string> = { "Content-Type": "application/json" };
-  if (store.accessToken) tagHeaders["Authorization"] = `Bearer ${store.accessToken}`;
-  if (store.tenantId) tagHeaders["X-Tenant-ID"] = store.tenantId;
 
   const { data: tagsData } = useQuery({
     queryKey: ["ticket-tags", ticketId],
     queryFn: async () => {
-      const res = await authFetch(`/api/tickets/${ticketId}/tags`, { headers: tagHeaders });
+      const res = await api.tickets[":id"].tags.$get({ param: { id: ticketId } });
       if (!res.ok) return [];
       const json = await res.json() as any;
       return (json?.data ?? []) as Array<{ id: string; name: string }>;
@@ -328,10 +328,9 @@ function TicketTags({ ticketId }: { ticketId: string }) {
 
   const addTag = useMutation({
     mutationFn: async (tag: string) => {
-      const res = await authFetch(`/api/tickets/${ticketId}/tags`, {
-        method: "POST",
-        headers: tagHeaders,
-        body: JSON.stringify({ name: tag }),
+      const res = await api.tickets[":id"].tags.$post({
+        param: { id: ticketId },
+        json: { name: tag },
       });
       if (!res.ok) throw new Error("Failed");
     },
@@ -343,9 +342,8 @@ function TicketTags({ ticketId }: { ticketId: string }) {
 
   const removeTag = useMutation({
     mutationFn: async (tagId: string) => {
-      const res = await authFetch(`/api/tickets/${ticketId}/tags/${tagId}`, {
-        method: "DELETE",
-        headers: tagHeaders,
+      const res = await api.tickets[":id"].tags[":tagId"].$delete({
+        param: { id: ticketId, tagId },
       });
       if (!res.ok) throw new Error("Failed");
     },
@@ -356,7 +354,7 @@ function TicketTags({ ticketId }: { ticketId: string }) {
     <div className="bg-surface-container border border-outline-variant rounded-xl p-4 space-y-3">
       <h3 className="text-xs font-semibold text-on-surface flex items-center gap-1.5">
         <Tag className="w-3.5 h-3.5 text-on-surface-variant" />
-        Tags
+        {t("tags.title")}
       </h3>
       <div className="flex flex-wrap gap-1.5">
         {tags.map((tag) => (
@@ -374,7 +372,7 @@ function TicketTags({ ticketId }: { ticketId: string }) {
           </span>
         ))}
         {tags.length === 0 && (
-          <p className="text-[11px] text-on-surface-variant/40">No tags</p>
+          <p className="text-[11px] text-on-surface-variant/40">{t("tags.noTags")}</p>
         )}
       </div>
       <div className="flex gap-1.5">
@@ -387,7 +385,7 @@ function TicketTags({ ticketId }: { ticketId: string }) {
               e.preventDefault();
             }
           }}
-          placeholder="Add tag…"
+          placeholder={t("tags.addPlaceholder")}
           className="flex-1 min-w-0 px-2.5 py-1.5 text-xs bg-surface-container-high border border-outline-variant rounded-lg text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors"
         />
         <button
@@ -395,7 +393,7 @@ function TicketTags({ ticketId }: { ticketId: string }) {
           disabled={!input.trim() || addTag.isPending}
           className="px-2.5 py-1.5 text-xs bg-primary text-on-primary rounded-lg hover:bg-primary/90 disabled:opacity-40 transition-colors"
         >
-          Add
+          {t("tags.add")}
         </button>
       </div>
     </div>
@@ -405,6 +403,7 @@ function TicketTags({ ticketId }: { ticketId: string }) {
 // ─── Merge panel ──────────────────────────────────────────────────────────────
 
 function TicketMerge({ ticketId }: { ticketId: string }) {
+  const { t } = useTranslation("tickets");
   const queryClient = useQueryClient();
   const [targetId, setTargetId] = useState("");
   const [open, setOpen] = useState(false);
@@ -415,7 +414,7 @@ function TicketMerge({ ticketId }: { ticketId: string }) {
         param: { id: ticketId },
         json: { targetTicketId: targetId.trim() },
       });
-      if (!res.ok) throw new Error("Failed to merge");
+      if (!res.ok) throw new Error(t("merge.failed"));
     },
     onSuccess: () => {
       setOpen(false);
@@ -432,7 +431,7 @@ function TicketMerge({ ticketId }: { ticketId: string }) {
         className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-surface-container border border-outline-variant rounded-xl text-xs text-on-surface-variant hover:bg-white/5 hover:text-on-surface transition-colors"
       >
         <Merge className="w-3.5 h-3.5" />
-        Merge ticket
+        {t("merge.button")}
       </button>
     );
   }
@@ -442,19 +441,19 @@ function TicketMerge({ ticketId }: { ticketId: string }) {
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-semibold text-on-surface flex items-center gap-1.5">
           <Merge className="w-3.5 h-3.5" />
-          Merge into ticket
+          {t("merge.title")}
         </h3>
         <button onClick={() => setOpen(false)} className="text-on-surface-variant/40 hover:text-on-surface transition-colors">
           <X className="w-3.5 h-3.5" />
         </button>
       </div>
       <p className="text-[11px] text-on-surface-variant/60">
-        This ticket will be closed and its messages moved to the target ticket.
+        {t("merge.description")}
       </p>
       <input
         value={targetId}
         onChange={(e) => setTargetId(e.target.value)}
-        placeholder="Target ticket ID…"
+        placeholder={t("merge.placeholder")}
         className="w-full px-2.5 py-1.5 text-xs bg-surface-container-high border border-outline-variant rounded-lg text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors"
       />
       {mergeMutation.error && (
@@ -462,14 +461,14 @@ function TicketMerge({ ticketId }: { ticketId: string }) {
       )}
       <div className="flex gap-2">
         <button onClick={() => setOpen(false)} className="flex-1 py-1.5 text-xs border border-outline-variant text-on-surface-variant rounded-lg hover:bg-white/5 transition-colors">
-          Cancel
+          {t("merge.cancel")}
         </button>
         <button
           onClick={() => mergeMutation.mutate()}
           disabled={!targetId.trim() || mergeMutation.isPending}
           className="flex-1 py-1.5 text-xs bg-error text-white rounded-lg hover:bg-error/90 disabled:opacity-40 transition-colors font-medium"
         >
-          {mergeMutation.isPending ? "Merging…" : "Merge"}
+          {mergeMutation.isPending ? t("merge.merging") : t("merge.merge")}
         </button>
       </div>
     </div>
@@ -479,14 +478,8 @@ function TicketMerge({ ticketId }: { ticketId: string }) {
 // ─── Apply Macro ──────────────────────────────────────────────────────────────
 
 function ApplyMacro({ ticketId }: { ticketId: string }) {
+  const { t } = useTranslation("tickets");
   const qc = useQueryClient();
-  const { accessToken, tenantId } = useAppStore.getState();
-  const headers = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${accessToken}`,
-    "X-Tenant-ID": tenantId ?? "",
-  };
-
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState("");
   const [result, setResult] = useState<string | null>(null);
@@ -494,8 +487,8 @@ function ApplyMacro({ ticketId }: { ticketId: string }) {
   const { data: macros = [] } = useQuery({
     queryKey: ["macros"],
     queryFn: async () => {
-      const res = await authFetch("/api/macros", { headers });
-      const json = await res.json();
+      const res = await api.macros.index.$get();
+      const json = await res.json() as any;
       return (json?.data ?? []) as Array<{ id: string; name: string; description?: string; actions: any[] }>;
     },
     enabled: open,
@@ -503,17 +496,16 @@ function ApplyMacro({ ticketId }: { ticketId: string }) {
 
   const applyMutation = useMutation({
     mutationFn: async (macroId: string) => {
-      const res = await authFetch(`/api/macros/${macroId}/apply`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ ticketId }),
+      const res = await api.macros[":id"].apply.$post({
+        param: { id: macroId },
+        json: { ticketId },
       });
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     },
     onSuccess: (data: any) => {
       const count = data?.data?.applied ?? 0;
-      setResult(`Applied ${count} action${count !== 1 ? "s" : ""}`);
+      setResult(t("macro.applied", { count }));
       qc.invalidateQueries({ queryKey: ["ticket", ticketId] });
       qc.invalidateQueries({ queryKey: ["ticket-messages", ticketId] });
       qc.invalidateQueries({ queryKey: ["ticket-tags", ticketId] });
@@ -528,7 +520,7 @@ function ApplyMacro({ ticketId }: { ticketId: string }) {
         className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-surface-container border border-outline-variant rounded-xl text-xs text-on-surface-variant hover:bg-white/5 hover:text-on-surface transition-colors"
       >
         <Zap className="w-3.5 h-3.5 text-primary/70" />
-        Apply macro
+        {t("macro.button")}
       </button>
     );
   }
@@ -540,7 +532,7 @@ function ApplyMacro({ ticketId }: { ticketId: string }) {
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-semibold text-on-surface flex items-center gap-1.5">
           <Zap className="w-3.5 h-3.5 text-primary" />
-          Apply macro
+          {t("macro.title")}
         </h3>
         <button onClick={() => { setOpen(false); setSelected(""); setResult(null); }} className="text-on-surface-variant/40 hover:text-on-surface transition-colors">
           <X className="w-3.5 h-3.5" />
@@ -548,7 +540,7 @@ function ApplyMacro({ ticketId }: { ticketId: string }) {
       </div>
 
       {macros.length === 0 ? (
-        <p className="text-[11px] text-on-surface-variant/40 italic">No macros defined yet</p>
+        <p className="text-[11px] text-on-surface-variant/40 italic">{t("macro.noMacros")}</p>
       ) : (
         <div className="space-y-2">
           {macros.map((m) => (
@@ -582,7 +574,7 @@ function ApplyMacro({ ticketId }: { ticketId: string }) {
 
       <div className="flex gap-2">
         <button onClick={() => { setOpen(false); setSelected(""); setResult(null); }} className="flex-1 py-1.5 text-xs border border-outline-variant text-on-surface-variant rounded-lg hover:bg-white/5 transition-colors">
-          Cancel
+          {t("macro.cancel")}
         </button>
         <button
           onClick={() => selected && applyMutation.mutate(selected)}
@@ -590,7 +582,7 @@ function ApplyMacro({ ticketId }: { ticketId: string }) {
           className="flex-1 py-1.5 text-xs bg-primary text-on-primary rounded-lg hover:bg-primary/90 disabled:opacity-40 transition-colors font-medium flex items-center justify-center gap-1"
         >
           <Zap className="w-3 h-3" />
-          {applyMutation.isPending ? "Applying…" : "Apply"}
+          {applyMutation.isPending ? t("macro.applying") : t("macro.apply")}
         </button>
       </div>
     </div>
@@ -600,6 +592,7 @@ function ApplyMacro({ ticketId }: { ticketId: string }) {
 // ─── SLA timeline ─────────────────────────────────────────────────────────────
 
 function SlaTimeline({ ticket }: { ticket: any }) {
+  const { t } = useTranslation("tickets");
   const sla = ticket.slaPolicy ?? ticket.sla;
   if (!sla && !ticket.firstResponseDueAt && !ticket.resolutionDueAt) return null;
 
@@ -607,18 +600,18 @@ function SlaTimeline({ ticket }: { ticket: any }) {
 
   const milestones = [
     {
-      label: "Created",
+      label: t("slaTimeline.created"),
       at: ticket.createdAt,
       done: true,
     },
     {
-      label: "First response",
+      label: t("slaTimeline.firstResponse"),
       at: ticket.firstResponseAt ?? ticket.firstResponseDueAt,
       due: ticket.firstResponseDueAt,
       done: !!ticket.firstResponseAt,
     },
     {
-      label: "Resolution",
+      label: t("slaTimeline.resolution"),
       at: ticket.resolvedAt ?? ticket.resolutionDueAt,
       due: ticket.resolutionDueAt,
       done: !!ticket.resolvedAt,
@@ -629,7 +622,7 @@ function SlaTimeline({ ticket }: { ticket: any }) {
 
   return (
     <div className="bg-surface-container border border-outline-variant rounded-xl p-4 space-y-3">
-      <h3 className="text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">SLA Timeline</h3>
+      <h3 className="text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("slaTimeline.title")}</h3>
       <div className="space-y-2">
         {milestones.map((m, i) => {
           const d = m.at ? new Date(m.at) : null;
@@ -649,11 +642,11 @@ function SlaTimeline({ ticket }: { ticket: any }) {
                   )}
                 </div>
                 {isOverdue && (
-                  <p className="text-[10px] text-error/70 mt-0.5">Overdue</p>
+                  <p className="text-[10px] text-error/70 mt-0.5">{t("slaTimeline.overdue")}</p>
                 )}
                 {!m.done && m.due && !isOverdue && (
                   <p className="text-[10px] text-on-surface-variant/40 mt-0.5">
-                    Due {new Date(m.due).toLocaleDateString()}
+                    {t("slaTimeline.due", { date: new Date(m.due).toLocaleDateString() })}
                   </p>
                 )}
               </div>
@@ -668,6 +661,7 @@ function SlaTimeline({ ticket }: { ticket: any }) {
 // ─── CC / Followers ───────────────────────────────────────────────────────────
 
 function CcFollowers({ ticket, ticketId }: { ticket: any; ticketId: string }) {
+  const { t } = useTranslation("tickets");
   const [adding, setAdding] = useState(false);
   const [email, setEmail] = useState("");
   const queryClient = useQueryClient();
@@ -676,16 +670,9 @@ function CcFollowers({ ticket, ticketId }: { ticket: any; ticketId: string }) {
 
   const addMutation = useMutation({
     mutationFn: async (ccEmail: string) => {
-      const res = await authFetch(`/api/tickets/${ticketId}/cc`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...(() => {
-          const s = useAppStore.getState();
-          const h: Record<string, string> = {};
-          if (s.accessToken) h["Authorization"] = `Bearer ${s.accessToken}`;
-          if (s.tenantId) h["X-Tenant-ID"] = s.tenantId;
-          return h;
-        })() },
-        body: JSON.stringify({ email: ccEmail }),
+      const res = await api.tickets[":id"].cc.$post({
+        param: { id: ticketId },
+        json: { email: ccEmail },
       });
       if (!res.ok) throw new Error("Failed");
     },
@@ -694,15 +681,8 @@ function CcFollowers({ ticket, ticketId }: { ticket: any; ticketId: string }) {
 
   const removeMutation = useMutation({
     mutationFn: async (ccEmail: string) => {
-      const res = await authFetch(`/api/tickets/${ticketId}/cc/${encodeURIComponent(ccEmail)}`, {
-        method: "DELETE",
-        headers: (() => {
-          const s = useAppStore.getState();
-          const h: Record<string, string> = {};
-          if (s.accessToken) h["Authorization"] = `Bearer ${s.accessToken}`;
-          if (s.tenantId) h["X-Tenant-ID"] = s.tenantId;
-          return h;
-        })(),
+      const res = await api.tickets[":id"].cc[":email"].$delete({
+        param: { id: ticketId, email: ccEmail },
       });
       if (!res.ok) throw new Error("Failed");
     },
@@ -712,12 +692,12 @@ function CcFollowers({ ticket, ticketId }: { ticket: any; ticketId: string }) {
   return (
     <div className="bg-surface-container border border-outline-variant rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">CC / Followers</h3>
+        <h3 className="text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("cc.title")}</h3>
         <button
           onClick={() => setAdding((v) => !v)}
           className="text-[10px] text-primary hover:text-primary/80 transition-colors"
         >
-          + Add
+          {t("cc.add")}
         </button>
       </div>
       {adding && (
@@ -735,12 +715,12 @@ function CcFollowers({ ticket, ticketId }: { ticket: any; ticketId: string }) {
             disabled={!email || addMutation.isPending}
             className="px-2.5 py-1 text-xs bg-primary text-on-primary rounded-lg disabled:opacity-40"
           >
-            Add
+            {t("cc.add")}
           </button>
         </div>
       )}
       {ccs.length === 0 ? (
-        <p className="text-xs text-on-surface-variant/30">No followers</p>
+        <p className="text-xs text-on-surface-variant/30">{t("cc.noFollowers")}</p>
       ) : (
         <div className="space-y-1">
           {ccs.map((cc: string) => (
@@ -875,6 +855,7 @@ const TICKET_TO_TASK_PRIORITY: Record<string, string> = {
 };
 
 function ConvertToTaskButton({ ticket, ticketId }: { ticket: any; ticketId: string }) {
+  const { t } = useTranslation("tickets");
   const [open, setOpen] = useState(false);
   const [converting, setConverting] = useState(false);
   const [done, setDone] = useState(false);
@@ -884,18 +865,12 @@ function ConvertToTaskButton({ ticket, ticketId }: { ticket: any; ticketId: stri
     setConverting(true);
     setError(null);
     try {
-      const s = useAppStore.getState();
-      const h: Record<string, string> = { "Content-Type": "application/json" };
-      if (s.accessToken) h["Authorization"] = `Bearer ${s.accessToken}`;
-      if (s.tenantId) h["X-Tenant-ID"] = s.tenantId;
-      const res = await authFetch("/api/tasks", {
-        method: "POST",
-        headers: h,
-        body: JSON.stringify({
+      const res = await api.tasks.index.$post({
+        json: {
           title: ticket.subject,
           description: `Converted from ticket #${ticketId}`,
-          priority: TICKET_TO_TASK_PRIORITY[String(ticket.priority ?? "").toLowerCase()] ?? "MEDIUM",
-        }),
+          priority: (TICKET_TO_TASK_PRIORITY[String(ticket.priority ?? "").toLowerCase()] ?? "MEDIUM") as any,
+        },
       });
       if (res.ok) {
         // Carry the ticket's assignee over to the new task. Assignment is a
@@ -903,20 +878,19 @@ function ConvertToTaskButton({ ticket, ticketId }: { ticket: any; ticketId: stri
         const b = (await res.json().catch(() => ({}))) as any;
         const newTaskId = b?.data?.id;
         if (newTaskId && ticket.assigneeId) {
-          await authFetch(`/api/tasks/${newTaskId}/assign`, {
-            method: "PUT",
-            headers: h,
-            body: JSON.stringify({ assigneeId: ticket.assigneeId }),
+          await api.tasks[":id"].assign.$put({
+            param: { id: newTaskId },
+            json: { assigneeId: ticket.assigneeId },
           });
         }
         setDone(true);
         setOpen(false);
       } else {
         const b = (await res.json().catch(() => ({}))) as any;
-        setError(b?.error?.message || b?.message || "Failed to convert");
+        setError(b?.error?.message || b?.message || t("convert.failed"));
       }
     } catch (e: any) {
-      setError(e?.message || "Failed to convert");
+      setError(e?.message || t("convert.failed"));
     } finally {
       setConverting(false);
     }
@@ -927,27 +901,27 @@ function ConvertToTaskButton({ ticket, ticketId }: { ticket: any; ticketId: stri
       <button
         onClick={() => setOpen(true)}
         className="inline-flex items-center gap-1 text-[10px] text-on-surface-variant/50 border border-outline-variant px-2 py-1 rounded-lg hover:bg-white/5 hover:text-on-surface-variant transition-colors"
-        title="Convert to task"
+        title={t("convert.tooltip")}
       >
         <ArrowRightLeft className="w-3 h-3" />
-        {done ? "Converted" : "→ Task"}
+        {done ? t("convert.converted") : t("convert.button")}
       </button>
       {open && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-surface-container border border-outline-variant rounded-xl shadow-2xl w-full max-w-sm p-5 space-y-4">
-            <h3 className="text-sm font-semibold text-on-surface">Convert to task?</h3>
+            <h3 className="text-sm font-semibold text-on-surface">{t("convert.title")}</h3>
             <p className="text-xs text-on-surface-variant/70">
-              Creates a new task titled <span className="font-medium text-on-surface">"{ticket.subject}"</span> with the same priority. The original ticket remains open.
+              {t("convert.description", { subject: ticket.subject })}
             </p>
             <FormAlert>{error ?? undefined}</FormAlert>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setOpen(false)} className="px-3 py-1.5 text-xs text-on-surface-variant border border-outline-variant rounded-lg hover:bg-white/5 transition-colors">Cancel</button>
+              <button onClick={() => setOpen(false)} className="px-3 py-1.5 text-xs text-on-surface-variant border border-outline-variant rounded-lg hover:bg-white/5 transition-colors">{t("convert.cancel")}</button>
               <button
                 onClick={convert}
                 disabled={converting}
                 className="px-3 py-1.5 text-xs font-medium bg-primary text-on-primary rounded-lg hover:bg-primary/90 disabled:opacity-40 transition-colors"
               >
-                {converting ? "Converting…" : "Convert"}
+                {converting ? t("convert.converting") : t("convert.convert")}
               </button>
             </div>
           </div>
@@ -960,6 +934,7 @@ function ConvertToTaskButton({ ticket, ticketId }: { ticket: any; ticketId: stri
 // ─── Ticket detail ────────────────────────────────────────────────────────────
 
 function TicketDetail() {
+  const { t } = useTranslation("tickets");
   const { ticketId } = Route.useParams();
   const queryClient = useQueryClient();
   const user = useAppStore((state) => state.user);
@@ -972,7 +947,7 @@ function TicketDetail() {
     queryKey: ["ticket", ticketId],
     queryFn: async () => {
       const res = await api.tickets[":id"].$get({ param: { id: ticketId } });
-      if (!res.ok) throw new Error("Failed to fetch ticket");
+      if (!res.ok) throw new Error(t("errors.failedToFetch"));
       return res.json();
     },
   });
@@ -983,7 +958,7 @@ function TicketDetail() {
       const res = await api.tickets[":id"]["messages"].$get({
         param: { id: ticketId },
       });
-      if (!res.ok) throw new Error("Failed to fetch messages");
+      if (!res.ok) throw new Error(t("errors.failedMessages"));
       return res.json();
     },
   });
@@ -996,7 +971,7 @@ function TicketDetail() {
         param: { id: ticketId },
         json: { content: reply, type: replyType },
       });
-      if (!res.ok) throw new Error("Failed to send reply");
+      if (!res.ok) throw new Error(t("errors.failedSend"));
       return res.json();
     },
     onSuccess: () => {
@@ -1021,7 +996,7 @@ function TicketDetail() {
   if (!ticket) {
     return (
       <div className="p-8 text-center text-on-surface-variant/40 text-sm">
-        Ticket not found.
+        {t("detail.notFound")}
       </div>
     );
   }
@@ -1036,7 +1011,7 @@ function TicketDetail() {
             className="inline-flex items-center gap-1 text-xs text-on-surface-variant/50 hover:text-on-surface-variant mb-2 transition-colors"
           >
             <ChevronLeft className="w-3 h-3" />
-            Tickets
+            {t("detail.backToTickets")}
           </Link>
           <h1 className="text-base font-semibold text-on-surface truncate leading-snug">
             {ticket.subject}
@@ -1048,10 +1023,24 @@ function TicketDetail() {
         <div className="flex items-center gap-2 shrink-0">
           {PRIORITY_ICON[ticket.priority]}
           <span
-            className={`inline-flex text-[10px] font-semibold px-2 py-0.5 rounded ${STATUS_MAP[ticket.status]?.cls ?? "bg-white/8 text-on-surface-variant"}`}
+            className={`inline-flex text-[10px] font-semibold px-2 py-0.5 rounded ${STATUS_CLS[ticket.status] ?? "bg-white/8 text-on-surface-variant"}`}
           >
-            {STATUS_MAP[ticket.status]?.label ?? ticket.status}
+            {t(`statuses.${ticket.status}`, { defaultValue: ticket.status })}
           </span>
+          {ticket.status !== "archived" && (
+            <button
+              onClick={() => {
+                api.tickets[":id"].status.$put({
+                  param: { id: ticketId },
+                  json: { status: "archived" }
+                }).then(() => queryClient.invalidateQueries({ queryKey: ["ticket", ticketId] }));
+              }}
+              className="inline-flex items-center gap-1 text-[10px] font-medium text-on-surface-variant/70 border border-outline-variant px-2 py-1 rounded-lg hover:bg-white/5 hover:text-on-surface transition-colors"
+              title="Archive ticket"
+            >
+              Archive
+            </button>
+          )}
           <ConvertToTaskButton ticket={ticket} ticketId={ticketId} />
         </div>
       </div>
@@ -1076,27 +1065,39 @@ function TicketDetail() {
               </div>
             ) : messages.length === 0 ? (
               <div className="text-center text-on-surface-variant/40 text-sm py-12">
-                No messages yet.
+                {t("detail.noMessages")}
               </div>
             ) : (
               messages.map((msg: any) => (
                 <div key={msg.id} className="flex gap-3">
-                  <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-[9px] font-bold text-primary shrink-0">
+                  <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-[9px] font-bold text-primary shrink-0 uppercase">
                     {msg.senderId === user?.id
-                      ? `${user?.firstName?.[0]}${user?.lastName?.[0]}`
-                      : "?"}
+                      ? `${user?.firstName?.[0] || ""}${user?.lastName?.[0] || ""}`
+                      : msg.senderName && msg.senderName.trim() !== ""
+                        ? `${msg.senderName.trim().split(' ')[0]?.[0] || ""}${msg.senderName.trim().split(' ')[1]?.[0] || ""}`
+                        : msg.contactName && msg.contactName.trim() !== ""
+                          ? `${msg.contactName.trim().split(' ')[0]?.[0] || ""}`
+                          : msg.contactEmail
+                            ? `${msg.contactEmail[0]}`
+                            : "?"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className="text-xs font-semibold text-on-surface">
                         {msg.senderId === user?.id
                           ? `${user?.firstName} ${user?.lastName}`
-                          : "Agent"}
+                          : msg.senderName && msg.senderName.trim() !== ""
+                            ? msg.senderName.trim()
+                            : msg.contactName && msg.contactName.trim() !== ""
+                              ? msg.contactName.trim()
+                              : msg.contactEmail
+                                ? msg.contactEmail
+                                : t("detail.agent")}
                       </span>
                       {msg.type === "INTERNAL_NOTE" && (
                         <span className="inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/20">
                           <Lock className="w-2.5 h-2.5" />
-                          Internal
+                          {t("detail.internalBadge")}
                         </span>
                       )}
                       <span className="text-[10px] font-mono text-on-surface-variant/40">
@@ -1130,7 +1131,7 @@ function TicketDetail() {
                     : "text-on-surface-variant border border-outline-variant hover:bg-white/5"
                 }`}
               >
-                Reply
+                {t("detail.reply")}
               </button>
               <button
                 onClick={() => setReplyType("INTERNAL_NOTE")}
@@ -1140,12 +1141,12 @@ function TicketDetail() {
                     : "text-on-surface-variant border border-outline-variant hover:bg-white/5"
                 }`}
               >
-                Internal Note
+                {t("detail.internalNote")}
               </button>
             </div>
             <RichTextEditor
               key={replyKey}
-              placeholder={replyType === "PUBLIC_REPLY" ? "Type your reply..." : "Write an internal note..."}
+              placeholder={replyType === "PUBLIC_REPLY" ? t("detail.replyPlaceholder") : t("detail.notePlaceholder")}
               onChange={setReply}
               className={replyType === "INTERNAL_NOTE" ? "border-amber-500/30" : ""}
             />
@@ -1157,10 +1158,10 @@ function TicketDetail() {
               >
                 <Send className="w-3.5 h-3.5" />
                 {replyMutation.isPending
-                  ? "Sending..."
+                  ? t("detail.sending")
                   : replyType === "PUBLIC_REPLY"
-                    ? "Send Reply"
-                    : "Add Note"}
+                    ? t("detail.sendReply")
+                    : t("detail.addNote")}
               </button>
             </div>
           </div>

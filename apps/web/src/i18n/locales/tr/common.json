@@ -1,0 +1,212 @@
+{
+  "app": {
+    "name": "Alpis",
+    "tagline": "Kurumsal Servis Masası"
+  },
+  "actions": {
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "create": "Oluştur",
+    "add": "Ekle",
+    "remove": "Kaldır",
+    "submit": "Gönder",
+    "confirm": "Onayla",
+    "close": "Kapat",
+    "back": "Geri",
+    "next": "İleri",
+    "search": "Ara",
+    "filter": "Filtrele",
+    "export": "Dışa Aktar",
+    "import": "İçe Aktar",
+    "refresh": "Yenile",
+    "copy": "Kopyala",
+    "copied": "Kopyalandı!",
+    "download": "İndir",
+    "upload": "Yükle",
+    "send": "Gönder",
+    "reply": "Yanıtla",
+    "assign": "Ata",
+    "run": "Çalıştır",
+    "view": "Görüntüle",
+    "preview": "Önizle",
+    "loading": "Yükleniyor…",
+    "saving": "Kaydediliyor…",
+    "deleting": "Siliniyor…",
+    "clear": "Temizle"
+  },
+  "status": {
+    "open": "Açık",
+    "assigned": "Atandı",
+    "in_progress": "İşlemde",
+    "waiting_customer": "Müşteri Bekleniyor",
+    "resolved": "Çözüldü",
+    "closed": "Kapatıldı",
+    "reopened": "Yeniden Açıldı",
+    "active": "Aktif",
+    "inactive": "Pasif",
+    "suspended": "Askıya Alındı",
+    "pending": "Beklemede",
+    "processing": "İşleniyor",
+    "completed": "Tamamlandı",
+    "rejected": "Reddedildi",
+    "draft": "Taslak",
+    "archived": "Arşivlendi"
+  },
+  "priority": {
+    "low": "Düşük",
+    "medium": "Orta",
+    "high": "Yüksek",
+    "critical": "Kritik",
+    "urgent": "Acil"
+  },
+  "errors": {
+    "generic": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
+    "network": "Ağ hatası. Bağlantınızı kontrol edin.",
+    "unauthorized": "Bu işlemi gerçekleştirme yetkiniz yok.",
+    "notFound": "İstenen kaynak bulunamadı.",
+    "serverError": "Sunucu hatası. Lütfen daha sonra tekrar deneyin.",
+    "validationFailed": "Lütfen aşağıdaki hataları düzeltin.",
+    "loadFailed": "Veriler yüklenemedi.",
+    "saveFailed": "Değişiklikler kaydedilemedi.",
+    "deleteFailed": "Silinemedi.",
+    "requiredField": "Bu alan zorunludur.",
+    "invalidEmail": "Geçerli bir e-posta adresi girin.",
+    "tooShort": "En az {{min}} karakter olmalıdır.",
+    "tooLong": "En fazla {{max}} karakter olabilir."
+  },
+  "empty": {
+    "noData": "Veri yok",
+    "noResults": "Sonuç bulunamadı.",
+    "noItems": "Henüz öğe yok."
+  },
+  "pagination": {
+    "showing": "{{total}} içinden {{from}}–{{to}} gösteriliyor",
+    "page": "{{total}} içinde {{page}}. sayfa"
+  },
+  "time": {
+    "just_now": "Az önce",
+    "minutes_ago": "{{count}} dakika önce",
+    "minutes_ago_plural": "{{count}} dakika önce",
+    "hours_ago": "{{count}} saat önce",
+    "hours_ago_plural": "{{count}} saat önce",
+    "days_ago": "{{count}} gün önce",
+    "days_ago_plural": "{{count}} gün önce",
+    "due_in": "{{time}} içinde sona erer",
+    "overdue": "{{time}} gecikmiş"
+  },
+  "theme": {
+    "light": "Açık",
+    "dark": "Koyu",
+    "system": "Sistem"
+  },
+  "language": {
+    "label": "Dil",
+    "en": "İngilizce",
+    "tr": "Türkçe"
+  },
+  "offline": "Çevrimdışısınız",
+  "comingSoon": "Yakında",
+  "attachments": {
+    "title": "Ekler",
+    "upload": "Yükle",
+    "noAttachments": "Henüz ek yok",
+    "dropHint": "Dosyaları buraya bırakın veya göz atmak için tıklayın",
+    "progressFailed": "başarısız",
+    "progressDone": "tamamlandı"
+  },
+  "commandPalette": {
+    "placeholder": "Ara veya atla…",
+    "noResults": "\"{{query}}\" için sonuç bulunamadı",
+    "navigate": "gezin",
+    "select": "seç",
+    "groups": {
+      "navigate": "Gezinme",
+      "account": "Hesap",
+      "admin": "Yönetim",
+      "channels": "Kanallar"
+    },
+    "commands": {
+      "dashboard": "Kontrol Paneli",
+      "tickets": "Talepler",
+      "tasks": "Görevler",
+      "mailboxes": "Posta Kutuları",
+      "reports": "Raporlar",
+      "notifications": "Bildirimler",
+      "archived": "Arşivlenmiş Talepler",
+      "globalSearch": "Genel Arama",
+      "myProfile": "Profilim",
+      "security": "Güvenlik ve Oturumlar",
+      "apiTokens": "API Anahtarları",
+      "notifPrefs": "Bildirim Tercihleri",
+      "usersRoles": "Kullanıcılar ve Roller",
+      "departments": "Departmanlar",
+      "slaPolicies": "SLA Politikaları",
+      "rolesPerms": "İzinler ve Roller",
+      "macros": "Makrolar / Hazır Yanıtlar",
+      "automations": "Otomasyon Kuralları",
+      "auditLogs": "Denetim Günlükleri",
+      "settings": "Ayarlar",
+      "whatsapp": "WhatsApp",
+      "billing": "Faturalama",
+      "onboarding": "Kurulum sihirbazı"
+    }
+  },
+  "departments": {
+    "title": "Departmanlar",
+    "subtitle": "Organizasyonunuzun departmanlarını yönetin.",
+    "newDepartment": "Yeni Departman",
+    "loadFailed": "Departmanlar yüklenemedi.",
+    "cols": {
+      "name": "Ad",
+      "description": "Açıklama",
+      "actions": "İşlemler"
+    },
+    "empty": {
+      "title": "Henüz departman yok",
+      "create": "İlk departmanı oluştur"
+    },
+    "manageMembers": "Üyeleri yönet",
+    "form": {
+      "namePlaceholder": "örn. Destek",
+      "descPlaceholder": "Bu departmanı açıklayın…",
+      "nameRequired": "Ad zorunludur",
+      "createTitle": "Yeni Departman",
+      "editTitle": "Departmanı Düzenle",
+      "saveChanges": "Değişiklikleri Kaydet",
+      "createFailed": "Departman oluşturulamadı",
+      "updateFailed": "Departman güncellenemedi"
+    },
+    "delete": {
+      "title": "Departmanı Sil",
+      "confirmPrefix": "Sil",
+      "confirmSuffix": "? Bu işlem geri alınamaz.",
+      "failed": "Silinemedi"
+    },
+    "members": {
+      "title": "Üyeler ({{count}})",
+      "noMembers": "Henüz üye yok",
+      "addMember": "Üye ekle",
+      "remove": "{{name}} kaldır"
+    }
+  },
+  "search": {
+    "title": "Genel Arama",
+    "subtitle": "Talepler, görevler, kullanıcılar ve departmanlar içinde arama yapın.",
+    "placeholder": "Her şeyi ara…",
+    "clearSearch": "Aramayı temizle",
+    "all": "Tümü",
+    "noResults": "\"{{query}}\" için sonuç bulunamadı",
+    "tryDifferent": "Farklı anahtar kelimeler deneyin veya yazımı kontrol edin",
+    "startTyping": "Aramak için yazmaya başlayın",
+    "searchesAcross": "Talepler, görevler, kullanıcılar ve departmanlar içinde arar",
+    "entities": {
+      "ticket": "Talep",
+      "task": "Görev",
+      "user": "Kullanıcı",
+      "department": "Departman",
+      "audit": "Denetim günlüğü"
+    }
+  }
+}

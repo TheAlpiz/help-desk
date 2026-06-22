@@ -1,0 +1,11 @@
+{
+  "title": "Faturalama ve Abonelik",
+  "subtitle": "Planınızı ve kullanımınızı yönetin.",
+  "currentPlanLabel": "Mevcut plan",
+  "currentPlanBadge": "Mevcut plan",
+  "contactSales": "Satış ile iletişime geç",
+  "upgradeTo": "{{name}} planına geç",
+  "paymentMethod": "Ödeme yöntemi",
+  "update": "Güncelle",
+  "stripeStub": "Faturalama entegrasyonu Stripe gerektirir — UI taslak"
+}

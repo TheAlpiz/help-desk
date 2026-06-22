@@ -11,10 +11,11 @@ export const minioClient = new Minio.Client({
 
 export const BUCKET_NAME = "helpdesk-attachments";
 export const AUDIT_ARCHIVE_BUCKET = "helpdesk-audit-archives";
+export const TICKET_ARCHIVE_BUCKET = "helpdesk-ticket-archives";
 
 export const initMinio = async () => {
   try {
-    for (const bucket of [BUCKET_NAME, AUDIT_ARCHIVE_BUCKET]) {
+    for (const bucket of [BUCKET_NAME, AUDIT_ARCHIVE_BUCKET, TICKET_ARCHIVE_BUCKET]) {
       const exists = await minioClient.bucketExists(bucket);
       if (!exists) {
         await minioClient.makeBucket(bucket, "us-east-1");

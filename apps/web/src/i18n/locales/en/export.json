@@ -1,0 +1,49 @@
+{
+  "title": "Export Center",
+  "subtitle": "Download data exports in CSV, JSON, or Excel format.",
+  "dateRange": {
+    "label": "Date Range (optional)",
+    "from": "From",
+    "to": "To",
+    "clear": "Clear"
+  },
+  "entities": {
+    "tickets": {
+      "label": "Tickets",
+      "description": "All tickets with status, priority, assignee, and dates"
+    },
+    "tasks": {
+      "label": "Tasks",
+      "description": "Tasks with completion status, due dates, and assignees"
+    },
+    "users": {
+      "label": "Users",
+      "description": "Agent and customer user accounts (no passwords)"
+    },
+    "audit_logs": {
+      "label": "Audit Logs",
+      "description": "Full audit trail with actor, action, entity, and timestamps"
+    },
+    "sla_reports": {
+      "label": "SLA Reports",
+      "description": "SLA compliance and breach data per policy"
+    }
+  },
+  "formats": {
+    "csv": "CSV",
+    "json": "JSON",
+    "xlsx": "Excel (XLSX)"
+  },
+  "status": {
+    "pending": "Preparing…",
+    "done": "Ready",
+    "error": "Failed"
+  },
+  "history": "Export History",
+  "ariaExport": "Export {{label}} as {{format}}",
+  "toast": {
+    "success": "{{label}} exported as {{format}}",
+    "error": "Export failed — backend export endpoint pending",
+    "httpError": "Export failed: {{status}}"
+  }
+}

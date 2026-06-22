@@ -1,0 +1,116 @@
+{
+  "title": "Users",
+  "new": "New User",
+  "invite": "Invite User",
+  "edit": "Edit User",
+  "count_one": "{{count}} user",
+  "count_other": "{{count}} users",
+  "fields": {
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email",
+    "role": "Role",
+    "department": "Department",
+    "status": "Status",
+    "lastLogin": "Last login",
+    "createdAt": "Created",
+    "preferredLanguage": "Preferred language"
+  },
+  "roles": {
+    "admin": "Admin",
+    "agent": "Agent",
+    "requester": "Requester",
+    "supervisor": "Supervisor",
+    "super_admin": "Super Admin"
+  },
+  "actions": {
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "resetPassword": "Reset password",
+    "resendInvite": "Resend invite"
+  },
+  "empty": {
+    "title": "No users yet",
+    "subtitle": "Invite your team members to get started."
+  },
+  "departments": {
+    "title": "Departments",
+    "new": "New Department",
+    "count_one": "{{count}} member",
+    "count_other": "{{count}} members",
+    "empty": "No departments yet.",
+    "noDepartments": "No departments"
+  },
+  "table": {
+    "pageTitle": "Users & Roles",
+    "manageSubtitle": "Manage users in your organization.",
+    "colName": "Name",
+    "colEmail": "Email",
+    "colRole": "Role",
+    "colStatus": "Status",
+    "colActions": "Actions",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "select": "Select",
+    "deselect": "Deselect",
+    "clearSelection": "Clear selection",
+    "failedLoad": "Failed to load users.",
+    "noUsers": "No users yet",
+    "inviteFirst": "Invite first user",
+    "selected": "{{count}} selected",
+    "deactivate": "Deactivate",
+    "changeRole": "Change role",
+    "editTitle": "Edit",
+    "removeTitle": "Remove"
+  },
+  "invite": {
+    "title": "Invite User",
+    "firstNameLabel": "First Name *",
+    "lastNameLabel": "Last Name *",
+    "emailLabel": "Email *",
+    "roleLabel": "Role *",
+    "passwordLabel": "Temporary Password *",
+    "submit": "Invite User",
+    "cancel": "Cancel",
+    "required": "Required",
+    "invalidEmail": "Invalid email",
+    "minPassword": "Min 8 characters",
+    "failed": "Failed to invite user",
+    "error": "An error occurred"
+  },
+  "editModal": {
+    "title": "Edit User",
+    "firstNameLabel": "First Name",
+    "lastNameLabel": "Last Name",
+    "roleLabel": "Role",
+    "statusLabel": "Status",
+    "statusActive": "Active",
+    "statusInactive": "Inactive",
+    "save": "Save Changes",
+    "cancel": "Cancel",
+    "required": "Required",
+    "failed": "Failed to update user",
+    "error": "An error occurred"
+  },
+  "deleteModal": {
+    "title": "Remove User",
+    "confirm": "Remove {{name}} ({{email}})? Cannot be undone.",
+    "cancel": "Cancel",
+    "remove": "Remove",
+    "failed": "Failed to delete"
+  },
+  "drawer": {
+    "title": "User detail",
+    "close": "Close",
+    "statusLabel": "Status",
+    "lastLoginLabel": "Last login",
+    "departmentLabel": "Department",
+    "neverLoggedIn": "Never",
+    "joined": "Joined {{date}}",
+    "editButton": "Edit user"
+  },
+  "statuses": {
+    "active": "Active",
+    "inactive": "Inactive"
+  }
+}

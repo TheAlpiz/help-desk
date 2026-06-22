@@ -42,4 +42,8 @@ export const analyticsRouter = new Hono<{ Variables: { tenantId: string; user: J
     } catch (err: any) {
       return ResponseHandler.badRequest(c, err.message);
     }
+  })
+  .get("/custom", async (c) => {
+    // Pending backend implementation
+    return ResponseHandler.success(c, { message: "Backend endpoint pending" });
   });

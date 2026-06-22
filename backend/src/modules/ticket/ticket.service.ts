@@ -1,10 +1,11 @@
-import { eq, and, or, desc, isNotNull, inArray, count } from "drizzle-orm";
+import { eq, and, or, desc, isNotNull, inArray, count, ilike, sql, asc, isNull } from "drizzle-orm";
 import { db } from "../../infra/db";
 import { ticket, NewTicket } from "./ticket.schema";
 import { ticketMessage, NewTicketMessage } from "./ticket-message.schema";
 import { ticketLink } from "./ticket-link.schema";
 import { ticketTag } from "./ticket-tag.schema";
 import { contact } from "../contact/contact.schema";
+import { user } from "../user/user.schema";
 import { auditLog } from "../audit-log/audit-log.schema";
 import { withTenantTransaction } from "../../infra/db/index";
 import { emailDeliveryQueue } from "../../workers/email-delivery.worker";
@@ -23,13 +24,14 @@ import { SlaService } from "../sla/sla.service";
 
 // Simple state machine definition for allowed transitions
 const ALLOWED_TRANSITIONS: Record<string, string[]> = {
-  "open": ["assigned", "resolved", "closed"],
-  "assigned": ["in_progress", "waiting_customer", "resolved", "closed", "open"],
-  "in_progress": ["waiting_customer", "resolved", "closed", "assigned"],
-  "waiting_customer": ["in_progress", "resolved", "closed", "open"],
-  "resolved": ["closed", "reopened"],
-  "closed": ["reopened"],
-  "reopened": ["assigned", "in_progress", "resolved", "closed"],
+  "open": ["assigned", "resolved", "closed", "archived"],
+  "assigned": ["in_progress", "waiting_customer", "resolved", "closed", "open", "archived"],
+  "in_progress": ["waiting_customer", "resolved", "closed", "assigned", "archived"],
+  "waiting_customer": ["in_progress", "resolved", "closed", "open", "assigned", "archived"],
+  "resolved": ["closed", "reopened", "archived"],
+  "closed": ["reopened", "archived"],
+  "reopened": ["assigned", "in_progress", "resolved", "closed", "archived"],
+  "archived": ["reopened"],
 };
 
 export const TicketService = {
@@ -38,16 +40,37 @@ export const TicketService = {
   findAll: async (
     tenantId: string,
     actor?: TicketActor,
-    opts?: { limit?: number; offset?: number; status?: string; priority?: string },
+    opts?: { limit?: number; offset?: number; status?: string; priority?: string; search?: string; assigneeId?: string; unassigned?: string },
   ) => {
     const limit = opts?.limit ?? 25;
     const offset = opts?.offset ?? 0;
 
     return withTenantTransaction(tenantId, async (tx) => {
       const abac = actor ? ticketVisibilityFilter(actor) : undefined;
-      const statusFilter = opts?.status ? eq(ticket.status, opts.status as any) : undefined;
+      let statusFilter;
+      if (opts?.status) {
+        if (opts.status.includes(",")) {
+          statusFilter = inArray(ticket.status, opts.status.split(",") as any[]);
+        } else {
+          statusFilter = eq(ticket.status, opts.status as any);
+        }
+      }
       const priorityFilter = opts?.priority ? eq(ticket.priority, opts.priority as any) : undefined;
-      const where = and(eq(ticket.organizationId, tenantId), abac, statusFilter, priorityFilter);
+      
+      let searchFilter;
+      if (opts?.search) {
+        // Simple search on subject
+        searchFilter = ilike(ticket.subject, `%${opts.search}%`);
+      }
+
+      let assigneeFilter;
+      if (opts?.assigneeId) {
+        assigneeFilter = eq(ticket.assigneeId, opts.assigneeId);
+      } else if (opts?.unassigned === "true") {
+        assigneeFilter = isNull(ticket.assigneeId);
+      }
+
+      const where = and(eq(ticket.organizationId, tenantId), abac, statusFilter, priorityFilter, searchFilter, assigneeFilter);
 
       const [rows, [{ total }]] = await Promise.all([
         tx.select().from(ticket).where(where).orderBy(desc(ticket.createdAt)).limit(limit).offset(offset),
@@ -79,7 +102,27 @@ export const TicketService = {
         .where(and(eq(ticket.id, ticketId), eq(ticket.organizationId, tenantId)))
         .limit(1);
       if (!t[0]) throw new Error("Ticket not found");
-      return tx.select().from(ticketMessage).where(eq(ticketMessage.ticketId, ticketId));
+      return tx
+        .select({
+          id: ticketMessage.id,
+          ticketId: ticketMessage.ticketId,
+          senderId: ticketMessage.senderId,
+          contactId: ticketMessage.contactId,
+          content: ticketMessage.content,
+          type: ticketMessage.type,
+          emailMessageId: ticketMessage.emailMessageId,
+          createdAt: ticketMessage.createdAt,
+          updatedAt: ticketMessage.updatedAt,
+          senderName: sql<string>`CONCAT(${user.firstName}, ' ', ${user.lastName})`.as("senderName"),
+          senderEmail: user.email,
+          contactName: sql<string>`CONCAT(${contact.firstName}, ' ', ${contact.lastName})`.as("contactName"),
+          contactEmail: contact.email,
+        })
+        .from(ticketMessage)
+        .leftJoin(user, eq(ticketMessage.senderId, user.id))
+        .leftJoin(contact, eq(ticketMessage.contactId, contact.id))
+        .where(eq(ticketMessage.ticketId, ticketId))
+        .orderBy(asc(ticketMessage.createdAt));
     });
   },
 
@@ -305,9 +348,11 @@ export const TicketService = {
       const current = await tx.select().from(ticket).where(and(eq(ticket.id, ticketId), eq(ticket.organizationId, tenantId))).limit(1);
       if (!current[0]) throw new Error("Ticket not found");
 
-      // Force status to assigned if currently open
+      // Force status to assigned if currently active
       let newStatus = current[0].status;
-      if (newStatus === "open") newStatus = "assigned";
+      if (["open", "reopened", "in_progress", "waiting_customer"].includes(newStatus as string)) {
+        newStatus = "assigned";
+      }
 
       const updated = await tx.update(ticket).set({ assigneeId, status: newStatus }).where(eq(ticket.id, ticketId)).returning();
 
@@ -324,7 +369,6 @@ export const TicketService = {
       return updated[0];
     }).then((t) => {
       emitEvent("ticket.assigned", { ticketId, assigneeId, actorId, organizationId: tenantId });
-      emitEvent("ticket.updated", { ticketId, actorId, organizationId: tenantId });
       return t;
     });
   },
@@ -335,6 +379,8 @@ export const TicketService = {
       if (!current[0]) throw new Error("Ticket not found");
 
       const updated = await tx.update(ticket).set({ priority: newPriority }).where(eq(ticket.id, ticketId)).returning();
+
+      await SlaService.attachSlaToTicket(tx, ticketId, tenantId, newPriority, current[0].departmentId || undefined);
 
       await tx.insert(auditLog).values({
         organizationId: tenantId,
@@ -381,8 +427,8 @@ export const TicketService = {
       const t = current[0];
       if (!t) throw new Error("Ticket not found");
 
-      if (t.status !== "resolved" && t.status !== "closed") {
-        throw new Error(`Only resolved or closed tickets can be reopened (current: ${t.status})`);
+      if (t.status !== "resolved" && t.status !== "closed" && t.status !== "archived") {
+        throw new Error(`Only resolved, closed, or archived tickets can be reopened (current: ${t.status})`);
       }
 
       const updated = await tx
@@ -421,6 +467,10 @@ export const TicketService = {
       if (input.departmentId !== undefined) patch.departmentId = input.departmentId;
 
       const updated = await tx.update(ticket).set(patch).where(eq(ticket.id, ticketId)).returning();
+
+      if (input.departmentId !== undefined) {
+        await SlaService.attachSlaToTicket(tx, ticketId, tenantId, t.priority, input.departmentId || undefined);
+      }
 
       await tx.insert(auditLog).values({
         organizationId: tenantId,

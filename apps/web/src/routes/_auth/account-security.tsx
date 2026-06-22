@@ -7,21 +7,26 @@ import { useToast } from "@/components/Toast";
 import { useAppStore } from "@/store";
 import { Button, FormAlert } from "@/components/ui";
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/_auth/account-security")({
   component: SecuritySettings,
 });
 
 function SecuritySettings() {
+  const { t } = useTranslation("profile");
   const navigate = useNavigate();
   const logout = useAppStore((s) => s.logout);
+  const setAccessToken = useAppStore((s) => s.setAccessToken);
+  const setUser = useAppStore((s) => s.setUser);
   const { success, error: toastError } = useToast();
   const queryClient = useQueryClient();
   const [showPass, setShowPass] = useState(false);
   const [newPwd, setNewPwd] = useState({ current: "", next: "", confirm: "" });
   const [pwdError, setPwdError] = useState<string | null>(null);
+  const [pwdSaving, setPwdSaving] = useState(false);
 
-  const { data: sessionsData, isLoading: sessionsLoading } = useQuery({
+  const { data: sessionsData, isLoading: sessionsLoading, isError: sessionsError } = useQuery({
     queryKey: ["sessions"],
     queryFn: async () => {
       const res = await api.auths.sessions.$get();
@@ -39,7 +44,7 @@ function SecuritySettings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
-      success("Session revoked");
+      success(t("security.sessionRevoked"));
     },
     onError: (err: any) => toastError(err.message),
   });
@@ -58,24 +63,44 @@ function SecuritySettings() {
 
   const changePassword = async () => {
     setPwdError(null);
+    if (!newPwd.current) {
+      setPwdError(t("changePassword.currentRequired"));
+      return;
+    }
     if (newPwd.next.length < 8) {
-      setPwdError("Password must be at least 8 characters");
+      setPwdError(t("changePassword.minLength"));
       return;
     }
     if (newPwd.next !== newPwd.confirm) {
-      setPwdError("Passwords do not match");
+      setPwdError(t("changePassword.mismatch"));
       return;
     }
-    // TODO: wire to backend change-password endpoint when available
-    success("Password changed (stub — backend endpoint pending)");
-    setNewPwd({ current: "", next: "", confirm: "" });
+    setPwdSaving(true);
+    try {
+      const res = await api.auths["change-password"].$post({
+        json: { newPassword: newPwd.next },
+      });
+      const data = (await res.json()) as any;
+      if (!res.ok) {
+        throw new Error(data?.error?.message || t("changePassword.failed"));
+      }
+      // Backend rotates the session and returns a fresh access token + user.
+      if (data?.data?.accessToken) setAccessToken(data.data.accessToken);
+      if (data?.data?.user) setUser(data.data.user);
+      success(t("changePassword.success"));
+      setNewPwd({ current: "", next: "", confirm: "" });
+    } catch (err: any) {
+      setPwdError(err.message ?? t("changePassword.failed"));
+    } finally {
+      setPwdSaving(false);
+    }
   };
 
   return (
     <div className="w-full max-w-6xl mx-auto flex flex-col gap-6">
       <div>
-        <h1 className="text-[15px] font-semibold text-on-surface">Security</h1>
-        <p className="text-xs text-on-surface-variant mt-1">Manage your password and active sessions.</p>
+        <h1 className="text-[15px] font-semibold text-on-surface">{t("security.title")}</h1>
+        <p className="text-xs text-on-surface-variant mt-1">{t("security.subtitle")}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
@@ -83,7 +108,7 @@ function SecuritySettings() {
       <div className="bg-surface-container border border-outline-variant rounded-xl p-5 space-y-4">
         <div className="flex items-center gap-2">
           <Shield className="w-4 h-4 text-on-surface-variant" />
-          <h2 className="text-sm font-semibold text-on-surface">Change Password</h2>
+          <h2 className="text-sm font-semibold text-on-surface">{t("changePassword.title")}</h2>
         </div>
 
         <FormAlert>{pwdError ?? undefined}</FormAlert>
@@ -91,7 +116,7 @@ function SecuritySettings() {
         {(["current", "next", "confirm"] as const).map((key) => (
           <div key={key} className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-on-surface capitalize">
-              {key === "next" ? "New password" : key === "confirm" ? "Confirm password" : "Current password"}
+              {key === "next" ? t("changePassword.new") : key === "confirm" ? t("changePassword.confirm") : t("changePassword.current")}
             </label>
             <div className="relative">
               <input
@@ -114,7 +139,9 @@ function SecuritySettings() {
           </div>
         ))}
 
-        <Button onClick={changePassword}>Update password</Button>
+        <Button onClick={changePassword} loading={pwdSaving} disabled={pwdSaving}>
+          {t("changePassword.submit")}
+        </Button>
       </div>
 
       {/* Active sessions */}
@@ -122,7 +149,7 @@ function SecuritySettings() {
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-outline-variant">
           <div className="flex items-center gap-2">
             <Monitor className="w-4 h-4 text-on-surface-variant" />
-            <h2 className="text-sm font-semibold text-on-surface">Active Sessions</h2>
+            <h2 className="text-sm font-semibold text-on-surface">{t("security.activeSessions")}</h2>
           </div>
           <button
             onClick={() => revokeAll.mutate()}
@@ -130,7 +157,7 @@ function SecuritySettings() {
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-error border border-error/20 rounded-lg hover:bg-error/10 disabled:opacity-40 transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />
-            Sign out all
+            {t("security.signOutAll")}
           </button>
         </div>
 
@@ -140,9 +167,13 @@ function SecuritySettings() {
               <div key={i} className="h-14 bg-white/5 rounded animate-pulse" />
             ))}
           </div>
+        ) : sessionsError ? (
+          <div className="p-8 text-center text-sm text-error">
+            {t("security.sessionsLoadError")}
+          </div>
         ) : sessions.length === 0 ? (
           <div className="p-8 text-center text-sm text-on-surface-variant/40">
-            No active sessions found
+            {t("security.noSessions")}
           </div>
         ) : (
           <div className="divide-y divide-outline-variant">
@@ -150,7 +181,7 @@ function SecuritySettings() {
               <div key={s.id} className="flex items-center justify-between px-5 py-3">
                 <div>
                   <p className="text-xs font-medium text-on-surface">
-                    {s.userAgent?.split(")")[0].split("(")[1] || "Unknown device"}
+                    {s.userAgent?.split(")")[0].split("(")[1] || t("security.unknownDevice")}
                   </p>
                   <p className="text-[10px] font-mono text-on-surface-variant/40 mt-0.5">
                     {s.ipAddress || "—"} · {new Date(s.createdAt).toLocaleString()}

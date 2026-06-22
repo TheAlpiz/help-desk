@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { authFetch } from "@/lib/api";
+import { api } from "@/lib/api";
 import { ChevronDown } from "lucide-react";
 import { useAppStore } from "@/store";
 
@@ -38,12 +38,16 @@ export function useDirectoryOptions() {
     queryKey: ["directory", "agents"],
     staleTime: 60_000,
     queryFn: async (): Promise<FieldOption[]> => {
-      const res = await authFetch("/api/users", { headers: authHeaders() });
-      const json = await res.json().catch(() => ({}));
-      return ((json?.data ?? []) as any[]).map((u) => ({
-        value: u.email,
-        label: [u.firstName, u.lastName].filter(Boolean).join(" ") || u.email,
-      }));
+      try {
+        const res = await api.users.index.$get();
+        const json = await res.json() as any;
+        return ((json?.data ?? []) as any[]).map((u) => ({
+          value: u.email,
+          label: [u.firstName, u.lastName].filter(Boolean).join(" ") || u.email,
+        }));
+      } catch {
+        return [];
+      }
     },
   });
 
@@ -51,9 +55,13 @@ export function useDirectoryOptions() {
     queryKey: ["directory", "departments"],
     staleTime: 60_000,
     queryFn: async (): Promise<FieldOption[]> => {
-      const res = await authFetch("/api/departments", { headers: authHeaders() });
-      const json = await res.json().catch(() => ({}));
-      return ((json?.data ?? []) as any[]).map((d) => ({ value: d.name, label: d.name }));
+      try {
+        const res = await api.departments.index.$get();
+        const json = await res.json() as any;
+        return ((json?.data ?? []) as any[]).map((d) => ({ value: d.name, label: d.name }));
+      } catch {
+        return [];
+      }
     },
   });
 

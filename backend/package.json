@@ -23,8 +23,10 @@
     "drizzle-orm": "latest",
     "drizzle-zod": "latest",
     "envalid": "latest",
+    "exceljs": "^4.4.0",
     "hono": "latest",
     "imapflow": "^1.4.0",
+    "json2csv": "6.0.0-alpha.2",
     "jsonwebtoken": "latest",
     "mailparser": "^3.9.9",
     "minio": "^8.0.7",
@@ -38,6 +40,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/json2csv": "^5.0.7",
     "@types/jsonwebtoken": "latest",
     "@types/mailparser": "^3.4.6",
     "@types/minio": "^7.1.1",

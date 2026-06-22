@@ -61,6 +61,84 @@ export const OrganizationService = {
     });
   },
 
+  getBusinessHours: async (tenantId: string) => {
+    return withTenantTransaction(tenantId, async (tx) => {
+      const [row] = await tx
+        .select({ businessHoursConfig: organization.businessHoursConfig })
+        .from(organization)
+        .where(eq(organization.id, tenantId))
+        .limit(1);
+      return row?.businessHoursConfig ?? null;
+    });
+  },
+
+  updateBusinessHours: async (tenantId: string, config: unknown) => {
+    return withTenantTransaction(tenantId, async (tx) => {
+      const [row] = await tx
+        .update(organization)
+        .set({ businessHoursConfig: config as any })
+        .where(eq(organization.id, tenantId))
+        .returning({ businessHoursConfig: organization.businessHoursConfig });
+      return row?.businessHoursConfig ?? null;
+    });
+  },
+
+  getBranding: async (tenantId: string) => {
+    return withTenantTransaction(tenantId, async (tx) => {
+      const [row] = await tx
+        .select({ branding: organization.branding })
+        .from(organization)
+        .where(eq(organization.id, tenantId))
+        .limit(1);
+      return row?.branding ?? null;
+    });
+  },
+
+  updateBranding: async (tenantId: string, config: unknown) => {
+    return withTenantTransaction(tenantId, async (tx) => {
+      const [row] = await tx
+        .update(organization)
+        .set({ branding: config as any })
+        .where(eq(organization.id, tenantId))
+        .returning({ branding: organization.branding });
+      return row?.branding ?? null;
+    });
+  },
+
+  getDataRetention: async (tenantId: string) => {
+    return withTenantTransaction(tenantId, async (tx) => {
+      const [row] = await tx
+        .select({ dataRetentionConfig: organization.dataRetentionConfig })
+        .from(organization)
+        .where(eq(organization.id, tenantId))
+        .limit(1);
+      return row?.dataRetentionConfig ?? null;
+    });
+  },
+
+  updateDataRetention: async (tenantId: string, config: unknown) => {
+    return withTenantTransaction(tenantId, async (tx) => {
+      const [row] = await tx
+        .update(organization)
+        .set({ dataRetentionConfig: config as any })
+        .where(eq(organization.id, tenantId))
+        .returning({ dataRetentionConfig: organization.dataRetentionConfig });
+      return row?.dataRetentionConfig ?? null;
+    });
+  },
+
+  findAllWithRetentionConfigs: async () => {
+    return withSuperAdminTransaction(async (tx) => {
+      return tx
+        .select({
+          id: organization.id,
+          dataRetentionConfig: organization.dataRetentionConfig,
+        })
+        .from(organization)
+        .where(eq(organization.status, "active"));
+    });
+  },
+
   // Only Super Admins can delete orgs
   remove: async (id: string) => {
     return withSuperAdminTransaction(async (tx) => {

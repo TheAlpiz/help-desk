@@ -1,0 +1,50 @@
+{
+  "title": "Otomasyonlar",
+  "new": "Yeni Otomasyon",
+  "edit": "Otomasyonu Düzenle",
+  "fields": {
+    "name": "Ad",
+    "trigger": "Tetikleyici",
+    "conditions": "Koşullar",
+    "actions": "Eylemler",
+    "active": "Aktif",
+    "runCount": "Çalışma sayısı"
+  },
+  "triggers": {
+    "ticket_created": "Talep oluşturuldu",
+    "ticket_updated": "Talep güncellendi",
+    "ticket_assigned": "Talep atandı",
+    "ticket_resolved": "Talep çözüldü",
+    "ticket_closed": "Talep kapatıldı",
+    "sla_breached": "SLA ihlali",
+    "reply_received": "Yanıt alındı"
+  },
+  "actions_list": {
+    "assign_agent": "Ajana ata",
+    "set_status": "Durum belirle",
+    "set_priority": "Öncelik belirle",
+    "add_tag": "Etiket ekle",
+    "send_email": "E-posta gönder",
+    "create_task": "Görev oluştur",
+    "send_reply": "Yanıt gönder",
+    "add_note": "Dahili not ekle"
+  },
+  "empty": {
+    "title": "Otomasyon yok",
+    "subtitle": "Zamandan kazanmak için tekrarlayan görevleri otomatikleştirin."
+  },
+  "macros": {
+    "title": "Macrolar",
+    "subtitle": "Tekrarlayan talep işlemlerini tek tıkla otomatikleştirin.",
+    "new": "Yeni makro",
+    "create": "Makro oluştur",
+    "edit": "Makroyu düzenle",
+    "noActionsYet": "Henüz eylem yok",
+    "descriptionPlaceholder": "Açıklama (isteğe bağlı)",
+    "valuePlaceholder": "Değer…",
+    "created": "Makro oluşturuldu",
+    "saved": "Makro kaydedildi",
+    "deleted": "Makro silindi",
+    "duplicated": "Makro kopyalandı"
+  }
+}
