@@ -44,6 +44,7 @@ services:
       - SENTRY_DSN=${SENTRY_DSN:-}
       - LOG_LEVEL=info
       - EMAIL_INGEST_BLOCKLIST=info@yerliva.com
+      - MINIO_PUBLIC_URL=https://minio.yerliva.com
     depends_on:
       - db
       - redis
