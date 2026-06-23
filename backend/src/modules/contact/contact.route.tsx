@@ -7,6 +7,7 @@ import { env } from "../../infra/env";
 import { logger } from "../../infra/logger";
 import { render } from "@react-email/render";
 import { ContactEmail } from "./contact.email";
+import { rateLimit } from "../../middleware/rate-limit.middleware";
 import React from "react";
 
 const contactSchema = z.object({
@@ -18,35 +19,37 @@ const contactSchema = z.object({
 });
 
 const ContactRouter = new Hono()
-  .post("/", zValidator("json", contactSchema), async (c) => {
-  const { firstName, lastName, email, message, language } = c.req.valid("json");
-  
-  const subjectEn = `New Contact Form Submission from ${firstName} ${lastName}`;
-  const subjectTr = `${firstName} ${lastName} adlı kişiden yeni İletişim Formu Bildirimi`;
-  const subject = language === "tr" ? subjectTr : subjectEn;
-  
-  const html = await render(
-    <ContactEmail 
-      firstName={firstName} 
-      lastName={lastName} 
-      email={email} 
-      message={message} 
-      language={language}
-    />
-  );
+  .post("/", rateLimit({ windowSec: 60, max: 5, prefix: "contact" }), zValidator("json", contactSchema), async (c) => {
+    const { firstName, lastName, email, message, language } =
+      c.req.valid("json");
 
-  try {
-    await sendPlatformEmail({
-      from: "info@yerliva.com",
-      to: "support@yerliva.com",
-      subject,
-      html,
-    });
-    return ResponseHandler.success(c, { message: "Email sent successfully" });
-  } catch (error) {
-    logger.error(error, "Failed to send contact email");
-    return ResponseHandler.internalServerError(c, "Failed to send email");
-  }
-});
+    const subjectEn = `New Contact Form Submission from ${firstName} ${lastName}`;
+    const subjectTr = `${firstName} ${lastName} adlı kişiden yeni İletişim Formu Bildirimi`;
+    const subject = language === "tr" ? subjectTr : subjectEn;
+
+    const html = await render(
+      <ContactEmail
+        firstName={firstName}
+        lastName={lastName}
+        email={email}
+        message={message}
+        language={language}
+      />,
+    );
+
+    try {
+      await sendPlatformEmail({
+        from: "info@yerliva.com",
+        to: "support@yerliva.com",
+        subject,
+        html,
+      });
+      return ResponseHandler.success(c, { message: "Email sent successfully" });
+    } catch (error) {
+      logger.error(error, "Failed to send contact email");
+      return ResponseHandler.internalServerError(c, "Failed to send email");
+    }
+  },
+);
 
 export { ContactRouter };
