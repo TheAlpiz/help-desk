@@ -37,7 +37,8 @@ const ContactRouter = new Hono()
 
   try {
     await sendPlatformEmail({
-      to: env.SMTP_FROM, // Send to the configured system address
+      from: "info@yerliva.com",
+      to: "support@yerliva.com",
       subject,
       html,
     });

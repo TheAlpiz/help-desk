@@ -28,6 +28,7 @@ function getTransport(): nodemailer.Transporter | null {
  * return success to avoid leaking which emails exist).
  */
 export async function sendPlatformEmail(opts: {
+  from?: string;
   to: string;
   subject: string;
   html: string;
@@ -39,7 +40,7 @@ export async function sendPlatformEmail(opts: {
   }
   try {
     await t.sendMail({
-      from: env.SMTP_FROM,
+      from: opts.from || env.SMTP_FROM,
       to: opts.to,
       subject: opts.subject,
       html: opts.html,
