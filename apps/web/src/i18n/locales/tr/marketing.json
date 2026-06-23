@@ -234,7 +234,12 @@
       "messagePlaceholder": "Ekibinizin ihtiyaçlarını bize anlatın...",
       "submit": "Mesaj Gönder",
       "privacyPrefix": "Bu formu göndererek",
-      "privacyLink": "Gizlilik Politikamızı"
+      "privacyLink": "Gizlilik Politikamızı",
+      "successMsg": "Bize ulaştığınız için teşekkürler! Kısa süre içinde size geri döneceğiz.",
+      "errorFillAll": "Lütfen tüm alanları doldurun.",
+      "errorGeneric": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
+      "errorUnexpected": "Beklenmeyen bir hata oluştu.",
+      "sending": "Gönderiliyor..."
     }
   },
   "landing": {

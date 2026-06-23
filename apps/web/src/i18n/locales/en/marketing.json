@@ -234,7 +234,12 @@
       "messagePlaceholder": "Tell us about your team's needs...",
       "submit": "Send Message",
       "privacyPrefix": "By submitting this form, you agree to our",
-      "privacyLink": "Privacy Policy"
+      "privacyLink": "Privacy Policy",
+      "successMsg": "Thanks for reaching out! We'll get back to you shortly.",
+      "errorFillAll": "Please fill out all fields.",
+      "errorGeneric": "Something went wrong. Please try again.",
+      "errorUnexpected": "An unexpected error occurred.",
+      "sending": "Sending..."
     }
   },
   "landing": {

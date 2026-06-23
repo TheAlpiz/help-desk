@@ -23,7 +23,7 @@ function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!firstName || !lastName || !email || !message) {
-      setError("Please fill out all fields.");
+      setError(t("contact.form.errorFillAll"));
       return;
     }
     setLoading(true);
@@ -43,10 +43,10 @@ function ContactPage() {
         setMessage("");
       } else {
         const data = await res.json();
-        setError((data as any).message || "Something went wrong. Please try again.");
+        setError((data as any).message || t("contact.form.errorGeneric"));
       }
     } catch (err) {
-      setError("An unexpected error occurred.");
+      setError(t("contact.form.errorUnexpected"));
     } finally {
       setLoading(false);
     }
@@ -114,7 +114,7 @@ function ContactPage() {
                 <form className="space-y-6" onSubmit={handleSubmit}>
                   {success && (
                     <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-sm font-medium">
-                      Thanks for reaching out! We'll get back to you shortly.
+                      {t("contact.form.successMsg")}
                     </div>
                   )}
                   {error && (
@@ -152,7 +152,7 @@ function ContactPage() {
                   </div>
 
                   <Button className="w-full py-6 rounded-xl font-semibold text-base bg-primary hover:bg-primary/90 hover:shadow-[0_0_20px_rgba(var(--color-primary),0.3)] transition-all" type="submit" disabled={loading}>
-                    {loading ? "Sending..." : t("contact.form.submit")}
+                    {loading ? t("contact.form.sending") : t("contact.form.submit")}
                   </Button>
                   <p className="text-xs text-center text-on-surface-variant/60 mt-4">
                     {t("contact.form.privacyPrefix")} <Link to="/privacy" className="underline hover:text-on-surface">{t("contact.form.privacyLink")}</Link>.
