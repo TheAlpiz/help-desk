@@ -18,7 +18,7 @@ export class EmailIngestionWorker {
   private disconnectHandler?: () => void;
 
   constructor(
-    private imapConfig: { host: string; port: number; secure: boolean; auth: { user: string; pass: string } },
+    private imapConfig: { host: string; port: number; secure: boolean; auth: { user: string; pass: string }; tls?: { rejectUnauthorized: boolean } },
     organizationId: string,
     mailboxId: string
   ) {
@@ -29,6 +29,7 @@ export class EmailIngestionWorker {
       port: imapConfig.port,
       secure: imapConfig.secure,
       auth: imapConfig.auth,
+      tls: imapConfig.tls,
       logger: false,
     });
 
