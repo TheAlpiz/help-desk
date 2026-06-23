@@ -74,6 +74,7 @@
         "price": "$0",
         "period": "/ sonsuza kadar",
         "cta": "Başlayın",
+        "href": "/register",
         "includesLabel": "İçerir:",
         "features": [
           "3 temsilciye kadar",
@@ -89,6 +90,7 @@
         "price": "$49",
         "period": "/ ay, 5 temsilci başına",
         "cta": "14 günlük ücretsiz denemeyi başlatın",
+        "href": "/register",
         "includesLabel": "Başlangıç'taki her şey, artı:",
         "features": [
           "Sınırsız bilet",
@@ -105,6 +107,7 @@
         "price": "Özel",
         "cta": "Satışla İletişime Geç",
         "includesLabel": "Pro'daki her şey, artı:",
+        "href": "/contact",
         "features": [
           "Kendi altyapınızda barındırma",
           "SAML SSO / SCIM",
@@ -119,8 +122,18 @@
       "title": "Planları Karşılaştır",
       "featureCol": "Özellik",
       "rows": [
-        { "label": "Dahil edilen temsilciler", "s": "3", "p": "5 (temel)", "e": "Özel" },
-        { "label": "Aylık biletler", "s": "500", "p": "Sınırsız", "e": "Sınırsız" },
+        {
+          "label": "Dahil edilen temsilciler",
+          "s": "3",
+          "p": "5 (temel)",
+          "e": "Özel"
+        },
+        {
+          "label": "Aylık biletler",
+          "s": "500",
+          "p": "Sınırsız",
+          "e": "Sınırsız"
+        },
         { "label": "Posta kutuları", "s": "1", "p": "10", "e": "Sınırsız" },
         { "label": "SLA Yönetimi" },
         { "label": "Otomasyonlar" },
@@ -230,25 +243,52 @@
       "subtitle": "Çok kiracılı bilet yönetimi, e-posta alımı, SLA uygulaması ve gerçek zamanlı bildirimler - MSP'ler ve BT ekipleri için tek platformda.",
       "startFree": "Ücretsiz başlayın",
       "howItWorks": "Nasıl çalışır",
-      "badges": ["Kredi kartı gerekmez", "14 günlük ücretsiz deneme", "SOC 2 hazır"]
+      "badges": [
+        "Kredi kartı gerekmez",
+        "14 günlük ücretsiz deneme",
+        "SOC 2 hazır"
+      ]
     },
     "trustedBy": "BT ekipleri tarafından güvenilen",
     "featureGrid": {
       "heading1": "Ekibinizin ihtiyacı olan her şey.",
       "heading2": "İhtiyacı olmayanlar değil.",
       "features": [
-        { "title": "Birleşik bilet motoru", "body": "E-posta, portal ve API - tüm kanallar tek kuyruğa akar. Her bilette durum, öncelik, SLA, atanan, etiketler ve tam geçmiş." },
-        { "title": "Satır düzeyinde güvenlik", "body": "Postgres RLS, kiracı yalıtımını veritabanı katmanında zorlar. Atlatılabilecek uygulama düzeyinde filtreleme yok." },
-        { "title": "IMAP/SMTP posta kutuları", "body": "Her organizasyon için sınırsız posta kutusu bağlayın. STARTTLS, OAuth, RFC uyumlu konu ayrıştırma." },
-        { "title": "SLA politikaları", "body": "Önceliğe göre yanıt ve çözüm hedefleri tanımlayın. İhlal uyarıları otomatik yükseltilir." },
-        { "title": "RBAC + ABAC", "body": "Ayrıntılı izinlerle dört sistem rolü. ABAC kapsamı ajanların görebileceklerini sınırlar." },
-        { "title": "Kanal bildirimleri", "body": "Uygulama içi, e-posta, push ve SMS fan-out. Kullanıcı başına olay türüne göre tercihler." }
+        {
+          "title": "Birleşik bilet motoru",
+          "body": "E-posta, portal ve API - tüm kanallar tek kuyruğa akar. Her bilette durum, öncelik, SLA, atanan, etiketler ve tam geçmiş."
+        },
+        {
+          "title": "Satır düzeyinde güvenlik",
+          "body": "Postgres RLS, kiracı yalıtımını veritabanı katmanında zorlar. Atlatılabilecek uygulama düzeyinde filtreleme yok."
+        },
+        {
+          "title": "IMAP/SMTP posta kutuları",
+          "body": "Her organizasyon için sınırsız posta kutusu bağlayın. STARTTLS, OAuth, RFC uyumlu konu ayrıştırma."
+        },
+        {
+          "title": "SLA politikaları",
+          "body": "Önceliğe göre yanıt ve çözüm hedefleri tanımlayın. İhlal uyarıları otomatik yükseltilir."
+        },
+        {
+          "title": "RBAC + ABAC",
+          "body": "Ayrıntılı izinlerle dört sistem rolü. ABAC kapsamı ajanların görebileceklerini sınırlar."
+        },
+        {
+          "title": "Kanal bildirimleri",
+          "body": "Uygulama içi, e-posta, push ve SMS fan-out. Kullanıcı başına olay türüne göre tercihler."
+        }
       ]
     },
     "channels": {
       "heading": "Her kanal, tek kuyruk.",
       "subtitle": "Biletler e-posta, web portalı, API ve - yakında - WhatsApp ve Telegram'dan gelir. Motor kaynakla ilgilenmez. Ajanlarınız tek birleşik görünüm alır.",
-      "labels": ["IMAP/SMTP ile E-posta", "Web portalı ve API", "WhatsApp Business", "Telegram"],
+      "labels": [
+        "IMAP/SMTP ile E-posta",
+        "Web portalı ve API",
+        "WhatsApp Business",
+        "Telegram"
+      ],
       "live": "Aktif",
       "soon": "Yakında"
     },
@@ -269,9 +309,51 @@
       "subtitle": "Bilet başına ücret yok. Sürpriz aşım ücreti yok.",
       "mostPopular": "En popüler",
       "plans": [
-        { "name": "Başlangıç", "price": "$0", "period": "/ay", "desc": "Başlangıç yapan küçük ekipler için.", "cta": "Ücretsiz başlayın", "features": ["3 ajan", "1 posta kutusu", "Ayda 500 bilet", "E-posta kanalı", "Topluluk desteği"] },
-        { "name": "Pro", "price": "$49", "period": "/ay, 5 ajan başına", "desc": "Büyüyen BT ekipleri ve MSP'ler için.", "cta": "Denemeyi başlatın", "features": ["Sınırsız ajan", "10 posta kutusu", "Sınırsız bilet", "SLA yönetimi", "RBAC + ABAC", "Denetim günlükleri", "Öncelikli destek"] },
-        { "name": "Kurumsal", "price": "Özel", "period": "", "desc": "Uyumluluk ihtiyacı olan büyük organizasyonlar için.", "cta": "Satışla iletişim", "features": ["Pro'daki her şey", "Kendi altyapında barındırma", "SSO / SAML", "Özel destek", "SLA garantisi", "Özel entegrasyonlar"] }
+        {
+          "name": "Başlangıç",
+          "price": "$0",
+          "period": "/ay",
+          "desc": "Başlangıç yapan küçük ekipler için.",
+          "cta": "Ücretsiz başlayın",
+          "features": [
+            "3 ajan",
+            "1 posta kutusu",
+            "Ayda 500 bilet",
+            "E-posta kanalı",
+            "Topluluk desteği"
+          ]
+        },
+        {
+          "name": "Pro",
+          "price": "$49",
+          "period": "/ay, 5 ajan başına",
+          "desc": "Büyüyen BT ekipleri ve MSP'ler için.",
+          "cta": "Denemeyi başlatın",
+          "features": [
+            "Sınırsız ajan",
+            "10 posta kutusu",
+            "Sınırsız bilet",
+            "SLA yönetimi",
+            "RBAC + ABAC",
+            "Denetim günlükleri",
+            "Öncelikli destek"
+          ]
+        },
+        {
+          "name": "Kurumsal",
+          "price": "Özel",
+          "period": "",
+          "desc": "Uyumluluk ihtiyacı olan büyük organizasyonlar için.",
+          "cta": "Satışla iletişim",
+          "features": [
+            "Pro'daki her şey",
+            "Kendi altyapında barındırma",
+            "SSO / SAML",
+            "Özel destek",
+            "SLA garantisi",
+            "Özel entegrasyonlar"
+          ]
+        }
       ]
     },
     "cta": {
@@ -305,10 +387,22 @@
         "title": "Gelişmiş SLA'lar ve Özel Çalışma Saatleri",
         "description": "Bu sürüm, kurumsal ekiplere Hizmet Seviyesi Anlaşmaları üzerinde daha fazla kontrol vermeye odaklanmaktadır. Artık departman bazında özel çalışma saatleri tanımlayabilir ve çok katmanlı yükseltme politikaları belirleyebilirsiniz.",
         "changes": [
-          { "type": "feature", "text": "SLA politikalarında özel çalışma saatleri desteği eklendi." },
-          { "type": "feature", "text": "SLA ihlalleri için çok katmanlı yükseltme kuralları tanıtıldı." },
-          { "type": "improvement", "text": ">10.000 aktif bilet içeren kuyruklar için bilet listesi render'ı optimize edildi." },
-          { "type": "bug", "text": "Outlook istemcilerinde e-posta iş parçacığı yanıt ayrıştırmasındaki hata düzeltildi." }
+          {
+            "type": "feature",
+            "text": "SLA politikalarında özel çalışma saatleri desteği eklendi."
+          },
+          {
+            "type": "feature",
+            "text": "SLA ihlalleri için çok katmanlı yükseltme kuralları tanıtıldı."
+          },
+          {
+            "type": "improvement",
+            "text": ">10.000 aktif bilet içeren kuyruklar için bilet listesi render'ı optimize edildi."
+          },
+          {
+            "type": "bug",
+            "text": "Outlook istemcilerinde e-posta iş parçacığı yanıt ayrıştırmasındaki hata düzeltildi."
+          }
         ]
       },
       {
@@ -317,10 +411,22 @@
         "title": "ABAC Sürümü ve Webhook'lar",
         "description": "Ayrıntılı kontrol burada. Öznitelik Tabanlı Erişim Kontrolü (ABAC) devreye alındı; departman, etiket veya özel özniteliklere göre ajan görünürlüğünü kısıtlamanıza olanak tanır.",
         "changes": [
-          { "type": "feature", "text": "Öznitelik Tabanlı Erişim Kontrolü (ABAC) lansmanı yapıldı." },
-          { "type": "feature", "text": "Bilet yaşam döngüsü olayları için giden Webhook entegrasyonları eklendi." },
-          { "type": "improvement", "text": "Daha hızlı erişim için makro yürütme menüsü yeniden tasarlandı." },
-          { "type": "bug", "text": "CC'lenen kullanıcıların ilk bildirimleri almadığı sorun düzeltildi." }
+          {
+            "type": "feature",
+            "text": "Öznitelik Tabanlı Erişim Kontrolü (ABAC) lansmanı yapıldı."
+          },
+          {
+            "type": "feature",
+            "text": "Bilet yaşam döngüsü olayları için giden Webhook entegrasyonları eklendi."
+          },
+          {
+            "type": "improvement",
+            "text": "Daha hızlı erişim için makro yürütme menüsü yeniden tasarlandı."
+          },
+          {
+            "type": "bug",
+            "text": "CC'lenen kullanıcıların ilk bildirimleri almadığı sorun düzeltildi."
+          }
         ]
       },
       {
@@ -329,8 +435,14 @@
         "title": "Genel Beta Lansmanı",
         "description": "Alpis Servis Masası'nın ilk genel sürümü. Son altı ay boyunca paha biçilmez geri bildirimler sağlayan erken alfa test kullanıcılarımıza çok teşekkürler.",
         "changes": [
-          { "type": "feature", "text": "E-posta ve portal alımıyla çekirdek bilet motoru." },
-          { "type": "feature", "text": "Postgres Satır Düzeyinde Güvenlik ile kiracı yalıtımı." },
+          {
+            "type": "feature",
+            "text": "E-posta ve portal alımıyla çekirdek bilet motoru."
+          },
+          {
+            "type": "feature",
+            "text": "Postgres Satır Düzeyinde Güvenlik ile kiracı yalıtımı."
+          },
           { "type": "feature", "text": "Temel SLA yönetimi ve RBAC rolleri." }
         ]
       }
@@ -346,15 +458,30 @@
       },
       "configuration": {
         "title": "Yapılandırma",
-        "links": ["Posta Kutuları (IMAP/SMTP)", "Departmanlar", "SLA Politikaları", "Yönlendirme Kuralları"]
+        "links": [
+          "Posta Kutuları (IMAP/SMTP)",
+          "Departmanlar",
+          "SLA Politikaları",
+          "Yönlendirme Kuralları"
+        ]
       },
       "security": {
         "title": "Güvenlik ve Kullanıcılar",
-        "links": ["RBAC Rolleri", "ABAC Kapsamları", "SSO Yapılandırması", "Denetim Günlükleri"]
+        "links": [
+          "RBAC Rolleri",
+          "ABAC Kapsamları",
+          "SSO Yapılandırması",
+          "Denetim Günlükleri"
+        ]
       },
       "api": {
         "title": "Geliştirici API",
-        "links": ["Kimlik Doğrulama", "REST Uç Noktaları", "Webhook'lar", "Hız Limitleri"]
+        "links": [
+          "Kimlik Doğrulama",
+          "REST Uç Noktaları",
+          "Webhook'lar",
+          "Hız Limitleri"
+        ]
       }
     },
     "content": {

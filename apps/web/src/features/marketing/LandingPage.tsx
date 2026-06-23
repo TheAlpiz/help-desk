@@ -634,6 +634,7 @@ function Pricing() {
     period: string;
     desc: string;
     cta: string;
+    href: string;
     features: string[];
   };
   const plans = (
@@ -689,7 +690,7 @@ function Pricing() {
               </div>
 
               <Link
-                to="/register"
+                to={plan.href}
                 className={`inline-flex justify-center items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   plan.highlighted
                     ? "bg-primary text-on-primary hover:bg-primary/90"
@@ -738,12 +739,12 @@ function FinalCta() {
           >
             {t("landing.cta.startFree")} <ArrowRight className="w-4 h-4" />
           </Link>
-          <a
-            href="mailto:sales@alpis.io"
+          <Link
+            to="/contact"
             className="inline-flex items-center gap-2 px-6 py-3 font-medium text-sm text-on-surface border border-outline-variant rounded-md hover:bg-surface-container transition-colors"
           >
             {t("landing.cta.talkToSales")}
-          </a>
+          </Link>
         </div>
       </div>
     </section>
@@ -768,13 +769,13 @@ export function Footer() {
         </div>
         <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-on-surface-variant">
           {links.map((item) => (
-            <a
+            <Link
               key={item.href}
-              href={item.href}
+              to={item.href}
               className="hover:text-on-surface transition-colors"
             >
               {item.label}
-            </a>
+            </Link>
           ))}
         </div>
       </div>

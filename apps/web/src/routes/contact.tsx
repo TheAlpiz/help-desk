@@ -3,13 +3,54 @@ import { Nav, Footer } from "../features/marketing/LandingPage";
 import { Input, Button, Label } from "@/components/ui";
 import { MapPin, Mail, MessageSquare, ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useState } from "react";
+import { api } from "@/lib/api";
 
 export const Route = createFileRoute("/contact")({
   component: ContactPage,
 });
 
 function ContactPage() {
-  const { t } = useTranslation("marketing");
+  const { t, i18n } = useTranslation("marketing");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!firstName || !lastName || !email || !message) {
+      setError("Please fill out all fields.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    setSuccess(false);
+
+    try {
+      const language = i18n.language?.startsWith("tr") ? "tr" : "en";
+      const res = await api.contact.$post({
+        json: { firstName, lastName, email, message, language },
+      });
+      if (res.ok) {
+        setSuccess(true);
+        setFirstName("");
+        setLastName("");
+        setEmail("");
+        setMessage("");
+      } else {
+        const data = await res.json();
+        setError((data as any).message || "Something went wrong. Please try again.");
+      }
+    } catch (err) {
+      setError("An unexpected error occurred.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-[100dvh] bg-background text-on-surface antialiased flex flex-col selection:bg-primary/30 selection:text-primary">
@@ -70,21 +111,31 @@ function ContactPage() {
 
               <div className="bg-surface-container/60 backdrop-blur-xl p-8 md:p-10 rounded-[2rem] border border-white/10 shadow-2xl">
                 <h3 className="text-2xl font-bold mb-6">{t("contact.form.title")}</h3>
-                <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+                <form className="space-y-6" onSubmit={handleSubmit}>
+                  {success && (
+                    <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-sm font-medium">
+                      Thanks for reaching out! We'll get back to you shortly.
+                    </div>
+                  )}
+                  {error && (
+                    <div className="p-4 rounded-xl bg-error/10 border border-error/20 text-error text-sm font-medium">
+                      {error}
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 gap-5">
                     <div className="space-y-2">
                       <Label htmlFor="first-name" className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{t("contact.form.firstName")}</Label>
-                      <Input id="first-name" placeholder="Jane" className="bg-background/50 border-white/5 focus:bg-background" />
+                      <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Jane" className="bg-background/50 border-white/5 focus:bg-background" disabled={loading} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="last-name" className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{t("contact.form.lastName")}</Label>
-                      <Input id="last-name" placeholder="Doe" className="bg-background/50 border-white/5 focus:bg-background" />
+                      <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Doe" className="bg-background/50 border-white/5 focus:bg-background" disabled={loading} />
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{t("contact.form.workEmail")}</Label>
-                    <Input id="email" type="email" placeholder="jane@company.com" className="bg-background/50 border-white/5 focus:bg-background" />
+                    <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jane@company.com" className="bg-background/50 border-white/5 focus:bg-background" disabled={loading} />
                   </div>
 
                   <div className="space-y-2">
@@ -92,13 +143,16 @@ function ContactPage() {
                     <textarea
                       id="message"
                       rows={5}
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      disabled={loading}
                       className="w-full px-4 py-3 bg-background/50 border border-white/5 rounded-xl text-sm text-on-surface focus:bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/60 transition-all resize-none shadow-inner"
                       placeholder={t("contact.form.messagePlaceholder")}
                     ></textarea>
                   </div>
 
-                  <Button className="w-full py-6 rounded-xl font-semibold text-base bg-primary hover:bg-primary/90 hover:shadow-[0_0_20px_rgba(var(--color-primary),0.3)] transition-all" type="button">
-                    {t("contact.form.submit")}
+                  <Button className="w-full py-6 rounded-xl font-semibold text-base bg-primary hover:bg-primary/90 hover:shadow-[0_0_20px_rgba(var(--color-primary),0.3)] transition-all" type="submit" disabled={loading}>
+                    {loading ? "Sending..." : t("contact.form.submit")}
                   </Button>
                   <p className="text-xs text-center text-on-surface-variant/60 mt-4">
                     {t("contact.form.privacyPrefix")} <Link to="/privacy" className="underline hover:text-on-surface">{t("contact.form.privacyLink")}</Link>.

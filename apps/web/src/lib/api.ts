@@ -34,6 +34,7 @@ import type { macroRouter } from "@help-desk/backend/src/modules/macro/macro.rou
 import type { automationRouter } from "@help-desk/backend/src/modules/automation/automation.route";
 import type { slaEscalationRuleRouter } from "@help-desk/backend/src/modules/sla/sla-escalation-rule.route";
 import type { messagingRouter } from "@help-desk/backend/src/modules/messaging/messaging.route";
+import type { ContactRouter } from "@help-desk/backend/src/modules/contact/contact.route";
 // ─── Auth-injecting fetch ─────────────────────────────────────────────────────
 // All clients route through the shared authFetch: in-memory Bearer token injection,
 // credentialed cookies (refresh + CSRF), and single-flight refresh-and-retry on 401.
@@ -71,6 +72,7 @@ const slaEscalationRules = hc<typeof slaEscalationRuleRouter>(
   opts,
 );
 const conversations = hc<typeof messagingRouter>("/api/conversations/", opts);
+const contact = hc<typeof ContactRouter>("/api/contact/", opts);
 // ─── Unified api object ───────────────────────────────────────────────────────
 
 export const api = {
@@ -92,4 +94,5 @@ export const api = {
   automations,
   slaEscalationRules,
   conversations,
+  contact,
 };
