@@ -42,8 +42,8 @@ function ContactPage() {
         setEmail("");
         setMessage("");
       } else {
-        const data = await res.json();
-        setError((data as any).message || t("contact.form.errorGeneric"));
+        await res.json(); // Consume the stream
+        setError(t("contact.form.errorGeneric"));
       }
     } catch (err) {
       setError(t("contact.form.errorUnexpected"));
