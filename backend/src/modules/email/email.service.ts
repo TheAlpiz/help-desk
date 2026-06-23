@@ -84,12 +84,8 @@ export class EmailService {
     const version = await db
       .select()
       .from(templateVersion)
-      .where(
-        and(
-          eq(templateVersion.templateId, template[0].id),
-          eq(templateVersion.status, "PUBLISHED")
-        )
-      )
+      .where(eq(templateVersion.templateId, template[0].id))
+      .orderBy(desc(templateVersion.versionNumber))
       .limit(1);
 
     return { template: template[0], version: version[0] || null };
@@ -159,12 +155,8 @@ export class EmailService {
     const version = await db
       .select()
       .from(signatureVersion)
-      .where(
-        and(
-          eq(signatureVersion.signatureId, signature[0].id),
-          eq(signatureVersion.status, "PUBLISHED")
-        )
-      )
+      .where(eq(signatureVersion.signatureId, signature[0].id))
+      .orderBy(desc(signatureVersion.versionNumber))
       .limit(1);
 
     return { signature: signature[0], version: version[0] || null };
@@ -182,16 +174,11 @@ export class EmailService {
     const version = await db
       .select()
       .from(signatureVersion)
-      .where(
-        and(
-          eq(signatureVersion.signatureId, signatureId),
-          eq(signatureVersion.status, "PUBLISHED")
-        )
-      )
-      .orderBy((t) => t.versionNumber)
+      .where(eq(signatureVersion.signatureId, signatureId))
+      .orderBy(desc(signatureVersion.versionNumber))
       .limit(1);
 
-    return { signature: signature[0], version: version[version.length - 1] || null };
+    return { signature: signature[0], version: version[0] || null };
   }
 
   async createSignature(organizationId: string, data: CreateEmailSignatureDTO) {
