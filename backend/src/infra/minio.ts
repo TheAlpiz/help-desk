@@ -9,6 +9,18 @@ export const minioClient = new Minio.Client({
   secretKey: env.MINIO_SECRET_KEY,
 });
 
+// Rewrites the internal MinIO host in a presigned URL to the public URL so
+// browsers served over HTTPS don't get mixed-content errors.
+export function toPublicUrl(presignedUrl: string): string {
+  if (!env.MINIO_PUBLIC_URL) return presignedUrl;
+  const internal = new URL(presignedUrl);
+  const pub = new URL(env.MINIO_PUBLIC_URL);
+  internal.protocol = pub.protocol;
+  internal.hostname = pub.hostname;
+  internal.port = pub.port;
+  return internal.toString();
+}
+
 export const BUCKET_NAME = "helpdesk-attachments";
 export const AUDIT_ARCHIVE_BUCKET = "helpdesk-audit-archives";
 export const TICKET_ARCHIVE_BUCKET = "helpdesk-ticket-archives";

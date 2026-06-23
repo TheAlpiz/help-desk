@@ -1,5 +1,5 @@
 import { attachment } from "./attachment.schema";
-import { minioClient, BUCKET_NAME } from "../../infra/minio";
+import { minioClient, BUCKET_NAME, toPublicUrl } from "../../infra/minio";
 import { v4 as uuidv4 } from "uuid";
 import { UploadRequestInput, ConfirmUploadInput } from "@help-desk/shared";
 import { eq, and } from "drizzle-orm";
@@ -21,7 +21,7 @@ export const AttachmentService = {
     );
 
     return {
-      uploadUrl: presignedUrl,
+      uploadUrl: toPublicUrl(presignedUrl),
       storageKey,
       filename: safeFilename,
       mimeType: input.mimeType,
@@ -99,6 +99,6 @@ export const AttachmentService = {
       { "response-content-disposition": `attachment; filename="${att.filename}"` },
     );
 
-    return downloadUrl;
+    return toPublicUrl(downloadUrl);
   },
 };

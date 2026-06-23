@@ -47,4 +47,8 @@ export const env = cleanEnv(process.env, {
   MINIO_ACCESS_KEY: str({ default: 'minioadmin' }),
   MINIO_SECRET_KEY: str({ default: 'minioadmin' }),
   MINIO_USE_SSL: bool({ default: false }),
+  // Public-facing MinIO URL (e.g. https://minio.example.com). When set, presigned
+  // URLs have their internal host rewritten to this value so browsers behind HTTPS
+  // don't get mixed-content errors.
+  MINIO_PUBLIC_URL: str({ default: '' }),
 });
