@@ -9,17 +9,25 @@ export const minioClient = new Minio.Client({
   secretKey: env.MINIO_SECRET_KEY,
 });
 
-// Rewrites the internal MinIO host in a presigned URL to the public URL so
-// browsers served over HTTPS don't get mixed-content errors.
-export function toPublicUrl(presignedUrl: string): string {
-  if (!env.MINIO_PUBLIC_URL) return presignedUrl;
-  const internal = new URL(presignedUrl);
+// Separate client used only for presigning. Points to the public endpoint so
+// the signature is computed against the correct host from the start — rewriting
+// the host after signing breaks the signature because `host` is in
+// X-Amz-SignedHeaders. Falls back to the internal client when no public URL set.
+function makePresignClient(): Minio.Client {
+  if (!env.MINIO_PUBLIC_URL) return minioClient;
   const pub = new URL(env.MINIO_PUBLIC_URL);
-  internal.protocol = pub.protocol;
-  internal.hostname = pub.hostname;
-  internal.port = pub.port;
-  return internal.toString();
+  const useSSL = pub.protocol === "https:";
+  const port = pub.port ? parseInt(pub.port, 10) : useSSL ? 443 : 80;
+  return new Minio.Client({
+    endPoint: pub.hostname,
+    port,
+    useSSL,
+    accessKey: env.MINIO_ACCESS_KEY,
+    secretKey: env.MINIO_SECRET_KEY,
+  });
 }
+
+export const minioPresignClient = makePresignClient();
 
 export const BUCKET_NAME = "helpdesk-attachments";
 export const AUDIT_ARCHIVE_BUCKET = "helpdesk-audit-archives";

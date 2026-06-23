@@ -1,5 +1,5 @@
 import { attachment } from "./attachment.schema";
-import { minioClient, BUCKET_NAME, toPublicUrl } from "../../infra/minio";
+import { minioClient, minioPresignClient, BUCKET_NAME } from "../../infra/minio";
 import { v4 as uuidv4 } from "uuid";
 import { UploadRequestInput, ConfirmUploadInput } from "@help-desk/shared";
 import { eq, and } from "drizzle-orm";
@@ -14,14 +14,14 @@ export const AttachmentService = {
     const safeFilename = input.filename.replace(/[^a-zA-Z0-9.\-_]/g, "");
     const storageKey = `${tenantId}/${input.entityType.toLowerCase()}/${input.entityId}/${uuidv4()}-${safeFilename}`;
 
-    const presignedUrl = await minioClient.presignedPutObject(
+    const presignedUrl = await minioPresignClient.presignedPutObject(
       BUCKET_NAME,
       storageKey,
       15 * 60,
     );
 
     return {
-      uploadUrl: toPublicUrl(presignedUrl),
+      uploadUrl: presignedUrl,
       storageKey,
       filename: safeFilename,
       mimeType: input.mimeType,
@@ -92,13 +92,13 @@ export const AttachmentService = {
     if (!att) throw new Error("Attachment not found");
     if (att.isSafe === false) throw new Error("Attachment is quarantined due to malware detection.");
 
-    const downloadUrl = await minioClient.presignedGetObject(
+    const downloadUrl = await minioPresignClient.presignedGetObject(
       BUCKET_NAME,
       att.storageKey,
       5 * 60,
       { "response-content-disposition": `attachment; filename="${att.filename}"` },
     );
 
-    return toPublicUrl(downloadUrl);
+    return downloadUrl;
   },
 };

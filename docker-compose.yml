@@ -31,8 +31,6 @@ services:
       - REDIS_PASSWORD=
       - MINIO_ENDPOINT=minio
       - MINIO_PORT=9000
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=minioadmin
       - MINIO_USE_SSL=false
       - SMTP_HOST=mail.yerliva.com
       - SMTP_PORT=465
