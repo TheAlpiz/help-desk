@@ -67,7 +67,7 @@ export class EmailController {
   }
 
   async saveTemplateVersion(c: Context) {
-    const userId = c.get("user")?.id;
+    const userId = c.get("user")?.userId;
     const { id } = c.req.param();
     if (!userId) return c.json({ error: "Unauthorized" }, 401);
 
@@ -82,7 +82,7 @@ export class EmailController {
     if (!orgId || !user) return c.json({ error: "Unauthorized" }, 401);
 
     const isAdmin = ["ADMIN", "SUPER_ADMIN", "SUPERVISOR"].includes(user.globalRole);
-    const signatures = await emailService.listSignatures(orgId, user.id, isAdmin);
+    const signatures = await emailService.listSignatures(orgId, user.userId, isAdmin);
     return c.json({ data: signatures });
   }
 
@@ -104,7 +104,7 @@ export class EmailController {
 
     // Non-admin agents can only read their own personal signature
     const isAdmin = ["ADMIN", "SUPER_ADMIN", "SUPERVISOR"].includes(user?.globalRole ?? "");
-    if (!isAdmin && signature.signature.ownerType === "AGENT" && signature.signature.ownerId !== user?.id) {
+    if (!isAdmin && signature.signature.ownerType === "AGENT" && signature.signature.ownerId !== user?.userId) {
       return c.json({ error: "Forbidden" }, 403);
     }
 
@@ -121,7 +121,7 @@ export class EmailController {
 
     if (body.ownerType === "AGENT") {
       // Agents can only create their own signature
-      if (!isAdmin && body.ownerId !== user.id) {
+      if (!isAdmin && body.ownerId !== user.userId) {
         return c.json({ error: "Cannot create a signature for another agent" }, 403);
       }
     } else {
@@ -143,7 +143,7 @@ export class EmailController {
     if (!isAdmin) {
       const existing = await emailService.getSignatureById(id);
       if (!existing) return c.json({ error: "Not found" }, 404);
-      if (existing.signature.ownerType === "AGENT" && existing.signature.ownerId !== user?.id) {
+      if (existing.signature.ownerType === "AGENT" && existing.signature.ownerId !== user?.userId) {
         return c.json({ error: "Forbidden" }, 403);
       }
     }
@@ -161,7 +161,7 @@ export class EmailController {
     if (!isAdmin) {
       const existing = await emailService.getSignatureById(id);
       if (!existing) return c.json({ error: "Not found" }, 404);
-      if (existing.signature.ownerType === "AGENT" && existing.signature.ownerId !== user?.id) {
+      if (existing.signature.ownerType === "AGENT" && existing.signature.ownerId !== user?.userId) {
         return c.json({ error: "Forbidden" }, 403);
       }
     }
@@ -174,7 +174,7 @@ export class EmailController {
   // ── Approval endpoints ────────────────────────────────────────────────
 
   async requestApproval(c: Context) {
-    const userId = c.get("user")?.id;
+    const userId = c.get("user")?.userId;
     const { versionId } = c.req.param();
     if (!userId) return c.json({ error: "Unauthorized" }, 401);
 
@@ -183,7 +183,7 @@ export class EmailController {
   }
 
   async reviewApproval(c: Context) {
-    const userId = c.get("user")?.id;
+    const userId = c.get("user")?.userId;
     const { approvalId } = c.req.param();
     if (!userId) return c.json({ error: "Unauthorized" }, 401);
 
