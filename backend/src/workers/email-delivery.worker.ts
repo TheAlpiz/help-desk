@@ -79,6 +79,7 @@ export class EmailDeliveryWorker {
         user: mbx.smtpUser || "",
         pass: decryptSecret(mbx.smtpPasswordEncrypted) || "",
       },
+      tls: { rejectUnauthorized: false },
     });
 
     const baseSubject = subject.includes(`[TICKET-${ticketId}]`)

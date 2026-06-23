@@ -72,6 +72,7 @@ export class MailboxManager {
             user: mbx.imapUser,
             pass: decryptSecret(mbx.imapPasswordEncrypted) ?? "",
           },
+          tls: { rejectUnauthorized: false },
         },
         mbx.organizationId,
         mbx.id,

@@ -83,6 +83,7 @@ const router = new Hono<{ Variables: { tenantId: string; user: JwtPayload } }>()
         secure: (mailbox.imapPort ?? 993) !== 143,
         auth: { user: mailbox.imapUser ?? mailbox.emailAddress, pass: decryptSecret(mailbox.imapPasswordEncrypted) ?? "" },
         logger: false,
+        tls: { rejectUnauthorized: false },
       });
 
       try {
