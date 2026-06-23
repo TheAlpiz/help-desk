@@ -19,7 +19,7 @@ const contactSchema = z.object({
 });
 
 const ContactRouter = new Hono()
-  .post("/", rateLimit({ windowSec: 60, max: 5, prefix: "contact" }), zValidator("json", contactSchema), async (c) => {
+  .post("/", rateLimit({ windowSec: 600, max: 2, prefix: "contact" }), zValidator("json", contactSchema), async (c) => {
     const { firstName, lastName, email, message, language } =
       c.req.valid("json");
 
