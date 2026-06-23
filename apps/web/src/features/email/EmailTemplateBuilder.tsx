@@ -66,11 +66,7 @@ export function EmailTemplateBuilder({ templateId, templateType, onSave }: Props
   const [isLoading, setIsLoading] = useState(!!templateId);
 
   useEffect(() => {
-    if (!templateId) {
-      setBlocks([]);
-      setIsLoading(false);
-      return;
-    }
+    setIsLoading(true);
 
     authFetch(`/api/email/templates/${selectedType}/active`)
       .then((r) => r.json())
@@ -81,6 +77,10 @@ export function EmailTemplateBuilder({ templateId, templateType, onSave }: Props
           if (version.contentJson.globalStyles) setGlobalStyles(version.contentJson.globalStyles);
           if (version.subject) setSubject(version.subject);
           if (version.contentJson.previewText) setPreviewText(version.contentJson.previewText);
+        } else {
+          setBlocks([]);
+          setSubject("{{ticket_subject}} — Your request (Ticket #{{ticket_id}})");
+          setPreviewText("");
         }
       })
       .catch(() => {})
