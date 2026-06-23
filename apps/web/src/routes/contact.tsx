@@ -32,7 +32,7 @@ function ContactPage() {
 
     try {
       const language = i18n.language?.startsWith("tr") ? "tr" : "en";
-      const res = await api.contact.$post({
+      const res = await api.contact.index.$post({
         json: { firstName, lastName, email, message, language },
       });
       if (res.ok) {

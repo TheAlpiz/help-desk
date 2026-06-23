@@ -17,9 +17,8 @@ const contactSchema = z.object({
   language: z.enum(["en", "tr"]).default("en"),
 });
 
-const app = new Hono();
-
-app.post("/", zValidator("json", contactSchema), async (c) => {
+const ContactRouter = new Hono()
+  .post("/", zValidator("json", contactSchema), async (c) => {
   const { firstName, lastName, email, message, language } = c.req.valid("json");
   
   const subjectEn = `New Contact Form Submission from ${firstName} ${lastName}`;
@@ -49,4 +48,4 @@ app.post("/", zValidator("json", contactSchema), async (c) => {
   }
 });
 
-export { app as ContactRouter };
+export { ContactRouter };

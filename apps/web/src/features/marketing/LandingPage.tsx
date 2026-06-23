@@ -208,6 +208,7 @@ export function Nav() {
     { label: t("nav.pricing"), href: "/pricing" },
     { label: t("nav.docs"), href: "/docs" },
     { label: t("nav.changelog"), href: "/changelog" },
+    { label: t("nav.contact"), href: "/contact" },
   ];
 
   return (
