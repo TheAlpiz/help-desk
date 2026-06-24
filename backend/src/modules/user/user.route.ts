@@ -6,7 +6,8 @@ import { DepartmentService } from "../department/department.service";
 import { ResponseHandler } from "../../lib/response";
 import { authMiddleware, JwtPayload } from "../../middleware/auth.middleware";
 import { requirePermission } from "../../middleware/permission.middleware";
-import { inviteUserSchema, updateUserSchema } from "@help-desk/shared";
+import { inviteUserSchema, updateUserSchema, updateAvailabilitySchema } from "@help-desk/shared";
+import { wsGateway } from "../../ws/gateway";
 
 const router = new Hono<{ Variables: { tenantId: string; user: JwtPayload } }>()
   .use("*", authMiddleware())
@@ -19,6 +20,34 @@ const router = new Hono<{ Variables: { tenantId: string; user: JwtPayload } }>()
     try {
       const data = await UserService.findAllGlobal();
       return c.json({ success: true as const, data, message: "Fetched global users" });
+    } catch (error) {
+      return ResponseHandler.internalServerError(c, "Internal Server Error", error);
+    }
+  })
+
+  // Presence snapshot — who is online (live WS sockets) + everyone's availability.
+  // Auth-only: org presence is visible to all members (Discord-style).
+  .get("/presence", async (c) => {
+    const tenantId = c.get("tenantId");
+    try {
+      const availability = await UserService.availabilityMap(tenantId);
+      const online = wsGateway.onlineUserIds(tenantId);
+      return ResponseHandler.ok(c, { online, availability });
+    } catch (error) {
+      return ResponseHandler.internalServerError(c, "Internal Server Error", error);
+    }
+  })
+
+  // Self-service availability change. Broadcasts presence to the tenant.
+  .put("/me/availability", zValidator("json", updateAvailabilitySchema), async (c) => {
+    const tenantId = c.get("tenantId");
+    const me = c.get("user");
+    const { availability } = c.req.valid("json");
+    try {
+      const updated = await UserService.updateAvailability(tenantId, me.userId, availability);
+      if (!updated) return ResponseHandler.notFound(c, "User not found");
+      wsGateway.broadcastPresence(tenantId, { userId: me.userId, online: true, availability });
+      return ResponseHandler.ok(c, { availability });
     } catch (error) {
       return ResponseHandler.internalServerError(c, "Internal Server Error", error);
     }

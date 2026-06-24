@@ -18,6 +18,7 @@ const DIRECT_TENANT_TABLES = [
   "role",
   "user_role",
   "session",
+  "user_note",
 ];
 
 /**

@@ -13,5 +13,13 @@
   "loadMore": "Load earlier messages",
   "directMessage": "Direct message",
   "errorSend": "Failed to send message",
-  "errorLoad": "Failed to load messages"
+  "errorLoad": "Failed to load messages",
+  "newGroup": "New group",
+  "group": "Group",
+  "direct": "Direct",
+  "groupName": "Group name",
+  "createGroup": "Create group",
+  "creating": "Creating…",
+  "members": "members",
+  "attach": "Attach files"
 }

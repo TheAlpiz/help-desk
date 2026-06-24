@@ -108,6 +108,23 @@
   },
   "offline": "Çevrimdışısınız",
   "comingSoon": "Yakında",
+  "notes": {
+    "title": "Notlarım",
+    "private": "Özel",
+    "new": "Yeni not",
+    "edit": "Notu düzenle",
+    "empty": "Henüz not yok",
+    "untitled": "Başlıksız",
+    "delete": "Sil",
+    "reminder": "Hatırlatıcı",
+    "reminded": "Hatırlatıldı",
+    "setReminder": "Hatırlatıcı kur",
+    "titlePlaceholder": "Başlık (isteğe bağlı)",
+    "contentPlaceholder": "Bir şeyler yazın…",
+    "cancel": "İptal",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor…"
+  },
   "attachments": {
     "title": "Ekler",
     "upload": "Yükle",

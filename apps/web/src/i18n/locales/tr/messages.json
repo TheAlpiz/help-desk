@@ -13,5 +13,13 @@
   "loadMore": "Önceki mesajları yükle",
   "directMessage": "Doğrudan mesaj",
   "errorSend": "Mesaj gönderilemedi",
-  "errorLoad": "Mesajlar yüklenemedi"
+  "errorLoad": "Mesajlar yüklenemedi",
+  "newGroup": "Yeni grup",
+  "group": "Grup",
+  "direct": "Doğrudan",
+  "groupName": "Grup adı",
+  "createGroup": "Grup oluştur",
+  "creating": "Oluşturuluyor…",
+  "members": "üye",
+  "attach": "Dosya ekle"
 }

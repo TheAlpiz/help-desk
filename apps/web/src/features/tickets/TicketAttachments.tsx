@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Paperclip, Upload, Download, FileText, X, Loader2 } from "lucide-react";
+import { Paperclip, Upload, Download, FileText, X, Loader2, Trash2 } from "lucide-react";
 import { useAppStore } from "@/store";
 
 interface Props {
@@ -116,8 +116,22 @@ export function TicketAttachments({ entityType = "TICKET", entityId, ticketId }:
     }
   };
 
-  const handleDownload = (id: string) => {
-    window.open(`/api/attachments/${id}/download`, "_blank");
+  const handleDownload = async (id: string) => {
+    // Fetch the presigned URL *with* the Bearer token (authFetch injects it),
+    // then open the presigned URL directly — its signature is in the query, so
+    // it needs no auth header and triggers no CORS.
+    const res = await api.attachments[":id"].download.$get({ param: { id } });
+    if (!res.ok) return;
+    const json = (await res.json()) as any;
+    const url = json?.data?.url;
+    if (url) window.open(url, "_blank");
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm(t("attachments.confirmDelete", "Delete this attachment?"))) return;
+    const res = await api.attachments[":id"].$delete({ param: { id } });
+    if (!res.ok) return;
+    queryClient.invalidateQueries({ queryKey: ["attachments", entityType, eid] });
   };
 
   return (
@@ -188,20 +202,31 @@ export function TicketAttachments({ entityType = "TICKET", entityId, ticketId }:
       ) : (
         <div className="space-y-1">
           {attachments.map((att: any) => (
-            <button
+            <div
               key={att.id}
-              onClick={() => handleDownload(att.id)}
               className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors text-left group"
             >
-              <FileText className="w-3.5 h-3.5 text-on-surface-variant/50 shrink-0" />
-              <span className="flex-1 min-w-0">
-                <span className="text-[11px] text-on-surface truncate block">{att.filename}</span>
-                <span className="text-[10px] text-on-surface-variant/40">
-                  {formatBytes(att.sizeBytes)}
+              <button
+                onClick={() => handleDownload(att.id)}
+                className="flex-1 min-w-0 flex items-center gap-2 text-left"
+              >
+                <FileText className="w-3.5 h-3.5 text-on-surface-variant/50 shrink-0" />
+                <span className="flex-1 min-w-0">
+                  <span className="text-[11px] text-on-surface truncate block">{att.filename}</span>
+                  <span className="text-[10px] text-on-surface-variant/40">
+                    {formatBytes(att.sizeBytes)}
+                  </span>
                 </span>
-              </span>
-              <Download className="w-3 h-3 text-on-surface-variant/30 group-hover:text-primary transition-colors shrink-0" />
-            </button>
+                <Download className="w-3 h-3 text-on-surface-variant/30 group-hover:text-primary transition-colors shrink-0" />
+              </button>
+              <button
+                onClick={() => handleDelete(att.id)}
+                title={t("attachments.delete", "Delete")}
+                className="p-1 rounded text-on-surface-variant/30 hover:text-error transition-colors shrink-0"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            </div>
           ))}
         </div>
       )}

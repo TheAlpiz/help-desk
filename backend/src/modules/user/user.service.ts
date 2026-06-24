@@ -64,4 +64,27 @@ export const UserService = {
       await tx.delete(user).where(eq(user.id, id));
     });
   },
+
+  // Self-service: a user sets their own Discord-style availability.
+  updateAvailability: async (tenantId: string, userId: string, availability: string) => {
+    return withTenantTransaction(tenantId, async (tx) => {
+      const [updated] = await tx
+        .update(user)
+        .set({ availability })
+        .where(and(eq(user.id, userId), eq(user.organizationId, tenantId)))
+        .returning();
+      return updated;
+    });
+  },
+
+  // userId -> availability for everyone in the tenant. Seeds the frontend presence store.
+  availabilityMap: async (tenantId: string): Promise<Record<string, string>> => {
+    return withTenantTransaction(tenantId, async (tx) => {
+      const rows = await tx
+        .select({ id: user.id, availability: user.availability })
+        .from(user)
+        .where(eq(user.organizationId, tenantId));
+      return Object.fromEntries(rows.map((r) => [r.id, r.availability]));
+    });
+  },
 };

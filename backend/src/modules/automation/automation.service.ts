@@ -2,6 +2,7 @@ import { eq, and, isNull, inArray, desc } from "drizzle-orm";
 import { withTenantTransaction } from "../../infra/db";
 import { automation, AutomationCondition, AutomationActionDef } from "./automation.schema";
 import { ticket } from "../ticket/ticket.schema";
+import { selectAssigneeWithinTx } from "../ticket/assignment.service";
 import { ticketTag } from "../ticket/ticket-tag.schema";
 import { ticketMessage } from "../ticket/ticket-message.schema";
 import { task } from "../task/task.schema";
@@ -190,17 +191,23 @@ export const AutomationService = {
                 break;
               case "assign_to": {
                 if (!action.value) break;
-                // value may be a UUID or an email address
-                let assigneeId = action.value;
-                if (action.value.includes("@")) {
+
+                const currentTicket = await tx.select().from(ticket).where(eq(ticket.id, ticketId)).limit(1);
+                if (!currentTicket[0]) break;
+
+                // value may be the literal "auto" (availability-weighted picker),
+                // a UUID, or an email address.
+                let assigneeId: string | null = action.value;
+                if (action.value.toLowerCase() === "auto") {
+                  assigneeId = await selectAssigneeWithinTx(tx, tenantId, currentTicket[0].departmentId);
+                  if (!assigneeId) { logger.warn({ ruleId: rule.id }, "Automation assign_to auto: no available agent"); break; }
+                } else if (action.value.includes("@")) {
                   const [found] = await tx.select({ id: user.id }).from(user).where(eq(user.email, action.value)).limit(1);
                   if (!found) { logger.warn({ email: action.value }, "Automation assign_to: user not found"); break; }
                   assigneeId = found.id;
                 }
-                
-                const currentTicket = await tx.select().from(ticket).where(eq(ticket.id, ticketId)).limit(1);
-                
-                if (currentTicket[0] && currentTicket[0].assigneeId !== assigneeId) {
+
+                if (currentTicket[0].assigneeId !== assigneeId) {
                   await tx.update(ticket).set({ assigneeId, status: "assigned" }).where(eq(ticket.id, ticketId));
                   emitEvent("ticket.assigned", { ticketId, assigneeId, actorId: "system", organizationId: tenantId });
                   await tx.insert(auditLog).values({ organizationId: tenantId, entityType: "ticket", entityId: ticketId, actorId: "system", action: "assigned", oldValues: { assigneeId: currentTicket[0].assigneeId }, newValues: { assigneeId, viaAutomation: rule.id } });

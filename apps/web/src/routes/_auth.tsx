@@ -36,6 +36,7 @@ import {
   Loader2,
   Mail,
   PenTool,
+  StickyNote,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -48,6 +49,7 @@ import { bootstrapAuth, api } from "@/lib/api";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ForcePasswordChangeScreen } from "@/features/users/components/ForcePasswordChangeScreen";
 import { AppLogo } from "@/components/AppLogo";
+import { AVAILABILITY_ORDER, availabilityMeta } from "@/lib/presence";
 
 export const Route = createFileRoute("/_auth")({
   beforeLoad: async ({ location }) => {
@@ -106,7 +108,7 @@ const MAIN_NAV: NavItem[] = [
     to: "/tasks",
     labelKey: "main.tasks",
     icon: <ListChecks className="w-4 h-4" />,
-    roles: ["AGENT", "ADMIN", "SUPER_ADMIN"],
+    roles: ["AGENT", "SUPERVISOR", "ADMIN", "SUPER_ADMIN"],
   },
   {
     to: "/notifications",
@@ -119,16 +121,17 @@ const MAIN_NAV: NavItem[] = [
     icon: <MessageSquare className="w-4 h-4" />,
   },
   {
+    // mailbox.manage is admin-only (org email-account config)
     to: "/mailboxes",
     labelKey: "main.mailboxes",
     icon: <Inbox className="w-4 h-4" />,
-    roles: ["AGENT", "ADMIN", "SUPER_ADMIN"],
+    roles: ["ADMIN", "SUPER_ADMIN"],
   },
   {
     to: "/reports",
     labelKey: "main.reports",
     icon: <BarChart3 className="w-4 h-4" />,
-    roles: ["AGENT", "ADMIN", "SUPER_ADMIN"],
+    roles: ["AGENT", "SUPERVISOR", "ADMIN", "SUPER_ADMIN"],
   },
   {
     to: "/search",
@@ -137,57 +140,75 @@ const MAIN_NAV: NavItem[] = [
   },
 ];
 
+// roles mirror the backend permission each page's endpoints require:
+//   users(user.*) / departments(department.manage) / roles(role.manage) /
+//   compliance+settings(organization.manage) / email-templates(template.manage) → ADMIN
+//   sla(sla.manage) / macros+automations(ticket.update) / export(export.read) /
+//   audit-logs(audit.read) → also SUPERVISOR
+const SUPERVISOR_PLUS = ["SUPERVISOR", "ADMIN", "SUPER_ADMIN"];
+const ADMIN_ONLY = ["ADMIN", "SUPER_ADMIN"];
+
 const ADMIN_NAV: NavItem[] = [
   {
     to: "/users",
     labelKey: "admin.users",
     icon: <Users className="w-4 h-4" />,
+    roles: ADMIN_ONLY,
   },
   {
     to: "/departments",
     labelKey: "admin.departments",
     icon: <Building2 className="w-4 h-4" />,
+    roles: ADMIN_ONLY,
   },
-  { to: "/sla", labelKey: "admin.sla", icon: <Clock className="w-4 h-4" /> },
+  { to: "/sla", labelKey: "admin.sla", icon: <Clock className="w-4 h-4" />, roles: SUPERVISOR_PLUS },
   {
     to: "/roles",
     labelKey: "admin.roles",
     icon: <Shield className="w-4 h-4" />,
+    roles: ADMIN_ONLY,
   },
   {
     to: "/macros",
     labelKey: "admin.macros",
     icon: <Key className="w-4 h-4" />,
+    roles: SUPERVISOR_PLUS,
   },
   {
     to: "/automations",
     labelKey: "admin.automations",
     icon: <Zap className="w-4 h-4" />,
+    roles: SUPERVISOR_PLUS,
   },
   {
     to: "/export",
     labelKey: "admin.export",
     icon: <Download className="w-4 h-4" />,
+    roles: SUPERVISOR_PLUS,
   },
   {
     to: "/compliance",
     labelKey: "admin.compliance",
     icon: <Shield className="w-4 h-4" />,
+    roles: ADMIN_ONLY,
   },
   {
     to: "/audit-logs",
     labelKey: "admin.auditLog",
     icon: <FileText className="w-4 h-4" />,
+    roles: SUPERVISOR_PLUS,
   },
   {
     to: "/email-templates",
     labelKey: "admin.emailTemplates",
     icon: <Mail className="w-4 h-4" />,
+    roles: ADMIN_ONLY,
   },
   {
     to: "/settings",
     labelKey: "admin.settings",
     icon: <Settings className="w-4 h-4" />,
+    roles: ADMIN_ONLY,
   },
 ];
 
@@ -421,6 +442,22 @@ function AuthLayout() {
     user?.globalRole === "ADMIN" || user?.globalRole === "SUPER_ADMIN";
   const isSuperAdmin = user?.globalRole === "SUPER_ADMIN";
 
+  const role = user?.globalRole ?? "";
+  const visibleMainNav = MAIN_NAV.filter((item) => !item.roles || item.roles.includes(role));
+  const visibleAdminNav = ADMIN_NAV.filter((item) => !item.roles || item.roles.includes(role));
+
+  const setMyAvailability = useAppStore((s) => s.setMyAvailability);
+  const myAvailability = user?.availability ?? "available";
+  const changeAvailability = async (a: string) => {
+    if (a === myAvailability) return;
+    setMyAvailability(a); // optimistic
+    try {
+      await api.users.me.availability.$put({ json: { availability: a as any } });
+    } catch {
+      /* best-effort; presence broadcast reconciles */
+    }
+  };
+
   const initials = `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`;
 
   const location = useLocation();
@@ -475,20 +512,17 @@ function AuthLayout() {
                 onClick={() => setMobileSidebarOpen(false)}
               >
                 <div className="space-y-0.5">
-                  {MAIN_NAV.filter(
-                    (item) => !item.roles || item.roles.includes(user?.globalRole ?? "")
-                  ).map((item) => (
+                  {visibleMainNav.map((item) => (
                     <NavLink key={item.to} item={item} />
                   ))}
                 </div>
-                {(user?.globalRole === "ADMIN" ||
-                  user?.globalRole === "SUPER_ADMIN") && (
+                {visibleAdminNav.length > 0 && (
                   <>
                     <div className="px-3 pt-5 pb-1.5 text-[10px] font-semibold text-on-surface-variant/40 uppercase tracking-wider">
                       {t("nav:admin.heading")}
                     </div>
                     <div className="space-y-0.5">
-                      {ADMIN_NAV.map((item) => (
+                      {visibleAdminNav.map((item) => (
                         <NavLink key={item.to} item={item} />
                       ))}
                     </div>
@@ -521,20 +555,18 @@ function AuthLayout() {
           {/* Nav */}
           <nav className="flex-1 overflow-y-auto pretty-scroll py-3 px-2">
             <div className="space-y-0.5">
-              {MAIN_NAV.filter(
-                (item) => !item.roles || item.roles.includes(user?.globalRole ?? "")
-              ).map((item) => (
+              {visibleMainNav.map((item) => (
                 <NavLink key={item.to} item={item} />
               ))}
             </div>
 
-            {isAdmin && (
+            {visibleAdminNav.length > 0 && (
               <>
                 <div className="px-3 pt-5 pb-1.5 text-[10px] font-semibold text-on-surface-variant/40 uppercase tracking-wider">
                   {t("nav:admin.heading")}
                 </div>
                 <div className="space-y-0.5">
-                  {ADMIN_NAV.map((item) => (
+                  {visibleAdminNav.map((item) => (
                     <NavLink key={item.to} item={item} />
                   ))}
                 </div>
@@ -567,8 +599,17 @@ function AuthLayout() {
                 onClick={() => setUserMenuOpen((v) => !v)}
                 className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left group"
               >
-                <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
-                  {initials}
+                <div className="relative shrink-0">
+                  <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-[10px] font-bold text-primary">
+                    {initials}
+                  </div>
+                  <span
+                    className={cn(
+                      "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-surface-container-low",
+                      availabilityMeta(myAvailability).dot,
+                    )}
+                    title={availabilityMeta(myAvailability).fallback}
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-on-surface truncate">
@@ -588,6 +629,29 @@ function AuthLayout() {
 
               {userMenuOpen && (
                 <div className="absolute bottom-full left-0 right-0 mb-1 bg-surface-container-high border border-outline-variant rounded-lg shadow-xl overflow-hidden z-50">
+                  {/* Availability (Discord-style status) */}
+                  <div className="px-3 pt-2 pb-1 text-[10px] font-semibold text-on-surface-variant/40 uppercase tracking-wider">
+                    {t("nav:presence.heading", "Status")}
+                  </div>
+                  {AVAILABILITY_ORDER.map((a) => {
+                    const meta = availabilityMeta(a);
+                    const active = a === myAvailability;
+                    return (
+                      <button
+                        key={a}
+                        onClick={() => changeAvailability(a)}
+                        className={cn(
+                          "w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors",
+                          active ? "bg-white/5 text-on-surface" : "text-on-surface-variant hover:bg-white/5 hover:text-on-surface",
+                        )}
+                      >
+                        <span className={cn("w-2.5 h-2.5 rounded-full shrink-0", meta.dot)} />
+                        {t(`nav:${meta.labelKey}`, meta.fallback)}
+                        {active && <span className="ml-auto text-[10px] text-primary">●</span>}
+                      </button>
+                    );
+                  })}
+                  <div className="border-t border-outline-variant" />
                   <Link
                     to="/profile"
                     onClick={() => setUserMenuOpen(false)}
@@ -603,6 +667,14 @@ function AuthLayout() {
                   >
                     <Key className="w-3.5 h-3.5" />
                     {t("nav:user.apiTokens")}
+                  </Link>
+                  <Link
+                    to="/notes"
+                    onClick={() => setUserMenuOpen(false)}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-on-surface-variant hover:bg-white/5 hover:text-on-surface transition-colors"
+                  >
+                    <StickyNote className="w-3.5 h-3.5" />
+                    {t("nav:user.notes", "My Notes")}
                   </Link>
                   {!isAdmin && (
                     <Link

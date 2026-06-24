@@ -49,7 +49,7 @@ app.get("/track/click/:trackingId", async (c) => {
 // ── Branding ──────────────────────────────────────────────────────────────────
 
 app.get("/branding", authMiddleware(), (c) => emailController.getBranding(c));
-app.put("/branding", authMiddleware(), requirePermission("manage_branding"), zValidator("json", emailBrandingSchema), (c) => emailController.updateBranding(c));
+app.put("/branding", authMiddleware(), requirePermission("branding.manage"), zValidator("json", emailBrandingSchema), (c) => emailController.updateBranding(c));
 
 // ── Render (block JSON → email HTML via react-email) ──────────────────────────
 
@@ -58,15 +58,15 @@ app.post("/render", authMiddleware(), (c) => emailController.renderBlocks(c));
 // ── Templates ─────────────────────────────────────────────────────────────────
 
 app.get("/templates", authMiddleware(), (c) => emailController.listTemplates(c));
-app.post("/templates", authMiddleware(), requirePermission("manage_templates"), (c) => emailController.createTemplate(c));
+app.post("/templates", authMiddleware(), requirePermission("template.manage"), (c) => emailController.createTemplate(c));
 app.get("/templates/:type/active", authMiddleware(), (c) => emailController.getActiveTemplate(c));
-app.post("/templates/:id/versions", authMiddleware(), requirePermission("manage_templates"), zValidator("json", saveTemplateVersionSchema), (c) => emailController.saveTemplateVersion(c));
+app.post("/templates/:id/versions", authMiddleware(), requirePermission("template.manage"), zValidator("json", saveTemplateVersionSchema), (c) => emailController.saveTemplateVersion(c));
 
 // ── Approval workflow ─────────────────────────────────────────────────────────
 
-app.get("/approvals/pending", authMiddleware(), requirePermission("manage_templates"), (c) => emailController.listPendingApprovals(c));
-app.post("/versions/:versionId/request-approval", authMiddleware(), requirePermission("manage_templates"), (c) => emailController.requestApproval(c));
-app.post("/approvals/:approvalId/review", authMiddleware(), requirePermission("approve_templates"), (c) => emailController.reviewApproval(c));
+app.get("/approvals/pending", authMiddleware(), requirePermission("template.manage"), (c) => emailController.listPendingApprovals(c));
+app.post("/versions/:versionId/request-approval", authMiddleware(), requirePermission("template.manage"), (c) => emailController.requestApproval(c));
+app.post("/approvals/:approvalId/review", authMiddleware(), requirePermission("template.approve"), (c) => emailController.reviewApproval(c));
 
 // ── Signatures ────────────────────────────────────────────────────────────────
 // Ownership is enforced in the controller, not at the route level, so any

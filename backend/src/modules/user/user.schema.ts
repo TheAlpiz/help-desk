@@ -11,6 +11,9 @@ export const user = pgTable("user", {
   firstName: varchar("first_name", { length: 255 }).notNull(),
   lastName: varchar("last_name", { length: 255 }).notNull(),
   status: varchar("status", { length: 50 }).default("active").notNull(),
+  // Discord-style self-set availability. Drives ticket auto-assignment weighting
+  // (see assignment.service). One of @help-desk/shared AVAILABILITY_STATUSES.
+  availability: varchar("availability", { length: 30 }).default("available").notNull(),
   globalRole: varchar("global_role", { length: 50 }).default("REQUESTER").notNull(),
   // ABAC: department membership used for department-scoped ticket visibility.
   departmentId: uuid("department_id").references((): AnyPgColumn => department.id, { onDelete: "set null" }),

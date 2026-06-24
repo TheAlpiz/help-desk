@@ -21,6 +21,7 @@ import { EmailDeliveryWorker } from "./workers/email-delivery.worker";
 import { AuditArchivalWorker } from "./workers/audit-archival.worker";
 import { TicketArchivalWorker } from "./workers/ticket-archival.worker";
 import { AttachmentArchivalWorker } from "./workers/attachment-archival.worker";
+import { ReminderWorker } from "./workers/reminder.worker";
 import { NotificationService } from "./modules/notification/notification.service";
 import { initAutomationListeners } from "./workers/automation.listener";
 import { Queue } from "bullmq";
@@ -84,6 +85,9 @@ new EmailDeliveryWorker({
   port: parseInt(env.REDIS_PORT),
   password: env.REDIS_PASSWORD || undefined,
 });
+
+// Initialize Personal-Note Reminder Worker (delayed jobs → in-app notification + sound)
+new ReminderWorker();
 
 // Initialize Notification Event Bus Listeners
 NotificationService.initListeners();

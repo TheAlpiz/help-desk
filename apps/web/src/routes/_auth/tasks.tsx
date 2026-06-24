@@ -14,6 +14,7 @@ import { createTaskSchema, updateTaskStatusSchema } from "@help-desk/shared";
 import { Button, Input, FormAlert, FormError, fieldErrors } from "@/components/ui";
 import { TaskCalendar } from "@/features/tasks/TaskCalendar";
 import { TaskGantt } from "@/features/tasks/TaskGantt";
+import { useAppStore } from "@/store";
 
 export const Route = createFileRoute("/_auth/tasks")({
   component: TasksList,
@@ -456,7 +457,10 @@ function TaskDetailDrawer({ task, onClose }: { task: Task; onClose: () => void }
       });
       if (!res.ok) throw new Error("Failed");
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["task", task.id] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
   });
 
   const { data: usersData } = useQuery({
@@ -500,6 +504,11 @@ function TaskDetailDrawer({ task, onClose }: { task: Task; onClose: () => void }
   const comments: any[] = (commentsData as any)?.data ?? [];
   const prio = PRIORITY_CONFIG[task.priority];
 
+  // ABAC: only the assignee manages an assigned task. Unassigned → open.
+  const myId = useAppStore((s) => s.user?.id);
+  const assigneeId = detail?.assigneeId ?? task.assigneeId ?? null;
+  const canManage = !assigneeId || assigneeId === myId;
+
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
@@ -529,8 +538,9 @@ function TaskDetailDrawer({ task, onClose }: { task: Task; onClose: () => void }
             <select
               value={detail?.status ?? task.status}
               onChange={(e) => statusMutation.mutate(e.target.value)}
-              disabled={statusMutation.isPending}
-              className="text-xs px-2 py-1 bg-surface-container-high border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors"
+              disabled={statusMutation.isPending || !canManage}
+              title={!canManage ? t("errors.assigneeOnly", "Only the assignee can change status") : undefined}
+              className="text-xs px-2 py-1 bg-surface-container-high border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {TASK_STATUSES.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
             </select>
@@ -635,6 +645,11 @@ function TasksList() {
   const rawData = (data as any)?.data;
   const tasks: Task[] = Array.isArray(rawData) ? rawData : (rawData?.data ?? []);
 
+  // ABAC: only the assignee may move/bulk-update an assigned task. Unassigned → open.
+  const myId = useAppStore((s) => s.user?.id);
+  const canManage = (tk: Task) => !tk.assigneeId || tk.assigneeId === myId;
+  const manageableTasks = tasks.filter(canManage);
+
   // ── Drag-and-drop ────────────────────────────────────────────────────────────
   const moveMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
@@ -693,7 +708,9 @@ function TasksList() {
     });
 
   const toggleAll = () =>
-    setSelected((s) => (s.size === tasks.length ? new Set() : new Set(tasks.map((tk) => tk.id))));
+    setSelected((s) =>
+      s.size === manageableTasks.length ? new Set() : new Set(manageableTasks.map((tk) => tk.id)),
+    );
 
   const byStatus = (status: string) => tasks.filter((tk) => tk.status === status);
 
@@ -807,13 +824,15 @@ function TasksList() {
                       col.map((task) => {
                         const prio = PRIORITY_CONFIG[task.priority];
                         const isDragging = dragId === task.id;
+                        const movable = canManage(task);
                         return (
                           <div
                             key={task.id}
-                            draggable
-                            onDragStart={(e) => onDragStart(e, task.id)}
+                            draggable={movable}
+                            onDragStart={(e) => movable && onDragStart(e, task.id)}
                             onDragEnd={onDragEnd}
-                            className={`cursor-grab active:cursor-grabbing transition-all ${isDragging ? "opacity-40 scale-95" : ""}`}
+                            title={movable ? undefined : t("errors.assigneeOnly", "Only the assignee can move this task")}
+                            className={`transition-all ${movable ? "cursor-grab active:cursor-grabbing" : "cursor-default"} ${isDragging ? "opacity-40 scale-95" : ""}`}
                           >
                             <button
                               onClick={() => setDetailTask(task)}
@@ -850,8 +869,8 @@ function TasksList() {
               <thead className="border-b border-outline-variant">
                 <tr>
                   <th className="px-4 py-3 w-8">
-                    <button onClick={toggleAll} aria-label={selected.size === tasks.length ? "Deselect all" : "Select all"} className="text-on-surface-variant/40 hover:text-on-surface-variant transition-colors">
-                      {selected.size === tasks.length && tasks.length > 0 ? (
+                    <button onClick={toggleAll} disabled={manageableTasks.length === 0} aria-label={selected.size === manageableTasks.length ? "Deselect all" : "Select all"} className="text-on-surface-variant/40 hover:text-on-surface-variant transition-colors disabled:opacity-30">
+                      {selected.size === manageableTasks.length && manageableTasks.length > 0 ? (
                         <CheckSquare className="w-4 h-4 text-primary" />
                       ) : (
                         <Square className="w-4 h-4" />
@@ -873,6 +892,7 @@ function TasksList() {
                   const prio = PRIORITY_CONFIG[task.priority];
                   const col = COLUMNS.find((c) => c.key === task.status);
                   const isSelected = selected.has(task.id);
+                  const selectable = canManage(task);
                   return (
                     <tr
                       key={task.id}
@@ -880,9 +900,11 @@ function TasksList() {
                     >
                       <td className="px-4 py-3">
                         <button
-                          onClick={() => toggleSelect(task.id)}
+                          onClick={() => selectable && toggleSelect(task.id)}
+                          disabled={!selectable}
                           aria-label={isSelected ? "Deselect task" : "Select task"}
-                          className="text-on-surface-variant/40 hover:text-on-surface-variant transition-colors"
+                          title={selectable ? undefined : t("errors.assigneeOnly", "Only the assignee can manage this task")}
+                          className="text-on-surface-variant/40 hover:text-on-surface-variant transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-on-surface-variant/40"
                         >
                           {isSelected ? (
                             <CheckSquare className="w-4 h-4 text-primary" />

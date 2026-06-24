@@ -1,0 +1,1 @@
+ALTER TABLE "chat_message" ADD COLUMN "attachment_count" integer DEFAULT 0 NOT NULL;

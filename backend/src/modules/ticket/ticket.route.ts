@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { TicketService } from "./ticket.service";
+import { AssignmentService } from "./assignment.service";
 import { ResponseHandler } from "../../lib/response";
 import { authMiddleware, JwtPayload } from "../../middleware/auth.middleware";
 import { requirePermission } from "../../middleware/permission.middleware";
@@ -178,6 +179,23 @@ export const ticketRouter = new Hono<{
       }
     },
   )
+  // Auto-assign by availability: picks the best eligible agent (active-duty first,
+  // never "not available", load-balanced) and assigns the ticket to them.
+  .post("/:id/auto-assign", requirePermission("ticket.assign"), async (c) => {
+    const tenantId = c.get("tenantId");
+    const user = c.get("user");
+    const id = c.req.param("id") as string;
+    try {
+      const assigneeId = await AssignmentService.pickForTicket(tenantId, id);
+      if (!assigneeId) {
+        return ResponseHandler.badRequest(c, "No available agent to assign");
+      }
+      const ticket = await TicketService.assignTicket(tenantId, id, user.userId, assigneeId);
+      return ResponseHandler.success(c, ticket, { meta: { assigneeId }, status: 200 });
+    } catch (error: any) {
+      return ResponseHandler.badRequest(c, error.message);
+    }
+  })
   .post(
     "/:id/merge",
     requirePermission("ticket.merge"),

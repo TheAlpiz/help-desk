@@ -136,6 +136,7 @@ export async function bootstrapAuth(): Promise<boolean> {
       globalRole: u.globalRole,
       forcePasswordChange: u.forcePasswordChange,
       emailVerified: !!u.emailVerifiedAt,
+      availability: (u as any).availability ?? "available",
     });
     state.setTenantId(u.organizationId);
     return true;

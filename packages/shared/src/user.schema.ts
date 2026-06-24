@@ -1,5 +1,29 @@
 import { z } from "zod";
 
+/**
+ * Discord-style availability the user sets for themselves. Drives ticket
+ * auto-assignment weighting (see backend assignment.service):
+ *   active_duty    — actively taking work; weighted highest
+ *   available      — normal weight
+ *   away / do_not_disturb — eligible but de-prioritised
+ *   not_available  — excluded from auto-assignment entirely
+ */
+export const AVAILABILITY_STATUSES = [
+  "active_duty",
+  "available",
+  "away",
+  "do_not_disturb",
+  "not_available",
+] as const;
+
+export const availabilitySchema = z.enum(AVAILABILITY_STATUSES);
+export type Availability = z.infer<typeof availabilitySchema>;
+
+export const updateAvailabilitySchema = z.object({
+  availability: availabilitySchema,
+});
+export type UpdateAvailabilityInput = z.infer<typeof updateAvailabilitySchema>;
+
 export const userResponseSchema = z.object({
   id: z.string().uuid(),
   organizationId: z.string().uuid(),
@@ -8,6 +32,7 @@ export const userResponseSchema = z.object({
   lastName: z.string(),
   globalRole: z.string(),
   status: z.string(),
+  availability: availabilitySchema.default("available"),
   lastLoginAt: z.union([z.string(), z.date()]).nullable(),
   createdAt: z.union([z.string(), z.date()]).nullable(),
   updatedAt: z.union([z.string(), z.date()]).nullable(),

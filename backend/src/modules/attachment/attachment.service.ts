@@ -1,4 +1,5 @@
 import { attachment } from "./attachment.schema";
+import { auditLog } from "../audit-log/audit-log.schema";
 import { minioClient, minioPresignClient, BUCKET_NAME } from "../../infra/minio";
 import { v4 as uuidv4 } from "uuid";
 import { UploadRequestInput, ConfirmUploadInput } from "@help-desk/shared";
@@ -100,5 +101,39 @@ export const AttachmentService = {
     );
 
     return downloadUrl;
+  },
+
+  delete: async (tenantId: string, attachmentId: string, actorId: string) => {
+    return withTenantTransaction(tenantId, async (tx) => {
+      const [att] = await tx
+        .select()
+        .from(attachment)
+        .where(and(eq(attachment.id, attachmentId), eq(attachment.organizationId, tenantId)))
+        .limit(1);
+
+      if (!att) throw new Error("Attachment not found");
+
+      await tx.delete(attachment).where(eq(attachment.id, attachmentId));
+
+      await tx.insert(auditLog).values({
+        organizationId: tenantId,
+        entityType: "attachment",
+        entityId: attachmentId,
+        actorId,
+        action: "deleted",
+        oldValues: att,
+      });
+
+      // Remove the object from MinIO after the DB row is gone. Done last so a
+      // storage failure doesn't leave a dangling DB row; a failed delete here
+      // only orphans the object, which the archival worker can sweep later.
+      try {
+        await minioClient.removeObject(BUCKET_NAME, att.storageKey);
+      } catch (err) {
+        console.error(`MinIO: failed to remove ${att.storageKey}`, err);
+      }
+
+      return { id: attachmentId };
+    });
   },
 };

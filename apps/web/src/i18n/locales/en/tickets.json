@@ -162,6 +162,8 @@
     "properties": "Properties",
     "unassigned": "Unassigned",
     "noDepartment": "No department",
+    "autoAssign": "Auto-assign",
+    "autoAssignHint": "Assign by availability (active-duty first)",
     "slaFirstResponse": "First response",
     "saving": "Saving...",
     "notFound": "Ticket not found.",

@@ -181,8 +181,21 @@ function TicketProperties({ ticket, ticketId }: { ticket: any; ticketId: string 
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ticket", ticketId] }),
   });
 
+  // Availability-weighted auto-assignment (active-duty first, never "not available").
+  const autoAssignMutation = useMutation({
+    mutationFn: async () => {
+      const res = await api.tickets[":id"]["auto-assign"].$post({ param: { id: ticketId } });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as any;
+        throw new Error(body?.error?.message ?? t("errors.failedAssign"));
+      }
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ticket", ticketId] }),
+  });
+
   const anyPending =
-    statusMutation.isPending || priorityMutation.isPending || assignMutation.isPending || transferMutation.isPending;
+    statusMutation.isPending || priorityMutation.isPending || assignMutation.isPending ||
+    autoAssignMutation.isPending || transferMutation.isPending;
 
   return (
     <div className="flex flex-col gap-3">
@@ -233,9 +246,20 @@ function TicketProperties({ ticket, ticketId }: { ticket: any; ticketId: string 
 
         {/* Assignee */}
         <div className="space-y-1">
-          <label className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">
-            {t("fields.assignee")}
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">
+              {t("fields.assignee")}
+            </label>
+            <button
+              type="button"
+              onClick={() => autoAssignMutation.mutate()}
+              disabled={autoAssignMutation.isPending}
+              title={t("detail.autoAssignHint", "Assign by availability (active-duty first)")}
+              className="text-[10px] font-medium text-primary hover:text-primary/80 disabled:opacity-40 transition-colors"
+            >
+              {autoAssignMutation.isPending ? "…" : t("detail.autoAssign", "Auto-assign")}
+            </button>
+          </div>
           <select
             className={selectCls}
             value={ticket.assigneeId ?? ""}

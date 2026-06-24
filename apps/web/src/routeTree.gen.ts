@@ -40,6 +40,7 @@ import { Route as AuthProfileRouteImport } from './routes/_auth/profile'
 import { Route as AuthOnboardingRouteImport } from './routes/_auth/onboarding'
 import { Route as AuthNotificationsRouteImport } from './routes/_auth/notifications'
 import { Route as AuthNotificationPreferencesRouteImport } from './routes/_auth/notification-preferences'
+import { Route as AuthNotesRouteImport } from './routes/_auth/notes'
 import { Route as AuthMessagesRouteImport } from './routes/_auth/messages'
 import { Route as AuthMailboxesRouteImport } from './routes/_auth/mailboxes'
 import { Route as AuthMacrosRouteImport } from './routes/_auth/macros'
@@ -213,6 +214,11 @@ const AuthNotificationPreferencesRoute =
     path: '/notification-preferences',
     getParentRoute: () => AuthRoute,
   } as any)
+const AuthNotesRoute = AuthNotesRouteImport.update({
+  id: '/notes',
+  path: '/notes',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthMessagesRoute = AuthMessagesRouteImport.update({
   id: '/messages',
   path: '/messages',
@@ -335,6 +341,7 @@ export interface FileRoutesByFullPath {
   '/macros': typeof AuthMacrosRoute
   '/mailboxes': typeof AuthMailboxesRoute
   '/messages': typeof AuthMessagesRoute
+  '/notes': typeof AuthNotesRoute
   '/notification-preferences': typeof AuthNotificationPreferencesRoute
   '/notifications': typeof AuthNotificationsRoute
   '/onboarding': typeof AuthOnboardingRoute
@@ -384,6 +391,7 @@ export interface FileRoutesByTo {
   '/macros': typeof AuthMacrosRoute
   '/mailboxes': typeof AuthMailboxesRoute
   '/messages': typeof AuthMessagesRoute
+  '/notes': typeof AuthNotesRoute
   '/notification-preferences': typeof AuthNotificationPreferencesRoute
   '/notifications': typeof AuthNotificationsRoute
   '/onboarding': typeof AuthOnboardingRoute
@@ -435,6 +443,7 @@ export interface FileRoutesById {
   '/_auth/macros': typeof AuthMacrosRoute
   '/_auth/mailboxes': typeof AuthMailboxesRoute
   '/_auth/messages': typeof AuthMessagesRoute
+  '/_auth/notes': typeof AuthNotesRoute
   '/_auth/notification-preferences': typeof AuthNotificationPreferencesRoute
   '/_auth/notifications': typeof AuthNotificationsRoute
   '/_auth/onboarding': typeof AuthOnboardingRoute
@@ -486,6 +495,7 @@ export interface FileRouteTypes {
     | '/macros'
     | '/mailboxes'
     | '/messages'
+    | '/notes'
     | '/notification-preferences'
     | '/notifications'
     | '/onboarding'
@@ -535,6 +545,7 @@ export interface FileRouteTypes {
     | '/macros'
     | '/mailboxes'
     | '/messages'
+    | '/notes'
     | '/notification-preferences'
     | '/notifications'
     | '/onboarding'
@@ -585,6 +596,7 @@ export interface FileRouteTypes {
     | '/_auth/macros'
     | '/_auth/mailboxes'
     | '/_auth/messages'
+    | '/_auth/notes'
     | '/_auth/notification-preferences'
     | '/_auth/notifications'
     | '/_auth/onboarding'
@@ -835,6 +847,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthNotificationPreferencesRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/notes': {
+      id: '/_auth/notes'
+      path: '/notes'
+      fullPath: '/notes'
+      preLoaderRoute: typeof AuthNotesRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/messages': {
       id: '/_auth/messages'
       path: '/messages'
@@ -980,6 +999,7 @@ interface AuthRouteChildren {
   AuthMacrosRoute: typeof AuthMacrosRoute
   AuthMailboxesRoute: typeof AuthMailboxesRoute
   AuthMessagesRoute: typeof AuthMessagesRoute
+  AuthNotesRoute: typeof AuthNotesRoute
   AuthNotificationPreferencesRoute: typeof AuthNotificationPreferencesRoute
   AuthNotificationsRoute: typeof AuthNotificationsRoute
   AuthOnboardingRoute: typeof AuthOnboardingRoute
@@ -1015,6 +1035,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthMacrosRoute: AuthMacrosRoute,
   AuthMailboxesRoute: AuthMailboxesRoute,
   AuthMessagesRoute: AuthMessagesRoute,
+  AuthNotesRoute: AuthNotesRoute,
   AuthNotificationPreferencesRoute: AuthNotificationPreferencesRoute,
   AuthNotificationsRoute: AuthNotificationsRoute,
   AuthOnboardingRoute: AuthOnboardingRoute,

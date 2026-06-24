@@ -7,6 +7,14 @@ import { emitEvent } from "../../infra/events";
 import { parseMentions } from "../notification/notification.constants";
 import { CreateTaskInput, AddTaskCommentInput, UpdateTaskInput } from "@help-desk/shared";
 
+// ABAC: a task may only be managed (status / edit / delete) by its assignee.
+// Unassigned tasks stay open so they can be picked up; commenting is never gated.
+function assertCanManage(t: { assigneeId: string | null }, actorId: string) {
+  if (t.assigneeId && t.assigneeId !== actorId) {
+    throw new Error("Only the task assignee can manage this task.");
+  }
+}
+
 export const TaskService = {
   findAll: async (
     tenantId: string,
@@ -79,6 +87,7 @@ export const TaskService = {
     return await withTenantTransaction(tenantId, async (tx) => {
       const t = await tx.select().from(task).where(and(eq(task.id, taskId), eq(task.organizationId, tenantId))).limit(1);
       if (!t[0]) throw new Error("Task not found");
+      assertCanManage(t[0], actorId);
 
       // Subtask Rollup Validation
       if (newStatus === "DONE") {
@@ -201,6 +210,7 @@ export const TaskService = {
       const current = await tx.select().from(task).where(and(eq(task.id, taskId), eq(task.organizationId, tenantId))).limit(1);
       const t = current[0];
       if (!t) throw new Error("Task not found");
+      assertCanManage(t, actorId);
 
       if (input.parentTaskId === taskId) throw new Error("A task cannot be its own parent");
 
@@ -240,6 +250,7 @@ export const TaskService = {
       const current = await tx.select().from(task).where(and(eq(task.id, taskId), eq(task.organizationId, tenantId))).limit(1);
       const t = current[0];
       if (!t) throw new Error("Task not found");
+      assertCanManage(t, actorId);
 
       // Subtasks and comments cascade via FK onDelete.
       await tx.delete(task).where(eq(task.id, taskId));

@@ -6,3 +6,4 @@ export * from "./notification.worker";
 export * from "./audit-archival.worker";
 export * from "./ticket-archival.worker";
 export * from "./attachment-archival.worker";
+export * from "./reminder.worker";

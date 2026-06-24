@@ -108,6 +108,23 @@
   },
   "offline": "You are offline",
   "comingSoon": "Coming Soon",
+  "notes": {
+    "title": "My Notes",
+    "private": "Private",
+    "new": "New note",
+    "edit": "Edit note",
+    "empty": "No notes yet",
+    "untitled": "Untitled",
+    "delete": "Delete",
+    "reminder": "Reminder",
+    "reminded": "Reminded",
+    "setReminder": "Set reminder",
+    "titlePlaceholder": "Title (optional)",
+    "contentPlaceholder": "Write something…",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…"
+  },
   "attachments": {
     "title": "Attachments",
     "upload": "Upload",

@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "availability" varchar(30) DEFAULT 'available' NOT NULL;

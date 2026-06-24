@@ -162,6 +162,8 @@
     "properties": "Özellikler",
     "unassigned": "Atanmamış",
     "noDepartment": "Departman yok",
+    "autoAssign": "Otomatik ata",
+    "autoAssignHint": "Müsaitliğe göre ata (önce aktif görevde)",
     "slaFirstResponse": "İlk yanıt",
     "saving": "Kaydediliyor...",
     "notFound": "Talep bulunamadı.",

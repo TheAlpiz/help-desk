@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, timestamp, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, text, timestamp, integer, primaryKey } from "drizzle-orm/pg-core";
 import { timestamps } from "../../infra/db/schema-utils";
 import { organization } from "../organization/organization.schema";
 import { user } from "../user/user.schema";
@@ -28,6 +28,9 @@ export const chatMessage = pgTable("chat_message", {
   conversationId: uuid("conversation_id").notNull().references(() => conversation.id, { onDelete: "cascade" }),
   senderId: uuid("sender_id").notNull().references(() => user.id, { onDelete: "cascade" }),
   body: text("body").notNull(),
+  // How many attachments the sender announced at send time. Lets recipients show
+  // skeleton placeholders until the files finish uploading and are confirmed.
+  attachmentCount: integer("attachment_count").default(0).notNull(),
   ...timestamps,
 });
 

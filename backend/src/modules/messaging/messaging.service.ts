@@ -2,8 +2,47 @@ import { and, eq, desc, inArray, isNull, count, ne, lt, gt } from "drizzle-orm";
 import { withTenantTransaction } from "../../infra/db";
 import { conversation, conversationParticipant, chatMessage } from "./messaging.schema";
 import { user } from "../user/user.schema";
+import { attachment } from "../attachment/attachment.schema";
+
+// Only these roles may open a group conversation.
+const GROUP_CREATOR_ROLES = ["SUPER_ADMIN", "ADMIN", "SUPERVISOR"];
 
 export const MessagingService = {
+  async createGroup(
+    creatorId: string,
+    organizationId: string,
+    creatorRole: string,
+    name: string,
+    participantIds: string[],
+  ) {
+    if (!GROUP_CREATOR_ROLES.includes(creatorRole)) {
+      throw new Error("Only admins or supervisors can create groups");
+    }
+    return withTenantTransaction(organizationId, async (tx) => {
+      const ids = Array.from(new Set(participantIds.filter((id) => id !== creatorId)));
+      if (ids.length > 0) {
+        const valid = await tx
+          .select({ id: user.id })
+          .from(user)
+          .where(and(eq(user.organizationId, organizationId), inArray(user.id, ids)));
+        if (valid.length !== ids.length) {
+          throw new Error("Some participants are not in this organization");
+        }
+      }
+
+      const [conv] = await tx
+        .insert(conversation)
+        .values({ organizationId, type: "group", name })
+        .returning({ id: conversation.id });
+
+      // Creator is always a member.
+      await tx
+        .insert(conversationParticipant)
+        .values([creatorId, ...ids].map((uid) => ({ conversationId: conv.id, userId: uid })));
+
+      return conv.id;
+    });
+  },
   async getOrCreateDirect(currentUserId: string, targetUserId: string, organizationId: string) {
     if (currentUserId === targetUserId) throw new Error("Cannot message yourself");
 
@@ -188,6 +227,7 @@ export const MessagingService = {
           conversationId: chatMessage.conversationId,
           senderId: chatMessage.senderId,
           body: chatMessage.body,
+          attachmentCount: chatMessage.attachmentCount,
           createdAt: chatMessage.createdAt,
           senderFirstName: user.firstName,
           senderLastName: user.lastName,
@@ -202,15 +242,51 @@ export const MessagingService = {
       const hasMore = rows.length > limit;
       const items = hasMore ? rows.slice(0, limit) : rows;
 
+      // Attachments for this page, keyed by message id (entityType CHAT_MESSAGE).
+      const msgIds = items.map((m) => m.id);
+      const attByMsg: Record<string, { id: string; filename: string; mimeType: string; sizeBytes: number }[]> = {};
+      if (msgIds.length > 0) {
+        const atts = await tx
+          .select({
+            id: attachment.id,
+            entityId: attachment.entityId,
+            filename: attachment.filename,
+            mimeType: attachment.mimeType,
+            sizeBytes: attachment.sizeBytes,
+          })
+          .from(attachment)
+          .where(
+            and(
+              eq(attachment.organizationId, organizationId),
+              eq(attachment.entityType, "CHAT_MESSAGE"),
+              inArray(attachment.entityId, msgIds),
+            ),
+          );
+        for (const a of atts) {
+          (attByMsg[a.entityId] ??= []).push({
+            id: a.id,
+            filename: a.filename,
+            mimeType: a.mimeType,
+            sizeBytes: a.sizeBytes,
+          });
+        }
+      }
+
       return {
-        messages: items.reverse(),
+        messages: items.reverse().map((m) => ({ ...m, attachments: attByMsg[m.id] ?? [] })),
         hasMore,
         nextCursor: hasMore && items[0] ? items[0].createdAt.toISOString() : null,
       };
     });
   },
 
-  async sendMessage(conversationId: string, senderId: string, body: string, organizationId: string) {
+  async sendMessage(
+    conversationId: string,
+    senderId: string,
+    body: string,
+    organizationId: string,
+    attachmentCount = 0,
+  ) {
     return withTenantTransaction(organizationId, async (tx) => {
       const participant = await tx
         .select({ userId: conversationParticipant.userId })
@@ -229,7 +305,7 @@ export const MessagingService = {
 
       const [msg] = await tx
         .insert(chatMessage)
-        .values({ conversationId, senderId, body })
+        .values({ conversationId, senderId, body, attachmentCount })
         .returning();
 
       // Bump conversation updatedAt so it rises to top of list
@@ -249,6 +325,39 @@ export const MessagingService = {
       const recipientIds = allParticipants.map((p) => p.userId).filter((uid) => uid !== senderId);
 
       return { msg, recipientIds };
+    });
+  },
+
+  // After a sender's attachments finish uploading, we re-emit chat.message so
+  // recipients refetch and swap their skeletons for the real files. Validates the
+  // caller is the message's sender + a participant, and returns who to notify.
+  async getMessageRecipients(
+    conversationId: string,
+    messageId: string,
+    senderId: string,
+    organizationId: string,
+  ): Promise<string[]> {
+    return withTenantTransaction(organizationId, async (tx) => {
+      const [msg] = await tx
+        .select({ id: chatMessage.id })
+        .from(chatMessage)
+        .innerJoin(conversation, eq(conversation.id, chatMessage.conversationId))
+        .where(
+          and(
+            eq(chatMessage.id, messageId),
+            eq(chatMessage.conversationId, conversationId),
+            eq(chatMessage.senderId, senderId),
+            eq(conversation.organizationId, organizationId),
+          ),
+        )
+        .limit(1);
+      if (!msg) throw new Error("Message not found");
+
+      const parts = await tx
+        .select({ userId: conversationParticipant.userId })
+        .from(conversationParticipant)
+        .where(eq(conversationParticipant.conversationId, conversationId));
+      return parts.map((p) => p.userId).filter((uid) => uid !== senderId);
     });
   },
 

@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAppStore } from "@/store";
 import { useToast } from "@/components/Toast";
 import { RealtimeClient, type RealtimeEvent } from "./ws";
+import { api } from "./api";
 
 const playNotificationSound = () => {
   try {
@@ -86,8 +87,27 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
           qc.invalidateQueries({ queryKey: ["conversations"] });
           qc.invalidateQueries({ queryKey: ["messages", e.payload.conversationId] });
           break;
+        case "presence":
+          useAppStore.getState().applyPresence(e.payload.userId, {
+            online: e.payload.online ?? true,
+            availability: e.payload.availability,
+          });
+          break;
       }
     });
+
+    // Seed the presence map once on connect (online set + everyone's availability).
+    (async () => {
+      try {
+        const res = await api.users.presence.$get();
+        if (!res.ok) return;
+        const body = (await res.json()) as any;
+        const d = body?.data;
+        if (d) useAppStore.getState().seedPresence(d.online ?? [], d.availability ?? {});
+      } catch {
+        /* presence is best-effort */
+      }
+    })();
 
     client.connect();
 

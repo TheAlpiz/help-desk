@@ -37,7 +37,16 @@
     "apiTokens": "API Tokens",
     "mySignature": "My Signature",
     "billing": "Billing",
+    "notes": "My Notes",
     "logout": "Sign out"
+  },
+  "presence": {
+    "heading": "Status",
+    "active_duty": "Active Duty",
+    "available": "Available",
+    "away": "Away",
+    "do_not_disturb": "Do Not Disturb",
+    "not_available": "Not Available"
   },
   "notifications": {
     "title": "Notifications",

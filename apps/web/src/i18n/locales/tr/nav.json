@@ -37,7 +37,16 @@
     "apiTokens": "API Anahtarları",
     "mySignature": "İmzam",
     "billing": "Faturalama",
+    "notes": "Notlarım",
     "logout": "Çıkış Yap"
+  },
+  "presence": {
+    "heading": "Durum",
+    "active_duty": "Aktif Görevde",
+    "available": "Müsait",
+    "away": "Uzakta",
+    "do_not_disturb": "Rahatsız Etmeyin",
+    "not_available": "Müsait Değil"
   },
   "notifications": {
     "title": "Bildirimler",

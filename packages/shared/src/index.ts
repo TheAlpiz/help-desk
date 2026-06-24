@@ -14,4 +14,5 @@ export * from "./permission.schema";
 export * from "./macro.schema";
 export * from "./automation.schema";
 export * from "./sla-escalation-rule.schema";
+export * from "./note.schema";
 export * from "./email";

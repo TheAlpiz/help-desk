@@ -19,6 +19,7 @@ import { ExportRouter } from "../modules/export";
 import { EmailRouter } from "../modules/email";
 import { messagingRouter } from "../modules/messaging";
 import { ContactRouter } from "../modules/contact";
+import { NoteRouter } from "../modules/note";
 
 const router = new Hono({ strict: false })
   .route("/auths", AuthRouter)
@@ -41,6 +42,7 @@ const router = new Hono({ strict: false })
   .route("/exports", ExportRouter)
   .route("/email", EmailRouter)
   .route("/contact", ContactRouter)
-  .route("/conversations", messagingRouter);
+  .route("/conversations", messagingRouter)
+  .route("/notes", NoteRouter);
 
 export default router;

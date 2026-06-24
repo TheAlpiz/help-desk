@@ -15,7 +15,8 @@ export type RealtimeEvent =
   | { type: "task.assigned"; payload: { taskId: string; assigneeId: string } }
   | { type: "sla.violation"; payload: { ticketId: string; breachType: string } }
   | { type: "comment.mention"; payload: { entityType: "ticket" | "task"; entityId: string } }
-  | { type: "chat.message"; payload: { conversationId: string; messageId: string; senderId: string } };
+  | { type: "chat.message"; payload: { conversationId: string; messageId: string; senderId: string } }
+  | { type: "presence"; payload: { userId: string; online?: boolean; availability?: string } };
 
 type Conn = { socket: WebSocket; tenantId: string; userId: string };
 
@@ -61,8 +62,12 @@ class WsGateway {
     const conn: Conn = { socket, tenantId, userId };
     if (!this.byTenant.has(tenantId)) this.byTenant.set(tenantId, new Set());
     if (!this.byUser.has(userId)) this.byUser.set(userId, new Set());
+    // A user is "online" from their first socket; emit presence only on that
+    // transition (extra tabs are silent).
+    const wasOnline = (this.byUser.get(userId)!.size ?? 0) > 0;
     this.byTenant.get(tenantId)!.add(conn);
     this.byUser.get(userId)!.add(conn);
+    if (!wasOnline) this.broadcastPresence(tenantId, { userId, online: true });
 
     socket.send(JSON.stringify({ type: "connected" }));
 
@@ -75,11 +80,31 @@ class WsGateway {
       this.byTenant.get(tenantId)?.delete(conn);
       this.byUser.get(userId)?.delete(conn);
       if (this.byTenant.get(tenantId)?.size === 0) this.byTenant.delete(tenantId);
-      if (this.byUser.get(userId)?.size === 0) this.byUser.delete(userId);
+      // Last socket for this user closed → they are offline.
+      if (this.byUser.get(userId)?.size === 0) {
+        this.byUser.delete(userId);
+        this.broadcastPresence(tenantId, { userId, online: false });
+      }
     };
 
     socket.on("close", cleanup);
     socket.on("error", cleanup);
+  }
+
+  /** Is the user currently connected on at least one socket? */
+  isOnline(userId: string): boolean {
+    return (this.byUser.get(userId)?.size ?? 0) > 0;
+  }
+
+  /** User ids with at least one live socket in the tenant. */
+  onlineUserIds(tenantId: string): string[] {
+    const ids = new Set<string>();
+    this.byTenant.get(tenantId)?.forEach((c) => ids.add(c.userId));
+    return [...ids];
+  }
+
+  broadcastPresence(tenantId: string, payload: { userId: string; online?: boolean; availability?: string }) {
+    this.pushToTenant(tenantId, { type: "presence", payload });
   }
 
   pushToUser(userId: string, event: RealtimeEvent) {
