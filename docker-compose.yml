@@ -68,6 +68,11 @@ services:
     environment:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
+      # Public S3 API endpoint (root domain → minio:9000). Without this MinIO
+      # guesses its URL from the internal :9000 port and emits broken redirects.
+      - MINIO_SERVER_URL=https://minio.yerliva.com
+      # Public console URL. Needs a proxy domain → minio:9001 (see below).
+      - MINIO_BROWSER_REDIRECT_URL=https://console.minio.yerliva.com
     volumes:
       - minio_data:/data
 
