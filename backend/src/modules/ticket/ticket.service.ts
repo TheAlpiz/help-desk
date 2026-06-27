@@ -9,6 +9,7 @@ import { user } from "../user/user.schema";
 import { auditLog } from "../audit-log/audit-log.schema";
 import { withTenantTransaction } from "../../infra/db/index";
 import { emailDeliveryQueue } from "../../workers/email-delivery.worker";
+import { getPublishedTemplate } from "../email/template-dispatch";
 import { ticketVisibilityFilter, canViewTicket, TicketActor } from "../auth/abac.service";
 import { emitEvent } from "../../infra/events";
 import { parseMentions } from "../notification/notification.constants";
@@ -136,14 +137,17 @@ export const TicketService = {
         (input as any).mailboxId = mb[0].id;
       }
 
-      // Create ticket
+      // Create ticket. An up-front assignee starts it in "assigned".
+      const assigneeId = input.assigneeId ?? null;
       const newTicketRes = await tx.insert(ticket).values({
         organizationId: tenantId,
         subject: input.subject,
         priority: input.priority,
-        status: "open",
+        status: assigneeId ? "assigned" : "open",
         source: (input as any).source ?? "portal",
         requesterId: actorId,
+        assigneeId,
+        departmentId: input.departmentId ?? null,
         mailboxId: (input as any).mailboxId,
       }).returning();
 
@@ -173,6 +177,10 @@ export const TicketService = {
       return createdTicket;
     }).then((t) => {
       emitEvent("ticket.created", { ticketId: t.id, actorId, organizationId: tenantId });
+      // Notify the up-front assignee (skip self-assignment).
+      if (t.assigneeId && t.assigneeId !== actorId) {
+        emitEvent("ticket.assigned", { ticketId: t.id, assigneeId: t.assigneeId, actorId, organizationId: tenantId });
+      }
       return t;
     });
   },
@@ -323,8 +331,16 @@ export const TicketService = {
       | { mailboxId: string; to: string; subject: string; html: string; senderId?: string | null; inReplyTo?: string; references?: string }
       | null;
     if (job) {
+      // Wrap the agent's reply in the org's published "agent_replied" template
+      // when one exists. The reply text is exposed as {{content}} (latest message),
+      // which the delivery worker interpolates. Falls back to the raw reply.
+      const tpl = await getPublishedTemplate(tenantId, "agent_replied");
+      if (tpl) {
+        job.html = tpl.bodyHtml;
+        if (tpl.subject) job.subject = tpl.subject;
+      }
       await emailDeliveryQueue
-        .add("send-reply", { ...job, ticketId })
+        .add("send-reply", { ...job, ticketId, templateType: "agent_replied" })
         .catch((err) => console.error(`Failed to enqueue email for ticket ${ticketId}:`, err));
     }
 

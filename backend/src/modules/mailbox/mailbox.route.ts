@@ -76,23 +76,57 @@ const router = new Hono<{ Variables: { tenantId: string; user: JwtPayload } }>()
       const mailbox = await MailboxService.findById(tenantId, id);
       if (!mailbox) return ResponseHandler.notFound(c, "Mailbox not found");
 
+      // --- IMAP (incoming) ---
+      if (!mailbox.imapHost) {
+        return ResponseHandler.ok(c, { success: false, message: "IMAP host is not configured" });
+      }
+
       const { ImapFlow } = await import("imapflow");
       const client = new ImapFlow({
-        host: mailbox.imapHost!,
+        host: mailbox.imapHost,
         port: mailbox.imapPort ?? 993,
-        secure: (mailbox.imapPort ?? 993) !== 143,
+        secure: mailbox.imapSecure,
         auth: { user: mailbox.imapUser ?? mailbox.emailAddress, pass: decryptSecret(mailbox.imapPasswordEncrypted) ?? "" },
         logger: false,
         tls: { rejectUnauthorized: false },
+        // Fail fast instead of hanging on an unreachable/wrong host.
+        connectionTimeout: 10_000,
+        greetingTimeout: 10_000,
+        socketTimeout: 15_000,
+        // Authenticate, list folders, then log out — no IDLE/compression setup.
+        verifyOnly: true,
       });
+      // ImapFlow re-emits connection failures as an 'error' event; without a
+      // listener Node would crash on an otherwise-handled rejection.
+      client.on("error", () => {});
 
       try {
         await client.connect();
-        await client.logout();
-        return ResponseHandler.ok(c, { success: true, message: "IMAP connection successful" });
+        await client.logout().catch(() => {});
       } catch (connErr: any) {
-        return ResponseHandler.ok(c, { success: false, message: connErr.message });
+        return ResponseHandler.ok(c, { success: false, message: `IMAP: ${connErr.message}` });
       }
+
+      // --- SMTP (outgoing) — only when configured ---
+      if (mailbox.smtpHost) {
+        const nodemailer = (await import("nodemailer")).default;
+        const transporter = nodemailer.createTransport({
+          host: mailbox.smtpHost,
+          port: mailbox.smtpPort ?? 587,
+          secure: mailbox.smtpSecure,
+          auth: { user: mailbox.smtpUser ?? mailbox.emailAddress, pass: decryptSecret(mailbox.smtpPasswordEncrypted) ?? "" },
+          tls: { rejectUnauthorized: false },
+          connectionTimeout: 10_000,
+          greetingTimeout: 10_000,
+        });
+        try {
+          await transporter.verify();
+        } catch (smtpErr: any) {
+          return ResponseHandler.ok(c, { success: false, message: `SMTP: ${smtpErr.message}` });
+        }
+      }
+
+      return ResponseHandler.ok(c, { success: true, message: "Connection successful" });
     } catch (err: any) {
       return ResponseHandler.internalServerError(c, err.message);
     }

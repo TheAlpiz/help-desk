@@ -45,6 +45,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAppStore } from "../store";
 import { cn } from "@/lib/utils";
 import { RealtimeProvider } from "@/lib/RealtimeProvider";
+import { notifTitle, notifBody } from "@/lib/notificationText";
 import { bootstrapAuth, api } from "@/lib/api";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ForcePasswordChangeScreen } from "@/features/users/components/ForcePasswordChangeScreen";
@@ -109,11 +110,6 @@ const MAIN_NAV: NavItem[] = [
     labelKey: "main.tasks",
     icon: <ListChecks className="w-4 h-4" />,
     roles: ["AGENT", "SUPERVISOR", "ADMIN", "SUPER_ADMIN"],
-  },
-  {
-    to: "/notifications",
-    labelKey: "main.notifications",
-    icon: <Bell className="w-4 h-4" />,
   },
   {
     to: "/messages",
@@ -232,7 +228,7 @@ const SUPER_NAV: NavItem[] = [
 
 // ─── Sidebar link ─────────────────────────────────────────────────────────────
 
-function NavLink({ item }: { item: NavItem }) {
+function NavLink({ item, badge }: { item: NavItem; badge?: number }) {
   const { t } = useTranslation("nav");
   return (
     <Link
@@ -245,9 +241,73 @@ function NavLink({ item }: { item: NavItem }) {
       }}
     >
       {item.icon}
-      {t(item.labelKey)}
+      <span className="flex-1 truncate">{t(item.labelKey)}</span>
+      {badge != null && badge > 0 && (
+        <span className="shrink-0 min-w-[18px] h-[18px] px-1 bg-primary text-on-primary text-[10px] font-bold rounded-full flex items-center justify-center">
+          {badge > 99 ? "99+" : badge}
+        </span>
+      )}
     </Link>
   );
+}
+
+// Active (non-terminal) ticket statuses for the "assigned to me" sidebar badge.
+const ACTIVE_TICKET_STATUSES = "open,assigned,in_progress,waiting_customer,reopened";
+const ACTIVE_TASK_STATUSES = ["TODO", "IN_PROGRESS", "BLOCKED"];
+
+// Live counts shown as sidebar badges, keyed by nav `to` path:
+//   /tickets  → active tickets assigned to me
+//   /tasks    → active tasks assigned to me
+//   /messages → unread chat messages
+function useNavBadges(userId: string | undefined): Record<string, number> {
+  const enabled = !!userId;
+
+  const tickets = useQuery({
+    queryKey: ["nav-badge", "tickets", userId],
+    enabled,
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const res = await api.tickets.index.$get({
+        query: { assigneeId: userId!, status: ACTIVE_TICKET_STATUSES, limit: "1" },
+      });
+      const body = (await res.json()) as any;
+      return res.ok ? Number(body?.data?.total ?? 0) : 0;
+    },
+  });
+
+  const tasks = useQuery({
+    queryKey: ["nav-badge", "tasks", userId],
+    enabled,
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const res = await api.tasks.index.$get({
+        query: { assigneeId: userId!, limit: "100" },
+      });
+      const body = (await res.json()) as any;
+      if (!res.ok) return 0;
+      const rows: any[] = body?.data?.data ?? [];
+      return rows.filter((row) => ACTIVE_TASK_STATUSES.includes(row.status)).length;
+    },
+  });
+
+  const messages = useQuery({
+    queryKey: ["nav-badge", "messages", userId],
+    enabled,
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const res = await api.conversations.index.$get();
+      const body = (await res.json()) as any;
+      if (!res.ok) return 0;
+      const rows: any[] = body?.data ?? [];
+      return rows.reduce((sum, c) => sum + (Number(c.unreadCount) || 0), 0);
+    },
+  });
+
+  return {
+    "/tickets": tickets.data ?? 0,
+    "/tasks": tasks.data ?? 0,
+    "/messages": messages.data ?? 0,
+  };
 }
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
@@ -293,7 +353,9 @@ function NotificationBell() {
       >
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-error" />
+          <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-error text-white text-[10px] font-bold flex items-center justify-center leading-none">
+            {unreadCount > 99 ? "99+" : unreadCount}
+          </span>
         )}
       </button>
 
@@ -337,11 +399,11 @@ function NotificationBell() {
                     )}
                   >
                     <p className="text-xs font-medium text-on-surface leading-snug">
-                      {n.title}
+                      {notifTitle(n)}
                     </p>
-                    {n.body && (
+                    {notifBody(n) && (
                       <p className="text-[11px] text-on-surface-variant/60 mt-0.5 leading-relaxed line-clamp-2">
-                        {n.body}
+                        {notifBody(n)}
                       </p>
                     )}
                     <p className="text-[10px] font-mono text-on-surface-variant/30 mt-1">
@@ -445,6 +507,7 @@ function AuthLayout() {
   const role = user?.globalRole ?? "";
   const visibleMainNav = MAIN_NAV.filter((item) => !item.roles || item.roles.includes(role));
   const visibleAdminNav = ADMIN_NAV.filter((item) => !item.roles || item.roles.includes(role));
+  const navBadges = useNavBadges(user?.id);
 
   const setMyAvailability = useAppStore((s) => s.setMyAvailability);
   const myAvailability = user?.availability ?? "available";
@@ -513,7 +576,7 @@ function AuthLayout() {
               >
                 <div className="space-y-0.5">
                   {visibleMainNav.map((item) => (
-                    <NavLink key={item.to} item={item} />
+                    <NavLink key={item.to} item={item} badge={navBadges[item.to]} />
                   ))}
                 </div>
                 {visibleAdminNav.length > 0 && (
@@ -556,7 +619,7 @@ function AuthLayout() {
           <nav className="flex-1 overflow-y-auto pretty-scroll py-3 px-2">
             <div className="space-y-0.5">
               {visibleMainNav.map((item) => (
-                <NavLink key={item.to} item={item} />
+                <NavLink key={item.to} item={item} badge={navBadges[item.to]} />
               ))}
             </div>
 

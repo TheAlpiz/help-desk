@@ -51,10 +51,12 @@ export const authRouter = new Hono<{ Variables: { tenantId: string; user: JwtPay
     }
   })
   .post("/login", rateLimit({ windowSec: 60, max: 10, prefix: "login" }), zValidator("json", loginSchema), async (c) => {
-    const tenantId = c.get("tenantId");
     const data = c.req.valid("json");
     try {
-      const result = await AuthService.login(tenantId, data.email, data.password, clientMeta(c));
+      // Login resolves by email alone — emails are globally unique across tenants
+      // (enforced at signup/provision). Scoping to the request's resolved tenant
+      // broke logins for orgs that have no subdomain (super-admin provisioned).
+      const result = await AuthService.login(undefined, data.email.toLowerCase().trim(), data.password, clientMeta(c));
       return ResponseHandler.success(c, establishSession(c, result), { message: "Login successful" });
     } catch (error: any) {
       return ResponseHandler.unauthorized(c, error.message);

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import { ChevronDown } from "lucide-react";
 import { useAppStore } from "@/store";
@@ -128,8 +129,28 @@ export function FieldValueInput({
   placeholder?: string;
   ariaLabel?: string;
 }) {
+  const { t } = useTranslation(["tickets", "common"]);
   const dir = useDirectoryOptions();
   const options = optionsForKey(optionKey, dir);
+
+  // Localize the fixed enum labels (status/priority/source/bool). Agent and
+  // department options are live data, so their labels pass through untouched.
+  const labelFor = (o: FieldOption): string => {
+    switch (optionKey) {
+      case "status":
+      case "set_status":
+        return t(`tickets:statuses.${o.value}`, { defaultValue: o.label });
+      case "priority":
+      case "set_priority":
+        return t(`tickets:priorities.${o.value}`, { defaultValue: o.label });
+      case "source":
+        return t(`tickets:sources.${o.value}`, { defaultValue: o.label });
+      case "has_attachment":
+        return o.value === "true" ? t("common:yes") : t("common:no");
+      default:
+        return o.label;
+    }
+  };
 
   if (!options) {
     return (
@@ -152,9 +173,9 @@ export function FieldValueInput({
         className={selectClassName}
         aria-label={ariaLabel}
       >
-        <option value="">Select…</option>
+        <option value="">{t("common:selectPlaceholder")}</option>
         {options.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
+          <option key={o.value} value={o.value}>{labelFor(o)}</option>
         ))}
       </select>
       <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant/40 pointer-events-none" />

@@ -63,7 +63,9 @@ export class NotificationWorker {
     );
     wsGateway.pushToUser(userId, {
       type: "notification",
-      payload: { id: row?.id, title, body, actionUrl },
+      // Carry the event type (e.g. "ticket.created") so the client can localize
+      // the toast off it, same as the persisted notification row.
+      payload: { id: row?.id, type, title, body, actionUrl },
     });
     console.log(`[IN_APP] -> user ${userId}: ${title}`);
   }

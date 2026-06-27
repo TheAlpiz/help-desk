@@ -5,6 +5,7 @@
   "markRead": "Mark as read",
   "markAllRead": "Mark all as read",
   "ofNotifications": "{{shown}} of {{total}} notifications",
+  "loadFailed": "Failed to load notifications.",
   "filter": {
     "all": "All",
     "unread": "Unread",
@@ -21,6 +22,24 @@
     "task_assigned": "Task Assigned",
     "system": "System",
     "notification": "Notification"
+  },
+  "messages": {
+    "ticket": {
+      "created": { "label": "New Ticket", "title": "New ticket", "body": "A new ticket was created" },
+      "assigned": { "label": "Ticket Assigned", "title": "Ticket Assigned", "body": "You have been assigned to a ticket" },
+      "reply": { "label": "Ticket Reply", "title": "New reply", "body": "A new reply was received" },
+      "closed": { "label": "Ticket Closed", "title": "Ticket closed", "body": "A ticket was closed" },
+      "updated": { "label": "Ticket Updated", "title": "Ticket updated", "body": "A ticket was updated" }
+    },
+    "task": {
+      "assigned": { "label": "Task Assigned", "title": "Task Assigned", "body": "You have been assigned to a task" }
+    },
+    "sla": {
+      "violation": { "label": "SLA Breach", "title": "SLA Breach", "body": "A ticket breached its SLA target" }
+    },
+    "comment": {
+      "mention": { "label": "Mention", "title": "You were mentioned", "body": "You were mentioned in a comment" }
+    }
   },
   "empty": {
     "title": "No notifications",

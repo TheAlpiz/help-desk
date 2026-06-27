@@ -21,5 +21,14 @@
   "createGroup": "Create group",
   "creating": "Creating…",
   "members": "members",
-  "attach": "Attach files"
+  "attach": "Attach files",
+  "sendHint": "Enter to send · Shift+Enter for new line",
+  "errorUpload": "Failed to upload attachment",
+  "groupDetails": "Group Details",
+  "adminRole": " (Admin)",
+  "remove": "Remove",
+  "addMembers": "Add Members",
+  "add": "Add",
+  "leaveGroup": "Leave Group",
+  "leaving": "Leaving..."
 }

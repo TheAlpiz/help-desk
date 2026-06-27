@@ -37,8 +37,9 @@ function Register() {
       setSubmitError(null);
       try {
         const res = await api.auths.register.$post({ json: value });
-        const data = (await res.json()) as any;
-        if (!res.ok) throw new Error(data?.error?.message || data?.message || t("register.failed"));
+        // Defensive parse: a server error (e.g. 502) returns no JSON body.
+        const data = (await res.json().catch(() => null)) as any;
+        if (!res.ok || !data) throw new Error(data?.error?.message || data?.message || t("register.failed"));
         const payload = data.data;
         const user = payload.user;
         setUser(user);
@@ -156,7 +157,7 @@ function Register() {
 
             <form.Field
               name="organizationName"
-              validators={{ onChange: z.string().min(2) }}
+              validators={{ onChange: z.string().min(2, "validation.orgNameMin") }}
               children={(field) => (
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor={field.name}>{t("register.orgName")}</Label>
@@ -176,7 +177,7 @@ function Register() {
 
             <form.Field
               name="email"
-              validators={{ onChange: z.string().email() }}
+              validators={{ onChange: z.string().email("validation.email") }}
               children={(field) => (
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor={field.name}>{t("register.workEmail")}</Label>
@@ -197,7 +198,7 @@ function Register() {
 
             <form.Field
               name="password"
-              validators={{ onChange: z.string().min(8) }}
+              validators={{ onChange: z.string().min(8, "validation.passwordMin8") }}
               children={(field) => (
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor={`${field.name}-input`}>{t("register.password")}</Label>

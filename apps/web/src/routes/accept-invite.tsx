@@ -31,8 +31,9 @@ function AcceptInvite() {
         const res = await api.auths["accept-invite"].$post({
           json: { token, password: value.password },
         });
-        const data = (await res.json()) as any;
-        if (!res.ok)
+        // Defensive parse: a server error (e.g. 502) returns no JSON body.
+        const data = (await res.json().catch(() => null)) as any;
+        if (!res.ok || !data)
           throw new Error(data?.error?.message || "Failed to accept invite");
 
         // accept-invite issues a live session — log the new user straight in.

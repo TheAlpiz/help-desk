@@ -1,10 +1,10 @@
 import { Worker, Job } from "bullmq";
-import { and, eq, gt, isNotNull, isNull, lt, lte, ne } from "drizzle-orm";
+import { and, eq, gt, isNotNull, isNull, lt, lte, notInArray } from "drizzle-orm";
 import { withSuperAdminTransaction } from "../infra/db";
-import { ticket } from "../modules/ticket/ticket.schema";
+import { ticket, TERMINAL_TICKET_STATUSES } from "../modules/ticket/ticket.schema";
 import { ticketMessage } from "../modules/ticket/ticket-message.schema";
 import { slaEscalation } from "../modules/sla/sla-escalation.schema";
-import { auditLog } from "../modules/audit-log/audit-log.schema";
+import { auditLog, SYSTEM_ACTOR_ID } from "../modules/audit-log/audit-log.schema";
 import { TicketService } from "../modules/ticket/ticket.service";
 import { SlaEscalationRuleService } from "../modules/sla/sla-escalation-rule.service";
 import { slaEscalationRule } from "../modules/sla/sla-escalation-rule.schema";
@@ -63,8 +63,7 @@ export class SlaWorker {
                 eq(ticket.firstResponseMet, false),
                 lte(ticket.firstResponseTargetAt!, horizon),
                 gt(ticket.firstResponseTargetAt!, now),
-                ne(ticket.status, "resolved"),
-                ne(ticket.status, "closed"),
+                notInArray(ticket.status, TERMINAL_TICKET_STATUSES as unknown as string[]),
               ),
             ),
         );
@@ -87,8 +86,7 @@ export class SlaWorker {
                 eq(ticket.organizationId, rule.organizationId),
                 lt(ticket.createdAt, cutoff),
                 eq(ticket.firstResponseMet, false),
-                ne(ticket.status, "resolved"),
-                ne(ticket.status, "closed"),
+                notInArray(ticket.status, TERMINAL_TICKET_STATUSES as unknown as string[]),
               ),
             ),
         );
@@ -132,8 +130,7 @@ export class SlaWorker {
     if (checkType === "first_response_check") {
       if (
         t.firstResponseMet ||
-        t.status === "resolved" ||
-        t.status === "closed"
+        (TERMINAL_TICKET_STATUSES as readonly string[]).includes(t.status)
       ) {
         console.log(`SLA: First Response met for ticket ${ticketId}`);
         return; // SLA Met
@@ -147,7 +144,7 @@ export class SlaWorker {
         t.organizationId,
       );
     } else if (checkType === "resolution_check") {
-      if (t.status === "resolved" || t.status === "closed") {
+      if ((TERMINAL_TICKET_STATUSES as readonly string[]).includes(t.status)) {
         console.log(`SLA: Resolution met for ticket ${ticketId}`);
         return; // SLA Met
       }
@@ -177,7 +174,7 @@ export class SlaWorker {
         organizationId: tenantId,
         entityType: "ticket",
         entityId: ticketId,
-        actorId: "SYSTEM", // System generated
+        actorId: SYSTEM_ACTOR_ID, // System generated
         action: "sla_breached",
         newValues: { breachType },
       }),
@@ -197,7 +194,7 @@ export class SlaWorker {
           await TicketService.assignTicket(
             tenantId,
             ticketId,
-            "SYSTEM",
+            SYSTEM_ACTOR_ID,
             esc.targetId,
           );
           console.log(
@@ -207,7 +204,7 @@ export class SlaWorker {
           await TicketService.updatePriority(
             tenantId,
             ticketId,
-            "SYSTEM",
+            SYSTEM_ACTOR_ID,
             "critical",
           );
           console.log(`SLA Escalation: Bumped priority for ticket ${ticketId}`);
@@ -267,7 +264,7 @@ async function markFired(ruleId: string, ticketId: string, tenantId: string, act
       organizationId: tenantId,
       entityType: "ticket",
       entityId: ticketId,
-      actorId: "SYSTEM",
+      actorId: SYSTEM_ACTOR_ID,
       action,
       newValues: { ruleId },
     }),

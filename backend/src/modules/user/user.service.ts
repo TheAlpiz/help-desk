@@ -42,8 +42,16 @@ export const UserService = {
   },
 
   create: async (tenantId: string, data: NewUser) => {
+    const email = data.email.toLowerCase().trim();
+    // Emails are globally unique — login resolves by email across all tenants.
+    // Check globally (RLS would hide other tenants' rows in a tenant tx).
+    const [dupe] = await withSuperAdminTransaction(async (tx) =>
+      tx.select({ id: user.id }).from(user).where(eq(user.email, email)).limit(1),
+    );
+    if (dupe) throw new Error("An account with this email already exists");
+
     return withTenantTransaction(tenantId, async (tx) => {
-      const result = await tx.insert(user).values({ ...data, organizationId: tenantId }).returning();
+      const result = await tx.insert(user).values({ ...data, email, organizationId: tenantId }).returning();
       return result[0];
     });
   },
@@ -61,6 +69,16 @@ export const UserService = {
 
   remove: async (tenantId: string, id: string) => {
     return withTenantTransaction(tenantId, async (tx) => {
+      const [target] = await tx
+        .select({ globalRole: user.globalRole })
+        .from(user)
+        .where(eq(user.id, id))
+        .limit(1);
+      if (!target) throw new Error("User not found");
+      // The platform SUPER_ADMIN is the system root account — never deletable.
+      if (target.globalRole === "SUPER_ADMIN") {
+        throw new Error("The SUPER_ADMIN account cannot be deleted");
+      }
       await tx.delete(user).where(eq(user.id, id));
     });
   },

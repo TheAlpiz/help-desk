@@ -7,7 +7,7 @@ import { logger } from "../infra/logger";
 import type { JwtPayload } from "../middleware/auth.middleware";
 
 export type RealtimeEvent =
-  | { type: "notification"; payload: { id?: string; title: string; body?: string; actionUrl?: string } }
+  | { type: "notification"; payload: { id?: string; type?: string; title: string; body?: string; actionUrl?: string } }
   | { type: "ticket.created"; payload: { ticketId: string } }
   | { type: "ticket.updated"; payload: { ticketId: string } }
   | { type: "ticket.assigned"; payload: { ticketId: string; assigneeId: string } }
@@ -100,7 +100,7 @@ class WsGateway {
   onlineUserIds(tenantId: string): string[] {
     const ids = new Set<string>();
     this.byTenant.get(tenantId)?.forEach((c) => ids.add(c.userId));
-    return [...ids];
+    return Array.from(ids);
   }
 
   broadcastPresence(tenantId: string, payload: { userId: string; online?: boolean; availability?: string }) {

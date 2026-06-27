@@ -1,6 +1,7 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq, isNotNull } from "drizzle-orm";
 import { db } from "../../infra/db";
 import { ticket } from "../ticket/ticket.schema";
+import { ticketMessage } from "../ticket/ticket-message.schema";
 import { contact } from "../contact/contact.schema";
 import { user } from "../user/user.schema";
 import { organization } from "../organization/organization.schema";
@@ -42,6 +43,25 @@ export async function buildVariableMap(
     ? (await tx.select().from(user).where(eq(user.id, agentId)).limit(1))[0] ?? null
     : null;
 
+  // Message content: the first message is the ticket's opening body (useful for
+  // "ticket_created" acks); the latest is the most recent reply.
+  const [firstMsg, latestMsg] = await Promise.all([
+    tx
+      .select({ content: ticketMessage.content })
+      .from(ticketMessage)
+      .where(and(eq(ticketMessage.ticketId, ticketId), isNotNull(ticketMessage.content)))
+      .orderBy(ticketMessage.createdAt)
+      .limit(1),
+    tx
+      .select({ content: ticketMessage.content })
+      .from(ticketMessage)
+      .where(and(eq(ticketMessage.ticketId, ticketId), isNotNull(ticketMessage.content)))
+      .orderBy(desc(ticketMessage.createdAt))
+      .limit(1),
+  ]);
+  const firstContent = firstMsg[0]?.content ?? "";
+  const latestContent = latestMsg[0]?.content ?? "";
+
   const now = new Date();
   const base = env.APP_BASE_URL;
   const orgBranding = (orgRow?.branding ?? {}) as Record<string, string>;
@@ -67,6 +87,15 @@ export async function buildVariableMap(
     ticket_created_at: ticketRow.createdAt?.toLocaleDateString() ?? "",
     ticket_updated_at: ticketRow.updatedAt?.toLocaleDateString() ?? "",
     ticket_resolved_at: ticketRow.resolvedAt?.toLocaleDateString() ?? "",
+
+    // ── Message content ───────────────────────────────────────────────────
+    // `content`/`message_content`/`latest_message` → most recent message body.
+    // `ticket_description`/`first_message` → the opening message body.
+    content: latestContent,
+    message_content: latestContent,
+    latest_message: latestContent,
+    ticket_description: firstContent,
+    first_message: firstContent,
 
     // ── Customer / Contact ────────────────────────────────────────────────
     customer_name: customerName,

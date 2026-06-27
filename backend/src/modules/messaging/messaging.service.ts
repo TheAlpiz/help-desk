@@ -32,7 +32,7 @@ export const MessagingService = {
 
       const [conv] = await tx
         .insert(conversation)
-        .values({ organizationId, type: "group", name })
+        .values({ organizationId, type: "group", name, adminId: creatorId })
         .returning({ id: conversation.id });
 
       // Creator is always a member.
@@ -104,6 +104,7 @@ export const MessagingService = {
           id: conversation.id,
           type: conversation.type,
           name: conversation.name,
+          adminId: conversation.adminId,
           updatedAt: conversation.updatedAt,
         })
         .from(conversation)
@@ -188,6 +189,7 @@ export const MessagingService = {
         id: conv.id,
         type: conv.type,
         name: conv.name,
+        adminId: conv.adminId,
         participants: participantsByConv[conv.id] || [],
         lastMessage: lastMsgByConv[conv.id] || null,
         unreadCount: unreadByConv[conv.id] || 0,
@@ -336,28 +338,157 @@ export const MessagingService = {
     messageId: string,
     senderId: string,
     organizationId: string,
-  ): Promise<string[]> {
+  ) {
     return withTenantTransaction(organizationId, async (tx) => {
-      const [msg] = await tx
+      const msg = await tx
         .select({ id: chatMessage.id })
         .from(chatMessage)
-        .innerJoin(conversation, eq(conversation.id, chatMessage.conversationId))
         .where(
           and(
             eq(chatMessage.id, messageId),
             eq(chatMessage.conversationId, conversationId),
             eq(chatMessage.senderId, senderId),
-            eq(conversation.organizationId, organizationId),
           ),
         )
         .limit(1);
-      if (!msg) throw new Error("Message not found");
+      if (msg.length === 0) throw new Error("Message not found or not owned by sender");
 
       const parts = await tx
         .select({ userId: conversationParticipant.userId })
         .from(conversationParticipant)
         .where(eq(conversationParticipant.conversationId, conversationId));
-      return parts.map((p) => p.userId).filter((uid) => uid !== senderId);
+
+      return parts.map((p) => p.userId).filter((id) => id !== senderId);
+    });
+  },
+
+  async addGroupParticipant(
+    adminId: string,
+    conversationId: string,
+    targetUserId: string,
+    organizationId: string,
+  ) {
+    return withTenantTransaction(organizationId, async (tx) => {
+      const [conv] = await tx
+        .select({ id: conversation.id, adminId: conversation.adminId, type: conversation.type })
+        .from(conversation)
+        .where(
+          and(
+            eq(conversation.id, conversationId),
+            eq(conversation.organizationId, organizationId),
+          ),
+        )
+        .limit(1);
+
+      if (!conv) throw new Error("Conversation not found");
+      if (conv.type !== "group") throw new Error("Can only manage participants of a group");
+      if (conv.adminId !== adminId) throw new Error("Only the group admin can add members");
+
+      const target = await tx
+        .select({ id: user.id })
+        .from(user)
+        .where(and(eq(user.id, targetUserId), eq(user.organizationId, organizationId)))
+        .limit(1);
+      if (target.length === 0) throw new Error("User not found in this organization");
+
+      await tx
+        .insert(conversationParticipant)
+        .values({ conversationId, userId: targetUserId })
+        .onConflictDoNothing();
+    });
+  },
+
+  async removeGroupParticipant(
+    adminId: string,
+    conversationId: string,
+    targetUserId: string,
+    organizationId: string,
+  ) {
+    return withTenantTransaction(organizationId, async (tx) => {
+      const [conv] = await tx
+        .select({ id: conversation.id, adminId: conversation.adminId, type: conversation.type })
+        .from(conversation)
+        .where(
+          and(
+            eq(conversation.id, conversationId),
+            eq(conversation.organizationId, organizationId),
+          ),
+        )
+        .limit(1);
+
+      if (!conv) throw new Error("Conversation not found");
+      if (conv.type !== "group") throw new Error("Can only manage participants of a group");
+      if (conv.adminId !== adminId) throw new Error("Only the group admin can remove members");
+      if (targetUserId === adminId) throw new Error("Admin cannot remove themselves");
+
+      await tx
+        .delete(conversationParticipant)
+        .where(
+          and(
+            eq(conversationParticipant.conversationId, conversationId),
+            eq(conversationParticipant.userId, targetUserId),
+          ),
+        );
+    });
+  },
+
+  async leaveGroup(
+    userId: string,
+    conversationId: string,
+    organizationId: string,
+  ) {
+    return withTenantTransaction(organizationId, async (tx) => {
+      const [conv] = await tx
+        .select({ id: conversation.id, adminId: conversation.adminId, type: conversation.type })
+        .from(conversation)
+        .where(
+          and(
+            eq(conversation.id, conversationId),
+            eq(conversation.organizationId, organizationId),
+          ),
+        )
+        .limit(1);
+
+      if (!conv) throw new Error("Conversation not found");
+      if (conv.type !== "group") throw new Error("Can only leave a group");
+
+      // Check if user is actually in the group
+      const [participant] = await tx
+        .select({ userId: conversationParticipant.userId })
+        .from(conversationParticipant)
+        .where(
+          and(
+            eq(conversationParticipant.conversationId, conversationId),
+            eq(conversationParticipant.userId, userId),
+          ),
+        )
+        .limit(1);
+
+      if (!participant) return;
+
+      await tx
+        .delete(conversationParticipant)
+        .where(
+          and(
+            eq(conversationParticipant.conversationId, conversationId),
+            eq(conversationParticipant.userId, userId),
+          ),
+        );
+
+      const remaining = await tx
+        .select({ userId: conversationParticipant.userId })
+        .from(conversationParticipant)
+        .where(eq(conversationParticipant.conversationId, conversationId));
+
+      if (remaining.length === 0) {
+        // Everyone left, delete the group conversation
+        await tx.delete(conversation).where(eq(conversation.id, conversationId));
+      } else if (conv.adminId === userId) {
+        // Admin left, reassign admin role to a remaining member
+        await tx.update(conversation)
+          .set({ adminId: remaining[0].userId })
+          .where(eq(conversation.id, conversationId));
+      }
     });
   },
 

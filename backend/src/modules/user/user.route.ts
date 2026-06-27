@@ -88,8 +88,8 @@ const router = new Hono<{ Variables: { tenantId: string; user: JwtPayload } }>()
       const passwordHash = await argon2.hash(password);
       const data = await UserService.create(tenantId, { ...rest, passwordHash, organizationId: tenantId, forcePasswordChange: true });
       return ResponseHandler.created(c, data);
-    } catch (error) {
-      return ResponseHandler.internalServerError(c, "Internal Server Error", error);
+    } catch (error: any) {
+      return ResponseHandler.badRequest(c, error?.message || "Failed to create user");
     }
   })
 
@@ -110,8 +110,8 @@ const router = new Hono<{ Variables: { tenantId: string; user: JwtPayload } }>()
       const tenantId = c.get("tenantId");
       await UserService.remove(tenantId, c.req.param("id")!);
       return ResponseHandler.success(c, null, { status: 200 });
-    } catch (error) {
-      return ResponseHandler.internalServerError(c, "Internal Server Error", error);
+    } catch (error: any) {
+      return ResponseHandler.badRequest(c, error?.message || "Failed to delete user");
     }
   })
 

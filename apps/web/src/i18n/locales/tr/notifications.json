@@ -5,6 +5,7 @@
   "markRead": "Okundu olarak işaretle",
   "markAllRead": "Tümünü okundu olarak işaretle",
   "ofNotifications": "{{total}} bildirimden {{shown}} tanesi",
+  "loadFailed": "Bildirimler yüklenemedi.",
   "filter": {
     "all": "Tümü",
     "unread": "Okunmamış",
@@ -21,6 +22,24 @@
     "task_assigned": "Görev Atandı",
     "system": "Sistem",
     "notification": "Bildirim"
+  },
+  "messages": {
+    "ticket": {
+      "created": { "label": "Yeni Talep", "title": "Yeni talep", "body": "Yeni bir talep oluşturuldu" },
+      "assigned": { "label": "Talep Atandı", "title": "Talep Atandı", "body": "Bir talep size atandı" },
+      "reply": { "label": "Talep Yanıtı", "title": "Yeni yanıt", "body": "Yeni bir yanıt alındı" },
+      "closed": { "label": "Talep Kapatıldı", "title": "Talep kapatıldı", "body": "Bir talep kapatıldı" },
+      "updated": { "label": "Talep Güncellendi", "title": "Talep güncellendi", "body": "Bir talep güncellendi" }
+    },
+    "task": {
+      "assigned": { "label": "Görev Atandı", "title": "Görev Atandı", "body": "Bir görev size atandı" }
+    },
+    "sla": {
+      "violation": { "label": "SLA İhlali", "title": "SLA İhlali", "body": "Bir talep SLA hedefini ihlal etti" }
+    },
+    "comment": {
+      "mention": { "label": "Bahsedilme", "title": "Bahsedildiniz", "body": "Bir yorumda bahsedildiniz" }
+    }
   },
   "empty": {
     "title": "Bildirim yok",

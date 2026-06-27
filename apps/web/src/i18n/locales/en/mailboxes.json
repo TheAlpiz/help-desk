@@ -26,6 +26,16 @@
     "reconnect": "Reconnect",
     "disconnect": "Disconnect"
   },
+  "testToast": {
+    "success": "Connection successful",
+    "failed": "Connection failed — check IMAP/SMTP credentials",
+    "error": "Connection test failed"
+  },
+  "toggleToast": {
+    "activated": "Mailbox activated",
+    "deactivated": "Mailbox deactivated",
+    "failed": "Failed to update mailbox"
+  },
   "empty": {
     "title": "No mailboxes",
     "subtitle": "Connect an email account to start receiving tickets."

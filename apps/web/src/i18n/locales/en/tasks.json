@@ -10,6 +10,7 @@
     "status": "Status",
     "priority": "Priority",
     "assignee": "Assignee",
+    "unassigned": "Unassigned",
     "dueDate": "Due date",
     "ticket": "Related ticket",
     "comments": "Comments",

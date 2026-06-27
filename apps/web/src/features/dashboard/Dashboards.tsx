@@ -187,14 +187,14 @@ export function AdminDashboard() {
   const slas: any[] = (slaData as any)?.data ?? [];
 
   const open = tickets.filter(
-    (t) => !["resolved", "closed"].includes(t.status),
+    (t) => !["resolved", "closed", "archived"].includes(t.status),
   );
   const critical = tickets.filter(
     (t) =>
-      t.priority === "critical" && !["resolved", "closed"].includes(t.status),
+      t.priority === "critical" && !["resolved", "closed", "archived"].includes(t.status),
   );
   const unassigned = tickets.filter(
-    (t) => !t.assigneeId && !["resolved", "closed"].includes(t.status),
+    (t) => !t.assigneeId && !["resolved", "closed", "archived"].includes(t.status),
   );
 
   return (
@@ -359,10 +359,10 @@ export function SupervisorDashboard() {
   const users: any[] = (usersData as any)?.data ?? [];
 
   const unassigned = tickets.filter(
-    (t) => !t.assigneeId && !["resolved", "closed"].includes(t.status),
+    (t) => !t.assigneeId && !["resolved", "closed", "archived"].includes(t.status),
   );
   const open = tickets.filter(
-    (t) => !["resolved", "closed"].includes(t.status),
+    (t) => !["resolved", "closed", "archived"].includes(t.status),
   );
   const resolved24h = tickets.filter((t) => {
     if (t.status !== "resolved") return false;
@@ -438,7 +438,7 @@ export function AgentDashboard() {
   const tasks = getArray(tasksData);
 
   const openTickets = tickets.filter(
-    (t) => !["resolved", "closed"].includes(t.status),
+    (t) => !["resolved", "closed", "archived"].includes(t.status),
   );
   const pendingTasks = tasks.filter((t) =>
     ["TODO", "IN_PROGRESS", "BLOCKED"].includes(t.status),
@@ -557,7 +557,7 @@ export function RequesterDashboard() {
 
   const tickets = getArray(data);
   const open = tickets.filter(
-    (t) => !["resolved", "closed"].includes(t.status),
+    (t) => !["resolved", "closed", "archived"].includes(t.status),
   );
   const resolved = tickets.filter(
     (t) => t.status === "resolved" || t.status === "closed",

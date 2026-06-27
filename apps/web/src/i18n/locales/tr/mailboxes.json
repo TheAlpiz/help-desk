@@ -26,6 +26,16 @@
     "reconnect": "Yeniden bağlan",
     "disconnect": "Bağlantıyı kes"
   },
+  "testToast": {
+    "success": "Bağlantı başarılı",
+    "failed": "Bağlantı başarısız — IMAP/SMTP kimlik bilgilerini kontrol edin",
+    "error": "Bağlantı testi başarısız"
+  },
+  "toggleToast": {
+    "activated": "Posta kutusu etkinleştirildi",
+    "deactivated": "Posta kutusu devre dışı bırakıldı",
+    "failed": "Posta kutusu güncellenemedi"
+  },
   "empty": {
     "title": "Posta kutusu yok",
     "subtitle": "Talep almaya başlamak için bir e-posta hesabı bağlayın."

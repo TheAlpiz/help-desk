@@ -190,8 +190,8 @@ const router = new Hono<{ Variables: { tenantId: string; user: JwtPayload } }>()
     try {
       await OrganizationService.remove(c.req.param("id"));
       return c.json({ success: true, data: null, message: "Deleted organization" });
-    } catch (error) {
-      return ResponseHandler.internalServerError(c, "Internal Server Error", error);
+    } catch (error: any) {
+      return ResponseHandler.badRequest(c, error?.message || "Failed to delete organization");
     }
   });
 

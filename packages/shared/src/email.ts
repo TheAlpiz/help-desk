@@ -43,9 +43,9 @@ export const createEmailTemplateSchema = z.object({
 });
 
 export const saveTemplateVersionSchema = z.object({
-  subject: z.string().min(1, "Subject is required"),
-  bodyHtml: z.string().min(1, "HTML Body is required"),
-  bodyPlain: z.string().min(1, "Plain text body is required"),
+  subject: z.string().min(1, "validation.subjectRequired"),
+  bodyHtml: z.string().min(1, "validation.htmlBodyRequired"),
+  bodyPlain: z.string().min(1, "validation.plainTextRequired"),
   contentJson: z.any().optional(),
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional(),
 });
@@ -58,7 +58,7 @@ export const createEmailSignatureSchema = z.object({
 });
 
 export const saveSignatureVersionSchema = z.object({
-  contentHtml: z.string().min(1, "HTML content is required"),
+  contentHtml: z.string().min(1, "validation.htmlContentRequired"),
   contentPlain: z.string().optional(),
   contentJson: z.any().optional(),
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).optional(),

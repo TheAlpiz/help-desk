@@ -34,3 +34,8 @@ export const ticket = pgTable("ticket", {
 
 export type Ticket = typeof ticket.$inferSelect;
 export type NewTicket = typeof ticket.$inferInsert;
+
+// Statuses where a ticket is no longer actively worked: excluded from "open"
+// counts and skipped by SLA evaluation (archived was previously missing, so
+// archived tickets still fired SLA warnings and counted as open).
+export const TERMINAL_TICKET_STATUSES = ["resolved", "closed", "archived"] as const;

@@ -12,6 +12,38 @@ export const Route = createFileRoute("/_auth/audit-logs")({
 
 const PAGE_SIZE = 30;
 
+// Human label for who performed the action: real name → email → SYSTEM → short id.
+function actorLabel(log: any, systemLabel: string): string {
+  const name = [log.actorFirstName, log.actorLastName].filter(Boolean).join(" ");
+  if (name) return name;
+  if (log.actorEmail) return log.actorEmail;
+  if (!log.actorId || log.actorId.toUpperCase() === "SYSTEM") return systemLabel;
+  return log.actorId.slice(0, 8);
+}
+
+function fmtVal(v: unknown): string {
+  if (v === null || v === undefined || v === "") return "∅";
+  if (typeof v === "object") return JSON.stringify(v);
+  return String(v);
+}
+
+// Compact, human-readable summary of what changed for one audit row.
+function changeSummary(log: any): string[] {
+  const oldV = (log.oldValues ?? {}) as Record<string, unknown>;
+  const newV = (log.newValues ?? {}) as Record<string, unknown>;
+  const keys = Array.from(new Set([...Object.keys(oldV), ...Object.keys(newV)]));
+  const lines: string[] = [];
+  for (const k of keys) {
+    const a = oldV[k];
+    const b = newV[k];
+    if (JSON.stringify(a) === JSON.stringify(b)) continue;
+    if (a === undefined) lines.push(`${k}: ${fmtVal(b)}`); // created
+    else if (b === undefined) lines.push(`${k}: ${fmtVal(a)}`); // deleted
+    else lines.push(`${k}: ${fmtVal(a)} → ${fmtVal(b)}`); // changed
+  }
+  return lines;
+}
+
 function AuditLogs() {
   const { t } = useTranslation("audit-logs");
   const [page, setPage] = useState(0);
@@ -100,6 +132,7 @@ function AuditLogs() {
                   <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("table.actor")}</th>
                   <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("table.action")}</th>
                   <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("table.entity")}</th>
+                  <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("table.details")}</th>
                   <th className="px-4 py-3 text-[11px] font-semibold text-on-surface-variant/50 uppercase tracking-wider hidden lg:table-cell">{t("table.entityId")}</th>
                 </tr>
               </thead>
@@ -109,8 +142,11 @@ function AuditLogs() {
                     <td className="px-4 py-3 text-[11px] font-mono text-on-surface-variant/50 whitespace-nowrap">
                       {new Date(log.createdAt).toLocaleString()}
                     </td>
-                    <td className="px-4 py-3 text-xs text-on-surface font-mono">
-                      {log.actorId?.slice(0, 8) ?? t("system")}
+                    <td className="px-4 py-3 text-xs text-on-surface" title={log.actorEmail || log.actorId || undefined}>
+                      <span className="font-medium">{actorLabel(log, t("system"))}</span>
+                      {log.actorEmail && (
+                        <span className="block text-[10px] text-on-surface-variant/40">{log.actorEmail}</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
@@ -120,7 +156,23 @@ function AuditLogs() {
                     <td className="px-4 py-3 text-xs text-on-surface-variant">
                       {log.entityType}
                     </td>
-                    <td className="px-4 py-3 text-[11px] font-mono text-on-surface-variant/40 hidden lg:table-cell">
+                    <td className="px-4 py-3 text-[11px] text-on-surface-variant/70 max-w-xs">
+                      {(() => {
+                        const lines = changeSummary(log);
+                        if (lines.length === 0) return <span className="text-on-surface-variant/30">{t("noChanges")}</span>;
+                        return (
+                          <div className="space-y-0.5" title={lines.join("\n")}>
+                            {lines.slice(0, 3).map((l, i) => (
+                              <div key={i} className="font-mono truncate">{l}</div>
+                            ))}
+                            {lines.length > 3 && (
+                              <div className="text-on-surface-variant/40">+{lines.length - 3}</div>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </td>
+                    <td className="px-4 py-3 text-[11px] font-mono text-on-surface-variant/40 hidden lg:table-cell" title={log.entityId}>
                       {log.entityId?.slice(0, 8)}
                     </td>
                   </tr>

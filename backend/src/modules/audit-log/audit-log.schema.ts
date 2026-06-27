@@ -29,3 +29,7 @@ export const auditLog = pgTable(
 
 export type AuditLog = typeof auditLog.$inferSelect;
 export type NewAuditLog = typeof auditLog.$inferInsert;
+
+// Sentinel actorId for system/automation-generated audit events (no human actor).
+// Use this everywhere instead of ad-hoc "system"/"SYSTEM" literals.
+export const SYSTEM_ACTOR_ID = "SYSTEM";

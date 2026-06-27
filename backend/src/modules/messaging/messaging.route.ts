@@ -155,4 +155,42 @@ export const messagingRouter = new Hono<{ Variables: { tenantId: string; user: J
     } catch (err: any) {
       return ResponseHandler.badRequest(c, err.message);
     }
+  })
+
+  // Add a participant to a group
+  .post(
+    "/:id/participants",
+    zValidator("json", z.object({ userId: z.string().uuid() })),
+    async (c) => {
+      const user = c.get("user");
+      const { userId: targetUserId } = c.req.valid("json");
+      try {
+        await MessagingService.addGroupParticipant(user.userId, c.req.param("id"), targetUserId, user.organizationId);
+        return ResponseHandler.ok(c, { ok: true });
+      } catch (err: any) {
+        return ResponseHandler.badRequest(c, err.message);
+      }
+    }
+  )
+
+  // Remove a participant from a group
+  .delete("/:id/participants/:userId", async (c) => {
+    const user = c.get("user");
+    try {
+      await MessagingService.removeGroupParticipant(user.userId, c.req.param("id"), c.req.param("userId"), user.organizationId);
+      return ResponseHandler.ok(c, { ok: true });
+    } catch (err: any) {
+      return ResponseHandler.badRequest(c, err.message);
+    }
+  })
+
+  // Leave a group
+  .delete("/:id/leave", async (c) => {
+    const user = c.get("user");
+    try {
+      await MessagingService.leaveGroup(user.userId, c.req.param("id"), user.organizationId);
+      return ResponseHandler.ok(c, { ok: true });
+    } catch (err: any) {
+      return ResponseHandler.badRequest(c, err.message);
+    }
   });

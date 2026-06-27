@@ -1,9 +1,11 @@
 import { useDroppable } from "@dnd-kit/core";
 import { useSortable, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useTranslation } from "react-i18next";
 import { useEmailBuilderStore, Block } from "../store";
 
 function BlockRenderer({ block }: { block: Block }) {
+  const { t } = useTranslation("emailTemplates");
   const { globalStyles } = useEmailBuilderStore();
   const { content, styles } = block;
   const align = (styles.textAlign ?? "left") as React.CSSProperties["textAlign"];
@@ -330,7 +332,7 @@ function BlockRenderer({ block }: { block: Block }) {
             <li key={i} style={{ marginBottom: 6 }}>{item}</li>
           ))}
           {items.length === 0 && (
-            <li style={{ opacity: 0.4 }}>No items yet</li>
+            <li style={{ opacity: 0.4 }}>{t("builder.canvas.noItems")}</li>
           )}
         </Tag>
       );
@@ -351,9 +353,9 @@ function BlockRenderer({ block }: { block: Block }) {
             }}
           >
             {content.html ? (
-              <span>HTML block ({content.html.length} chars)</span>
+              <span>{t("builder.canvas.htmlBlock", { count: content.html.length })}</span>
             ) : (
-              <span>Empty HTML block</span>
+              <span>{t("builder.canvas.emptyHtml")}</span>
             )}
           </div>
         </div>

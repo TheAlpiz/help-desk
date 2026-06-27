@@ -2,11 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useEffect, useRef, useState } from "react";
-import { MessageSquare, Plus, Send, Loader2, Search, X, Paperclip, Users, FileText, CheckSquare, Square } from "lucide-react";
+import { MessageSquare, Plus, Send, Loader2, Search, X, Paperclip, Users, FileText, CheckSquare, Square, Download } from "lucide-react";
+import { isImage, ImageThumb, Lightbox, type LightboxItem } from "@/features/tickets/TicketAttachments";
 import { api } from "@/lib/api";
+import { authFetch } from "@/lib/authFetch";
 import { useAppStore } from "@/store";
 import { cn } from "@/lib/utils";
 import { presenceDot, availabilityMeta } from "@/lib/presence";
+import { useToast } from "@/components/Toast";
 
 export const Route = createFileRoute("/_auth/messages")({
   component: MessagesPage,
@@ -26,6 +29,7 @@ type ConvSummary = {
   id: string;
   type: string;
   name: string | null;
+  adminId: string | null;
   participants: Participant[];
   lastMessage: { id: string; body: string; senderId: string; createdAt: string } | null;
   unreadCount: number;
@@ -79,31 +83,26 @@ async function openAttachment(id: string) {
   if (url) window.open(url, "_blank");
 }
 
-// Upload one file to MinIO (presign → PUT) and link it to a chat message.
-async function uploadToMessage(file: File, messageId: string) {
-  const reqRes = await api.attachments["upload-request"].$post({
-    json: {
-      entityType: "CHAT_MESSAGE",
-      entityId: messageId,
-      filename: file.name,
-      mimeType: file.type || "application/octet-stream",
-      sizeBytes: file.size,
-    },
-  });
-  const reqJson = (await reqRes.json()) as any;
-  if (!reqRes.ok) throw new Error(reqJson?.error?.message ?? "Upload request failed");
-  const { uploadUrl, storageKey, filename, mimeType, sizeBytes } = reqJson.data;
+type StagedResult = { storageKey: string; filename: string; mimeType: string; sizeBytes: number };
 
-  const put = await fetch(uploadUrl, {
-    method: "PUT",
-    headers: { "Content-Type": file.type || "application/octet-stream" },
-    body: file,
-  });
-  if (!put.ok) throw new Error("Upload to storage failed");
+// A file chosen in the composer. Uploaded to storage immediately (status →
+// "ready"); linked to the message only once the message is sent.
+type StagedFile = {
+  id: string;
+  name: string;
+  status: "uploading" | "ready" | "error";
+  result?: StagedResult;
+  error?: string;
+};
 
-  await api.attachments.confirm.$post({
-    json: { storageKey, entityType: "CHAT_MESSAGE", entityId: messageId, filename, mimeType, sizeBytes },
-  });
+// Stage a file to storage right away (server streams it to MinIO).
+async function stageFile(file: File): Promise<StagedResult> {
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await authFetch("/api/attachments/stage", { method: "POST", body: fd });
+  const body = (await res.json().catch(() => null)) as any;
+  if (!res.ok) throw new Error(body?.error?.message || body?.message || "Upload failed");
+  return body.data as StagedResult;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -243,7 +242,7 @@ function ConvList({ selectedId, onSelect, onNew, myUserId }: {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
+      <div className="flex-1 overflow-y-auto pretty-scroll p-2 space-y-0.5">
         {isLoading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="w-5 h-5 text-primary animate-spin" />
@@ -294,13 +293,34 @@ function ThreadPresenceLabel({ userId }: { userId?: string | null }) {
 
 function MessageThread({ conversationId, myUserId }: { conversationId: string; myUserId: string }) {
   const { t } = useTranslation("messages");
+  const { error: toastError } = useToast();
   const qc = useQueryClient();
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showGroupDetails, setShowGroupDetails] = useState(false);
   const [body, setBody] = useState("");
   const [cursor, setCursor] = useState<string | null>(null);
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<StagedFile[]>([]);
+  const [lightbox, setLightbox] = useState<LightboxItem | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Stage selected files immediately so they're uploaded (with a loader) before
+  // the message is sent.
+  const onFilesSelected = (picked: File[]) => {
+    for (const file of picked) {
+      const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      setFiles((prev) => [...prev, { id, name: file.name, status: "uploading" }]);
+      stageFile(file)
+        .then((result) =>
+          setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, status: "ready", result } : f))),
+        )
+        .catch((err) =>
+          setFiles((prev) =>
+            prev.map((f) => (f.id === id ? { ...f, status: "error", error: err?.message } : f)),
+          ),
+        );
+    }
+  };
 
   // Fetch conversation info for the header
   const { data: convList } = useQuery<ConvSummary[]>({
@@ -335,13 +355,24 @@ function MessageThread({ conversationId, myUserId }: { conversationId: string; m
     qc.invalidateQueries({ queryKey: ["conversations"] });
   }, [conversationId, qc]);
 
-  // Scroll to bottom on new messages
+  // Jump straight to the bottom when switching conversations (no animation).
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [conversationId]);
+
+  // Auto-scroll to the latest message. Smooth when already near the bottom so we
+  // don't yank the user away while they're reading older messages. Scrolls the
+  // container itself (not the page) so the rest of the layout stays put.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 200;
+    el.scrollTo({ top: el.scrollHeight, behavior: nearBottom ? "smooth" : "auto" });
   }, [msgData?.messages.length]);
 
   const send = useMutation({
-    mutationFn: async ({ text, attach }: { text: string; attach: File[] }) => {
+    mutationFn: async ({ text, attach }: { text: string; attach: StagedResult[] }) => {
       const res = await (api.conversations as any)[":id"].messages.$post({
         param: { id: conversationId },
         // Announce the count up front so recipients render skeletons immediately.
@@ -349,8 +380,19 @@ function MessageThread({ conversationId, myUserId }: { conversationId: string; m
       });
       if (!res.ok) throw new Error("Failed");
       const msg = ((await res.json()) as any).data as ChatMsg;
-      // Link any selected files to the just-created message.
-      for (const f of attach) await uploadToMessage(f, msg.id);
+      // Files are already in storage — just link each to the new message.
+      for (const a of attach) {
+        await api.attachments.confirm.$post({
+          json: {
+            storageKey: a.storageKey,
+            entityType: "CHAT_MESSAGE",
+            entityId: msg.id,
+            filename: a.filename,
+            mimeType: a.mimeType,
+            sizeBytes: a.sizeBytes,
+          },
+        });
+      }
       // Re-announce so recipients refetch and swap skeletons for the real files.
       if (attach.length > 0) {
         await (api.conversations as any)[":id"].messages[":messageId"]["attachments-ready"]
@@ -361,15 +403,27 @@ function MessageThread({ conversationId, myUserId }: { conversationId: string; m
     onSuccess: () => {
       setBody("");
       setFiles([]);
+      if (textareaRef.current) textareaRef.current.style.height = "auto";
       qc.invalidateQueries({ queryKey: ["messages", conversationId] });
       qc.invalidateQueries({ queryKey: ["conversations"] });
     },
+    onError: (err: any) => {
+      toastError(err?.message || t("errorUpload"));
+      qc.invalidateQueries({ queryKey: ["messages", conversationId] });
+    },
   });
 
-  const canSend = (body.trim().length > 0 || files.length > 0) && !send.isPending;
+  const readyFiles = files.filter((f) => f.status === "ready");
+  const uploading = files.some((f) => f.status === "uploading");
+  // Sendable once there's content or a ready file, nothing still uploading.
+  const canSend =
+    (body.trim().length > 0 || readyFiles.length > 0) && !uploading && !send.isPending;
   const submit = () => {
     if (!canSend) return;
-    send.mutate({ text: body.trim(), attach: files });
+    send.mutate({
+      text: body.trim(),
+      attach: readyFiles.map((f) => f.result!).filter(Boolean),
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -385,33 +439,44 @@ function MessageThread({ conversationId, myUserId }: { conversationId: string; m
   return (
     <div className="flex-1 flex flex-col min-w-0">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-outline-variant flex items-center gap-3 shrink-0">
-        {conv?.type === "group" ? (
-          <div className="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center shrink-0">
-            <Users className="w-4 h-4" />
-          </div>
-        ) : other ? (
-          <div className="relative shrink-0">
-            <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white", avatarColor(other.userId))}>
-              {initials(other.firstName, other.lastName)}
-            </div>
-            <PresenceDot userId={other.userId} />
-          </div>
-        ) : null}
-        <div className="flex flex-col min-w-0">
-          <span className="text-sm font-semibold text-on-surface truncate">{headerName}</span>
+      <div className="px-4 py-3 border-b border-outline-variant flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
           {conv?.type === "group" ? (
-            <span className="text-[10px] text-on-surface-variant/50 truncate">
-              {conv.participants.length} {t("members", "members")}
-            </span>
-          ) : (
-            <ThreadPresenceLabel userId={other?.userId} />
-          )}
+            <div className="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center shrink-0">
+              <Users className="w-4 h-4" />
+            </div>
+          ) : other ? (
+            <div className="relative shrink-0">
+              <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white", avatarColor(other.userId))}>
+                {initials(other.firstName, other.lastName)}
+              </div>
+              <PresenceDot userId={other.userId} />
+            </div>
+          ) : null}
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm font-semibold text-on-surface truncate">{headerName}</span>
+            {conv?.type === "group" ? (
+              <span className="text-[10px] text-on-surface-variant/50 truncate">
+                {conv.participants.length} {t("members", "members")}
+              </span>
+            ) : (
+              <ThreadPresenceLabel userId={other?.userId} />
+            )}
+          </div>
         </div>
+        {conv?.type === "group" && (
+          <button
+            onClick={() => setShowGroupDetails(true)}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-white/5 hover:text-on-surface transition-colors"
+            title="Group details"
+          >
+            <div className="w-4 h-4 border-2 border-current rounded-full flex items-center justify-center text-[10px] font-bold">i</div>
+          </button>
+        )}
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto pretty-scroll px-4 py-4 space-y-1">
         {isLoading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="w-5 h-5 text-primary animate-spin" />
@@ -445,20 +510,47 @@ function MessageThread({ conversationId, myUserId }: { conversationId: string; m
                         {msg.body}
                       </div>
                     )}
-                    {msg.attachments?.map((a) => (
-                      <button
-                        key={a.id}
-                        onClick={() => openAttachment(a.id)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl border border-outline-variant bg-surface-container hover:border-primary/40 transition-colors text-left w-full"
-                        title={a.filename}
-                      >
-                        <FileText className="w-4 h-4 text-on-surface-variant/60 shrink-0" />
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-xs text-on-surface truncate">{a.filename}</span>
-                          <span className="block text-[10px] text-on-surface-variant/40">{fmtBytes(a.sizeBytes)}</span>
-                        </span>
-                      </button>
-                    ))}
+                    {(() => {
+                      const imageAttachments = msg.attachments?.filter(a => isImage(a.mimeType)) || [];
+                      const fileAttachments = msg.attachments?.filter(a => !isImage(a.mimeType)) || [];
+                      return (
+                        <div className="space-y-2 w-full mt-1">
+                          {imageAttachments.length > 0 && (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                              {imageAttachments.map((a) => (
+                                <ImageThumb
+                                  key={a.id}
+                                  att={a}
+                                  onOpen={setLightbox}
+                                />
+                              ))}
+                            </div>
+                          )}
+                          {fileAttachments.length > 0 && (
+                            <div className="space-y-1">
+                              {fileAttachments.map((a) => (
+                                <div
+                                  key={a.id}
+                                  className="w-full flex items-center gap-2 p-2 rounded-lg border border-outline-variant bg-surface-container hover:bg-white/5 transition-colors text-left group"
+                                >
+                                  <button
+                                    onClick={() => openAttachment(a.id)}
+                                    className="flex-1 min-w-0 flex items-center gap-2 text-left"
+                                  >
+                                    <FileText className="w-3.5 h-3.5 text-on-surface-variant/50 shrink-0" />
+                                    <span className="flex-1 min-w-0">
+                                      <span className="block text-xs text-on-surface truncate">{a.filename}</span>
+                                      <span className="block text-[10px] text-on-surface-variant/40">{fmtBytes(a.sizeBytes)}</span>
+                                    </span>
+                                    <Download className="w-3 h-3 text-on-surface-variant/30 group-hover:text-primary transition-colors shrink-0" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                     {/* Skeletons for announced-but-not-yet-confirmed attachments */}
                     {Array.from({
                       length: Math.max(0, (msg.attachmentCount ?? 0) - (msg.attachments?.length ?? 0)),
@@ -470,23 +562,36 @@ function MessageThread({ conversationId, myUserId }: { conversationId: string; m
                 </div>
               );
             })}
-            <div ref={bottomRef} />
           </>
         )}
       </div>
 
       {/* Composer */}
       <div className="px-3 py-3 border-t border-outline-variant shrink-0">
-        {/* Selected files preview */}
+        {/* Selected files preview — uploads start on select, with a loader. */}
         {files.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-2">
-            {files.map((f, i) => (
-              <span key={i} className="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 bg-surface-container-high border border-outline-variant rounded-lg text-[11px] text-on-surface">
-                <Paperclip className="w-3 h-3 text-on-surface-variant/50" />
-                <span className="max-w-[140px] truncate">{f.name}</span>
+            {files.map((f) => (
+              <span
+                key={f.id}
+                className={`inline-flex items-center gap-1.5 pl-2 pr-1 py-1 border rounded-lg text-[11px] ${
+                  f.status === "error"
+                    ? "bg-error/10 border-error/30 text-error"
+                    : "bg-surface-container-high border-outline-variant text-on-surface"
+                }`}
+              >
+                {f.status === "uploading" ? (
+                  <Loader2 className="w-3 h-3 animate-spin text-primary" />
+                ) : f.status === "error" ? (
+                  <X className="w-3 h-3 text-error" />
+                ) : (
+                  <Paperclip className="w-3 h-3 text-on-surface-variant/50" />
+                )}
+                <span className="max-w-[140px] truncate" title={f.error || f.name}>{f.name}</span>
                 <button
-                  onClick={() => setFiles((prev) => prev.filter((_, j) => j !== i))}
+                  onClick={() => setFiles((prev) => prev.filter((x) => x.id !== f.id))}
                   className="text-on-surface-variant/40 hover:text-error transition-colors"
+                  aria-label="Remove file"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -494,14 +599,14 @@ function MessageThread({ conversationId, myUserId }: { conversationId: string; m
             ))}
           </div>
         )}
-        <div className="flex items-end gap-2 bg-surface-container rounded-xl px-3 py-2">
+        <div className="flex items-center gap-2 bg-surface-container rounded-xl px-3 py-1.5">
           <input
             ref={fileRef}
             type="file"
             multiple
             className="hidden"
             onChange={(e) => {
-              if (e.target.files) setFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+              if (e.target.files) onFilesSelected(Array.from(e.target.files));
               e.target.value = "";
             }}
           />
@@ -516,12 +621,17 @@ function MessageThread({ conversationId, myUserId }: { conversationId: string; m
           <textarea
             ref={textareaRef}
             value={body}
-            onChange={(e) => setBody(e.target.value)}
+            onChange={(e) => {
+              setBody(e.target.value);
+              // Auto-grow up to max-h so multi-line messages stay fully visible.
+              const el = e.target;
+              el.style.height = "auto";
+              el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
+            }}
             onKeyDown={handleKeyDown}
             placeholder={t("typeMessage")}
             rows={1}
-            className="flex-1 bg-transparent resize-none text-sm text-on-surface placeholder:text-on-surface-variant/40 outline-none max-h-32 leading-5"
-            style={{ overflowY: body.includes("\n") ? "auto" : "hidden" }}
+            className="flex-1 bg-transparent resize-none text-sm text-on-surface placeholder:text-on-surface-variant/40 outline-none max-h-32 leading-5 py-1 block self-center pretty-scroll"
           />
           <button
             onClick={submit}
@@ -531,8 +641,16 @@ function MessageThread({ conversationId, myUserId }: { conversationId: string; m
             {send.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
           </button>
         </div>
-        <p className="text-[10px] text-on-surface-variant/30 mt-1 px-1">Enter to send · Shift+Enter for new line</p>
+        <p className="text-[10px] text-on-surface-variant/30 mt-1 px-1">{t("sendHint")}</p>
       </div>
+      {lightbox && <Lightbox item={lightbox} onClose={() => setLightbox(null)} />}
+      {showGroupDetails && conv && (
+        <GroupDetailsModal
+          conv={conv}
+          myUserId={myUserId}
+          onClose={() => setShowGroupDetails(false)}
+        />
+      )}
     </div>
   );
 }
@@ -660,7 +778,7 @@ function NewChatModal({ onClose, onCreated, myUserId, canCreateGroup }: {
             />
           </div>
 
-          <div className="space-y-0.5 max-h-56 overflow-y-auto">
+          <div className="space-y-0.5 max-h-56 overflow-y-auto pretty-scroll">
             {isLoading ? (
               <div className="flex justify-center py-6">
                 <Loader2 className="w-4 h-4 text-primary animate-spin" />
@@ -709,6 +827,172 @@ function NewChatModal({ onClose, onCreated, myUserId, canCreateGroup }: {
           {createGroup.error && (
             <p className="text-xs text-error mt-2">{(createGroup.error as Error).message}</p>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── GroupDetailsModal ────────────────────────────────────────────────────────
+
+function GroupDetailsModal({ conv, myUserId, onClose }: {
+  conv: ConvSummary;
+  myUserId: string;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation("messages");
+  const qc = useQueryClient();
+  const [search, setSearch] = useState("");
+  const isAdmin = conv.adminId === myUserId;
+
+  const { data: usersData } = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      const res = await api.users.index.$get();
+      if (!res.ok) throw new Error("Failed");
+      const json = await res.json();
+      return (json as any).data as { id: string; firstName: string; lastName: string; email: string }[];
+    },
+    enabled: isAdmin,
+  });
+
+  const addMember = useMutation({
+    mutationFn: async (userId: string) => {
+      const res = await (api.conversations as any)[":id"].participants.$post({
+        param: { id: conv.id },
+        json: { userId }
+      });
+      if (!res.ok) throw new Error("Failed to add member");
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["conversations"] })
+  });
+
+  const removeMember = useMutation({
+    mutationFn: async (userId: string) => {
+      const res = await (api.conversations as any)[":id"].participants[":userId"].$delete({
+        param: { id: conv.id, userId }
+      });
+      if (!res.ok) throw new Error("Failed to remove member");
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["conversations"] })
+  });
+
+  const leaveGroup = useMutation({
+    mutationFn: async () => {
+      const res = await (api.conversations as any)[":id"].leave.$delete({
+        param: { id: conv.id }
+      });
+      if (!res.ok) throw new Error("Failed to leave group");
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["conversations"] });
+      onClose();
+    }
+  });
+
+  // Filter users not already in the group
+  const existingIds = new Set(conv.participants.map((p) => p.userId));
+  const availableUsers = (usersData ?? []).filter((u) => !existingIds.has(u.id));
+  const filteredUsers = search.trim()
+    ? availableUsers.filter((u) => {
+        const q = search.toLowerCase();
+        return u.firstName.toLowerCase().includes(q) || u.lastName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+      })
+    : availableUsers;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-sm bg-surface-container rounded-2xl shadow-xl flex flex-col max-h-[85vh] overflow-hidden border border-outline-variant/30">
+        <div className="flex items-center justify-between p-4 border-b border-outline-variant shrink-0">
+          <h3 className="font-semibold text-on-surface">{conv.name || t("groupDetails", "Group Details")}</h3>
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/5 text-on-surface-variant transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto pretty-scroll p-4 space-y-6">
+          <div>
+            <h4 className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-3">
+              {t("members", "Members")} ({conv.participants.length})
+            </h4>
+            <div className="space-y-2">
+              {conv.participants.map((p) => (
+                <div key={p.userId} className="flex items-center justify-between gap-3 group">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0", avatarColor(p.userId))}>
+                      {initials(p.firstName, p.lastName)}
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium text-on-surface truncate">
+                        {p.firstName} {p.lastName} {p.userId === conv.adminId ? t("adminRole", " (Admin)") : ""}
+                      </span>
+                      <span className="text-[11px] text-on-surface-variant/50 truncate">{p.email}</span>
+                    </div>
+                  </div>
+                  {isAdmin && p.userId !== myUserId && (
+                    <button
+                      onClick={() => removeMember.mutate(p.userId)}
+                      disabled={removeMember.isPending}
+                      className="text-[10px] font-medium text-error opacity-0 group-hover:opacity-100 transition-opacity hover:underline disabled:opacity-40"
+                    >
+                      {t("remove", "Remove")}
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {isAdmin && (
+            <div className="pt-4 border-t border-outline-variant">
+              <h4 className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-3">
+                {t("addMembers", "Add Members")}
+              </h4>
+              <div className="flex items-center gap-2 bg-surface-container-high rounded-lg px-3 py-2 mb-3">
+                <Search className="w-3.5 h-3.5 text-on-surface-variant/50 shrink-0" />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder={t("searchUsers", "Search users...")}
+                  className="flex-1 bg-transparent text-sm text-on-surface placeholder:text-on-surface-variant/40 outline-none"
+                />
+              </div>
+              <div className="space-y-2 max-h-40 overflow-y-auto pretty-scroll">
+                {filteredUsers.length === 0 ? (
+                  <p className="text-xs text-on-surface-variant/50 text-center py-2">{t("noUsers", "No matching users")}</p>
+                ) : (
+                  filteredUsers.map((u) => (
+                    <div key={u.id} className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={cn("w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0", avatarColor(u.id))}>
+                          {initials(u.firstName, u.lastName)}
+                        </div>
+                        <span className="text-sm font-medium text-on-surface truncate">{u.firstName} {u.lastName}</span>
+                      </div>
+                      <button
+                        onClick={() => addMember.mutate(u.id)}
+                        disabled={addMember.isPending}
+                        className="text-[10px] font-medium text-primary hover:underline disabled:opacity-40"
+                      >
+                        {t("add", "Add")}
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="pt-4 border-t border-outline-variant">
+            <button
+              onClick={() => leaveGroup.mutate()}
+              disabled={leaveGroup.isPending}
+              className="w-full py-2 flex items-center justify-center gap-2 text-sm font-medium text-error hover:bg-error/10 rounded-lg transition-colors disabled:opacity-40"
+            >
+              {leaveGroup.isPending ? t("leaving", "Leaving...") : t("leaveGroup", "Leave Group")}
+            </button>
+          </div>
         </div>
       </div>
     </div>

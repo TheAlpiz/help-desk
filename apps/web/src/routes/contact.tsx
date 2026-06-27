@@ -42,7 +42,7 @@ function ContactPage() {
         setEmail("");
         setMessage("");
       } else {
-        await res.json(); // Consume the stream
+        await res.json().catch(() => null); // Consume the stream (may be empty)
         setError(t("contact.form.errorGeneric"));
       }
     } catch (err) {

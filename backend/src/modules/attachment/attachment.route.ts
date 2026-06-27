@@ -47,7 +47,37 @@ export const attachmentRouter = new Hono<{ Variables: { tenantId: string; user: 
       return ResponseHandler.badRequest(c, err.message);
     }
   })
-  // Confirm upload after client PUT to presigned URL
+  // Stage a multipart upload — API streams the file to MinIO (no browser→MinIO CORS)
+  // and returns the storage key. No DB row yet; link it later via /confirm.
+  .post("/stage", async (c) => {
+    const tenantId = c.get("tenantId");
+    try {
+      const form = await c.req.formData();
+      const file = form.get("file");
+      if (!file || typeof file === "string") return ResponseHandler.badRequest(c, "file is required");
+      if (file.size > 50 * 1024 * 1024) return ResponseHandler.badRequest(c, "File exceeds 50MB limit");
+
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const res = await AttachmentService.stageUpload(tenantId, {
+        buffer,
+        filename: file.name,
+        mimeType: file.type || "application/octet-stream",
+        sizeBytes: file.size,
+      });
+      return ResponseHandler.success(c, res);
+    } catch (err: any) {
+      console.error("Attachment stage failed:", err);
+      // MinIO connection failures surface as an AggregateError with an empty
+      // message — give a clear reason instead of a blank one.
+      const codes = [err?.code, ...((err?.errors ?? []).map((e: any) => e?.code))];
+      const unreachable = codes.some((x) => x === "ECONNREFUSED" || x === "ENOTFOUND" || x === "ETIMEDOUT");
+      const message = unreachable
+        ? "Storage service is unavailable"
+        : err?.message || err?.code || "Upload failed";
+      return ResponseHandler.badRequest(c, message);
+    }
+  })
+  // Confirm upload — links a staged/uploaded object to an entity (creates the row)
   .post("/confirm", zValidator("json", confirmSchema), async (c) => {
     const tenantId = c.get("tenantId");
     const user = c.get("user");

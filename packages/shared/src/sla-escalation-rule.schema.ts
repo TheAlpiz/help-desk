@@ -22,10 +22,10 @@ export const slaEscalationActionSchema = z.object({
 });
 
 export const createSlaEscalationRuleSchema = z.object({
-  name: z.string().min(1, "Name is required").max(255),
+  name: z.string().min(1, "validation.nameRequired").max(255),
   condition: z.enum(SLA_ESCALATION_CONDITIONS),
   thresholdMinutes: z.number().int().min(0).optional(),
-  actions: z.array(slaEscalationActionSchema).min(1, "At least one action is required"),
+  actions: z.array(slaEscalationActionSchema).min(1, "validation.atLeastOneAction"),
   isActive: z.boolean().default(true),
 });
 

@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { ArrowRight } from "lucide-react";
@@ -9,6 +10,7 @@ import { useAppStore } from "../store";
 import { loginSchema } from "@help-desk/shared";
 import { Button, Input, FormError, FormAlert, Label, fieldErrors } from "@/components/ui";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useToast } from "@/components/Toast";
 import type { SupportedLanguage } from "@/i18n";
 
 export const Route = createFileRoute("/login")({
@@ -27,21 +29,28 @@ function safeReturnTo(returnTo: string | undefined): string | null {
 
 function Login() {
   const { t } = useTranslation(["auth", "common"]);
+  const { error: toastError } = useToast();
   const { returnTo, reason } = Route.useSearch();
   const navigate = useNavigate();
   const setUser = useAppStore((state) => state.setUser);
   const setTenantId = useAppStore((state) => state.setTenantId);
   const setAccessToken = useAppStore((state) => state.setAccessToken);
   const setLanguage = useAppStore((state) => state.setLanguage);
+  // Submit-time error (e.g. invalid credentials). Field validation errors render
+  // under each field — only the login failure belongs in the form-level alert.
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const form = useForm({
     defaultValues: { email: "", password: "" },
     validators: { onChange: loginSchema as any },
     onSubmit: async ({ value }) => {
+      setSubmitError(null);
       try {
         const res = await api.auths.login.$post({ json: value });
-        const data = (await res.json()) as any;
-        if (!res.ok) throw new Error(data?.error?.message || t("auth:login.failed"));
+        // Server errors (e.g. 502 when the backend is down) return no JSON body —
+        // parsing would throw "Unexpected end of JSON input". Parse defensively.
+        const data = (await res.json().catch(() => null)) as any;
+        if (!res.ok || !data) throw new Error(data?.error?.message || t("auth:login.failed"));
         const payload = data.data;
         const user = payload.user as any;
         setUser(user);
@@ -56,7 +65,10 @@ function Login() {
         const dest = safeReturnTo(returnTo);
         navigate({ to: (dest ?? "/dashboard") as string });
       } catch (err: any) {
-        throw err;
+        setSubmitError(err?.message || t("auth:login.failed"));
+        // Toast always uses the localized credential hint so it reads in the
+        // user's language regardless of the raw (possibly English) server text.
+        toastError(t("auth:login.failed"));
       }
     },
   });
@@ -163,10 +175,10 @@ function Login() {
             />
 
             <form.Subscribe
-              selector={(state) => [state.canSubmit, state.isSubmitting, state.errors]}
-              children={([canSubmit, isSubmitting, errors]: any) => (
+              selector={(state) => [state.canSubmit, state.isSubmitting]}
+              children={([canSubmit, isSubmitting]: any) => (
                 <>
-                  {(errors as any[])?.length > 0 && <FormAlert>{String((errors as any)[0])}</FormAlert>}
+                  {submitError && <FormAlert>{submitError}</FormAlert>}
                   <Button type="submit" fullWidth disabled={!canSubmit} loading={isSubmitting}>
                     {isSubmitting ? t("auth:login.submitting") : t("auth:login.submit")}
                     {!isSubmitting && <ArrowRight className="w-4 h-4" />}

@@ -4,6 +4,8 @@ export const createTicketSchema = z.object({
   subject: z.string().min(1).max(1024),
   initialMessage: z.string().min(1),
   priority: z.enum(["low", "medium", "high", "critical"]).default("medium"),
+  departmentId: z.string().uuid().optional().nullable(),
+  assigneeId: z.string().uuid().optional().nullable(),
 });
 
 export const updateTicketStatusSchema = z.object({
@@ -35,7 +37,7 @@ export const updateTicketSchema = z
     departmentId: z.string().uuid().nullable().optional(),
   })
   .refine((d) => d.subject !== undefined || d.departmentId !== undefined, {
-    message: "At least one field must be provided",
+    message: "validation.atLeastOneField",
   });
 
 export const TICKET_LINK_TYPES = ["RELATES_TO", "BLOCKS", "DUPLICATE_OF", "MERGED_INTO"] as const;
@@ -60,7 +62,7 @@ export type LinkTicketInput = z.infer<typeof linkTicketSchema>;
 export type AddTagInput = z.infer<typeof addTagSchema>;
 
 export const addCcSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.string().email("validation.email"),
 });
 
 export type AddCcInput = z.infer<typeof addCcSchema>;

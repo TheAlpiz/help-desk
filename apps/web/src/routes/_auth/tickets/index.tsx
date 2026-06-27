@@ -180,11 +180,31 @@ function CreateTicketModal({ onClose }: { onClose: () => void }) {
 
   const selectedMacro = macros.find((m) => m.id === selectedMacroId);
 
+  // Directory data for the assignee / department selects (id-valued).
+  const { data: agents = [] } = useQuery({
+    queryKey: ["users", "list"],
+    queryFn: async () => {
+      const res = await api.users.index.$get();
+      const json = (await res.json().catch(() => null)) as any;
+      return (json?.data ?? []) as Array<{ id: string; firstName: string; lastName: string; email: string }>;
+    },
+  });
+  const { data: departments = [] } = useQuery({
+    queryKey: ["departments"],
+    queryFn: async () => {
+      const res = await api.departments.index.$get();
+      const json = (await res.json().catch(() => null)) as any;
+      return (json?.data ?? []) as Array<{ id: string; name: string }>;
+    },
+  });
+
   const form = useForm({
     defaultValues: {
       subject: "",
       initialMessage: "",
       priority: "medium" as "low" | "medium" | "high" | "critical",
+      departmentId: undefined as string | undefined,
+      assigneeId: undefined as string | undefined,
     },
     validators: { onChange: createTicketSchema as any },
     onSubmit: async ({ value }) => {
@@ -192,7 +212,7 @@ function CreateTicketModal({ onClose }: { onClose: () => void }) {
       try {
         const res = await api.tickets.index.$post({ json: value });
         if (!res.ok) {
-          const body = (await res.json()) as any;
+          const body = (await res.json().catch(() => null)) as any;
           setError(
             body?.error?.message ||
               body?.message ||
@@ -200,7 +220,7 @@ function CreateTicketModal({ onClose }: { onClose: () => void }) {
           );
           return;
         }
-        const created = (await res.json()) as any;
+        const created = (await res.json().catch(() => null)) as any;
         const newTicketId = created?.data?.id ?? created?.id;
 
         if (selectedMacroId && newTicketId) {
@@ -347,6 +367,52 @@ function CreateTicketModal({ onClose }: { onClose: () => void }) {
               </div>
             )}
           />
+
+          <div className="grid grid-cols-2 gap-3">
+            <form.Field
+              name="departmentId"
+              children={(field) => (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-medium text-on-surface">
+                    {t("modal.departmentLabel")}
+                  </label>
+                  <select
+                    className={selectCls}
+                    value={field.state.value ?? ""}
+                    onChange={(e) => field.handleChange(e.target.value || undefined)}
+                  >
+                    <option value="">{t("modal.noDepartment")}</option>
+                    {departments.map((d) => (
+                      <option key={d.id} value={d.id}>{d.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            />
+
+            <form.Field
+              name="assigneeId"
+              children={(field) => (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-medium text-on-surface">
+                    {t("modal.assigneeLabel")}
+                  </label>
+                  <select
+                    className={selectCls}
+                    value={field.state.value ?? ""}
+                    onChange={(e) => field.handleChange(e.target.value || undefined)}
+                  >
+                    <option value="">{t("modal.unassigned")}</option>
+                    {agents.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {[a.firstName, a.lastName].filter(Boolean).join(" ") || a.email}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            />
+          </div>
 
           {/* Macro picker */}
           <div className="border border-outline-variant rounded-lg overflow-hidden">

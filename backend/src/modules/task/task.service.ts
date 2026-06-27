@@ -9,7 +9,9 @@ import { CreateTaskInput, AddTaskCommentInput, UpdateTaskInput } from "@help-des
 
 // ABAC: a task may only be managed (status / edit / delete) by its assignee.
 // Unassigned tasks stay open so they can be picked up; commenting is never gated.
-function assertCanManage(t: { assigneeId: string | null }, actorId: string) {
+// Admins bypass this check.
+function assertCanManage(t: { assigneeId: string | null }, actorId: string, globalRole?: string) {
+  if (globalRole === "SUPER_ADMIN" || globalRole === "ADMIN") return;
   if (t.assigneeId && t.assigneeId !== actorId) {
     throw new Error("Only the task assignee can manage this task.");
   }
@@ -68,6 +70,7 @@ export const TaskService = {
         ticketId: input.ticketId || null,
         parentTaskId: input.parentTaskId || null,
         dueDate: input.dueDate ? new Date(input.dueDate) : null,
+        assigneeId: input.assigneeId || null,
       } as any).returning();
 
       await tx.insert(auditLog).values({
@@ -80,14 +83,21 @@ export const TaskService = {
       });
 
       return newTask[0];
+    }).then((created) => {
+      // Notify the up-front assignee (skip self-assignment).
+      if (created.assigneeId && created.assigneeId !== actorId) {
+        emitEvent("task.assigned", { taskId: created.id, assigneeId: created.assigneeId, actorId, organizationId: tenantId });
+      }
+      return created;
     });
   },
 
-  updateStatus: async (tenantId: string, taskId: string, actorId: string, newStatus: string) => {
+  updateStatus: async (tenantId: string, taskId: string, actorId: string, newStatus: string, globalRole?: string) => {
     return await withTenantTransaction(tenantId, async (tx) => {
       const t = await tx.select().from(task).where(and(eq(task.id, taskId), eq(task.organizationId, tenantId))).limit(1);
       if (!t[0]) throw new Error("Task not found");
-      assertCanManage(t[0], actorId);
+      
+      assertCanManage(t[0], actorId, globalRole);
 
       // Subtask Rollup Validation
       if (newStatus === "DONE") {
@@ -205,12 +215,12 @@ export const TaskService = {
     });
   },
 
-  updateTask: async (tenantId: string, taskId: string, actorId: string, input: UpdateTaskInput) => {
+  updateTask: async (tenantId: string, taskId: string, actorId: string, input: UpdateTaskInput, globalRole?: string) => {
     return await withTenantTransaction(tenantId, async (tx) => {
       const current = await tx.select().from(task).where(and(eq(task.id, taskId), eq(task.organizationId, tenantId))).limit(1);
       const t = current[0];
       if (!t) throw new Error("Task not found");
-      assertCanManage(t, actorId);
+      assertCanManage(t, actorId, globalRole);
 
       if (input.parentTaskId === taskId) throw new Error("A task cannot be its own parent");
 
@@ -245,12 +255,11 @@ export const TaskService = {
     });
   },
 
-  deleteTask: async (tenantId: string, taskId: string, actorId: string) => {
+  deleteTask: async (tenantId: string, taskId: string, actorId: string, globalRole?: string) => {
     return await withTenantTransaction(tenantId, async (tx) => {
-      const current = await tx.select().from(task).where(and(eq(task.id, taskId), eq(task.organizationId, tenantId))).limit(1);
-      const t = current[0];
-      if (!t) throw new Error("Task not found");
-      assertCanManage(t, actorId);
+      const t = await tx.select().from(task).where(and(eq(task.id, taskId), eq(task.organizationId, tenantId))).limit(1);
+      if (!t[0]) throw new Error("Task not found");
+      assertCanManage(t[0], actorId, globalRole);
 
       // Subtasks and comments cascade via FK onDelete.
       await tx.delete(task).where(eq(task.id, taskId));

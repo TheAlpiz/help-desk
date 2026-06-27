@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAppStore } from "@/store";
 import { useToast } from "@/components/Toast";
+import { notifTitle } from "./notificationText";
 import { RealtimeClient, type RealtimeEvent } from "./ws";
 import { api } from "./api";
 
@@ -52,7 +53,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         case "notification":
           qc.invalidateQueries({ queryKey: ["notifications", "unread"] });
           qc.invalidateQueries({ queryKey: ["notifications"] });
-          info(e.payload.title);
+          info(notifTitle(e.payload));
           if (useAppStore.getState().notificationSound) {
             playNotificationSound();
           }

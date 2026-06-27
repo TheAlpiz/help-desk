@@ -13,8 +13,12 @@
     "actor": "Actor",
     "action": "Action",
     "entity": "Entity",
-    "entityId": "Entity ID"
+    "entityId": "Entity ID",
+    "details": "Details"
   },
-  "system": "system",
+  "system": "System",
+  "noChanges": "—",
+  "created": "Created",
+  "deleted": "Deleted",
   "pagination": "Page {{page}} of {{total}}"
 }

@@ -19,6 +19,11 @@ import type {
   SaveSignatureVersionDTO,
 } from "@help-desk/shared";
 
+// App-global auth emails (password reset, verification, welcome) are owned by the
+// platform and sent via the hardcoded templates in lib/email-templates.ts. They
+// must not be authored or visible per-organization.
+export const RESERVED_GLOBAL_TEMPLATE_TYPES = ["password_reset", "email_verification", "welcome", "org_invitation"];
+
 export class EmailService {
   async getBranding(organizationId: string) {
     const results = await db
@@ -53,13 +58,18 @@ export class EmailService {
   }
 
   async listTemplates(organizationId: string) {
-    return await db
+    const rows = await db
       .select()
       .from(emailTemplate)
       .where(eq(emailTemplate.organizationId, organizationId));
+    // Hide reserved app-global types in case any legacy rows exist.
+    return rows.filter((t) => !RESERVED_GLOBAL_TEMPLATE_TYPES.includes(t.templateType));
   }
 
   async createTemplate(organizationId: string, templateType: string, name: string) {
+    if (RESERVED_GLOBAL_TEMPLATE_TYPES.includes(templateType)) {
+      throw new Error("This template type is managed globally and cannot be edited per organization");
+    }
     const [template] = await db
       .insert(emailTemplate)
       .values({ organizationId, templateType, name })

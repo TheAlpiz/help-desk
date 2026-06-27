@@ -26,9 +26,10 @@ function VerifyEmail() {
     (async () => {
       try {
         const res = await api.auths["verify-email"].$post({ json: { token } });
-        const data = (await res.json()) as any;
+        // Defensive parse: a server error (e.g. 502) returns no JSON body.
+        const data = (await res.json().catch(() => null)) as any;
         if (cancelled) return;
-        if (!res.ok) throw new Error(data?.error?.message || "Verification failed");
+        if (!res.ok || !data) throw new Error(data?.error?.message || "Verification failed");
         setState("success");
       } catch (err: any) {
         if (cancelled) return;

@@ -29,6 +29,102 @@
     "send_reply": "Send reply",
     "add_note": "Add internal note"
   },
+  "triggerLabels": {
+    "ticket_created": "Ticket is created",
+    "ticket_updated": "Ticket is updated",
+    "ticket_assigned": "Ticket is assigned",
+    "reply_received": "Reply is received",
+    "sla_breached": "SLA is breached",
+    "tag_added": "Tag is added"
+  },
+  "conditionFields": {
+    "status": "Status",
+    "priority": "Priority",
+    "tag": "Tag",
+    "assignee": "Assignee",
+    "department": "Department",
+    "subject_contains": "Subject",
+    "source": "Source",
+    "requester_email": "Requester email",
+    "has_attachment": "Has attachment",
+    "ticket_age_hours": "Ticket age (hours)",
+    "body": "Message body"
+  },
+  "operators": {
+    "equals": "equals",
+    "not_equals": "does not equal",
+    "contains": "contains",
+    "not_contains": "does not contain",
+    "is_empty": "is empty",
+    "is_not_empty": "is not empty",
+    "starts_with": "starts with",
+    "ends_with": "ends with",
+    "greater_than": "greater than",
+    "less_than": "less than",
+    "matches_regex": "matches regex",
+    "not_matches_regex": "does not match regex"
+  },
+  "actionLabels": {
+    "set_status": "Set status to",
+    "set_priority": "Set priority to",
+    "assign_to": "Assign to agent",
+    "set_department": "Assign to department",
+    "add_tag": "Add tag",
+    "remove_tag": "Remove tag",
+    "send_email": "Send email",
+    "add_note": "Add internal note",
+    "create_task": "Create task (title)",
+    "notify": "Notify user",
+    "webhook": "Call webhook (URL)",
+    "resolve_ticket": "Resolve ticket",
+    "close_ticket": "Close ticket",
+    "set_due_date": "Set due date"
+  },
+  "taskPriority": {
+    "LOW": "Low",
+    "MEDIUM": "Medium",
+    "HIGH": "High",
+    "URGENT": "Urgent"
+  },
+  "placeholders": {
+    "taskTitle": "task title",
+    "emailBody": "email body (HTML)",
+    "message": "message",
+    "webhook": "https://…",
+    "note": "note text",
+    "value": "value",
+    "subject": "subject (optional)",
+    "dueDays": "due (days)"
+  },
+  "ui": {
+    "when": "When",
+    "allMatch": "all match",
+    "matchAll": "Match ALL",
+    "matchAny": "Match ANY",
+    "matchAllHint": "All conditions must be true (AND)",
+    "matchAnyHint": "Any condition can be true (OR)",
+    "and": "AND",
+    "or": "OR",
+    "addCondition": "+ Add condition",
+    "addAction": "+ Add action",
+    "noConditions": "No conditions — rule runs on every trigger",
+    "noActions": "No actions configured — add at least one",
+    "runs_one": "{{count}} run",
+    "runs_other": "{{count}} runs",
+    "saveAll": "Save all",
+    "saving": "Saving…",
+    "loading": "Loading…",
+    "totalRules": "Total rules",
+    "inactive": "Inactive",
+    "subtitle_one": "{{count}} active rule · Runs automatically on ticket events",
+    "subtitle_other": "{{count}} active rules · Runs automatically on ticket events",
+    "copySuffix": "copy"
+  },
+  "toasts": {
+    "ruleCreated": "Rule created",
+    "ruleDeleted": "Rule deleted",
+    "allSaved": "All rules saved"
+  },
   "empty": {
     "title": "No automations",
     "subtitle": "Automate repetitive tasks to save time."

@@ -472,13 +472,20 @@ function TestConnectionButton({ mailboxId }: { mailboxId: string }) {
     setTesting(true);
     try {
       const res = await api.mailboxes[":id"].test.$post({ param: { id: mailboxId } });
-      if (res.ok) {
-        success("Connection successful");
+      // The endpoint returns HTTP 200 even when the connection itself fails — the
+      // real result lives in the body (`data.success`). Checking `res.ok` alone
+      // always reported success.
+      const body = (await res.json().catch(() => null)) as
+        | { data?: { success?: boolean; message?: string } }
+        | null;
+      const result = body?.data;
+      if (res.ok && result?.success) {
+        success(t("testToast.success"));
       } else {
-        toastError("Connection failed — check IMAP/SMTP credentials");
+        toastError(result?.message || t("testToast.failed"));
       }
     } catch {
-      toastError("Connection test failed");
+      toastError(t("testToast.error"));
     } finally {
       setTesting(false);
     }
@@ -497,6 +504,7 @@ function TestConnectionButton({ mailboxId }: { mailboxId: string }) {
 }
 
 function ToggleActiveButton({ mailbox }: { mailbox: Mailbox }) {
+  const { t } = useTranslation("mailboxes");
   const { success, error: toastError } = useToast();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
@@ -509,13 +517,13 @@ function ToggleActiveButton({ mailbox }: { mailbox: Mailbox }) {
         json: { isActive: !mailbox.isActive } as any,
       });
       if (res.ok) {
-        success(mailbox.isActive ? "Mailbox deactivated" : "Mailbox activated");
+        success(mailbox.isActive ? t("toggleToast.deactivated") : t("toggleToast.activated"));
         queryClient.invalidateQueries({ queryKey: ["mailboxes"] });
       } else {
-        toastError("Failed to update mailbox");
+        toastError(t("toggleToast.failed"));
       }
     } catch {
-      toastError("Failed to update mailbox");
+      toastError(t("toggleToast.failed"));
     } finally {
       setBusy(false);
     }

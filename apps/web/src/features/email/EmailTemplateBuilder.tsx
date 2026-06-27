@@ -9,6 +9,7 @@ import {
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Eye, EyeOff, Send, Save } from "lucide-react";
 import { useEmailBuilderStore, BlockType } from "./store";
 import { SidebarTools } from "./builder/SidebarTools";
@@ -17,28 +18,27 @@ import { PropertiesPanel } from "./builder/PropertiesPanel";
 import { renderBlocksToHtml } from "./renderBlocksToHtml";
 import { authFetch } from "@/lib/api";
 
+// `soon: true` → not yet wired to a send trigger; shown disabled as "Coming Soon".
+// Active types are dispatched by the backend email-template listener. Labels are
+// resolved via i18n (`builder.types.<value>`).
 const TEMPLATE_TYPES = [
-  { value: "ticket_created", label: "Ticket Created" },
-  { value: "ticket_updated", label: "Ticket Updated" },
-  { value: "agent_replied", label: "Agent Replied" },
-  { value: "customer_replied", label: "Customer Replied" },
-  { value: "ticket_assigned", label: "Ticket Assigned" },
-  { value: "ticket_reassigned", label: "Ticket Reassigned" },
-  { value: "ticket_closed", label: "Ticket Closed" },
-  { value: "ticket_reopened", label: "Ticket Reopened" },
-  { value: "sla_warning", label: "SLA Warning" },
-  { value: "sla_breach", label: "SLA Breach" },
-  { value: "internal_note", label: "Internal Note Notification" },
-  { value: "mention", label: "Mention Notification" },
-  { value: "password_reset", label: "Password Reset" },
-  { value: "email_verification", label: "Email Verification" },
-  { value: "welcome", label: "Welcome Email" },
-  { value: "agent_invitation", label: "Agent Invitation" },
-  { value: "org_invitation", label: "Organization Invitation" },
-  { value: "account_deactivated", label: "Account Deactivated" },
-  { value: "account_reactivated", label: "Account Reactivated" },
-  { value: "csat_survey", label: "CSAT Survey Request" },
-  { value: "satisfaction_followup", label: "Ticket Satisfaction Follow-up" },
+  { value: "ticket_created" },
+  { value: "ticket_assigned" },
+  { value: "ticket_closed" },
+  { value: "ticket_reopened" },
+  { value: "agent_replied" },
+  { value: "ticket_updated", soon: true },
+  { value: "customer_replied", soon: true },
+  { value: "ticket_reassigned", soon: true },
+  { value: "sla_warning", soon: true },
+  { value: "sla_breach", soon: true },
+  { value: "internal_note", soon: true },
+  { value: "mention", soon: true },
+  { value: "agent_invitation", soon: true },
+  { value: "account_deactivated", soon: true },
+  { value: "account_reactivated", soon: true },
+  { value: "csat_survey", soon: true },
+  { value: "satisfaction_followup", soon: true },
 ] as const;
 
 interface Props {
@@ -56,6 +56,7 @@ interface Props {
 export function EmailTemplateBuilder({ templateId, templateType, onSave }: Props) {
   const { blocks, addBlock, reorderBlocks, globalStyles, setBlocks, setGlobalStyles } =
     useEmailBuilderStore();
+  const { t } = useTranslation("emailTemplates");
 
   const [activeToolType, setActiveToolType] = useState<BlockType | null>(null);
   const [subject, setSubject] = useState("{{ticket_subject}} — Your request (Ticket #{{ticket_id}})");
@@ -137,7 +138,7 @@ export function EmailTemplateBuilder({ templateId, templateType, onSave }: Props
   };
 
   if (isLoading) {
-    return <div className="p-8 flex justify-center text-sm text-on-surface-variant">Loading...</div>;
+    return <div className="p-8 flex justify-center text-sm text-on-surface-variant">{t("builder.loading")}</div>;
   }
 
   return (
@@ -149,11 +150,14 @@ export function EmailTemplateBuilder({ templateId, templateType, onSave }: Props
           onChange={(e) => setSelectedType(e.target.value)}
           className="px-3 py-1.5 bg-surface-container border border-outline-variant rounded-lg text-sm text-on-surface"
         >
-          {TEMPLATE_TYPES.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
-            </option>
-          ))}
+          {TEMPLATE_TYPES.map((tt) => {
+            const soon = "soon" in tt && tt.soon;
+            return (
+              <option key={tt.value} value={tt.value} disabled={soon}>
+                {t(`builder.types.${tt.value}`)}{soon ? ` (${t("builder.comingSoon")})` : ""}
+              </option>
+            );
+          })}
         </select>
 
         <div className="flex-1 min-w-0">
@@ -161,7 +165,7 @@ export function EmailTemplateBuilder({ templateId, templateType, onSave }: Props
             type="text"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
-            placeholder="Subject line..."
+            placeholder={t("builder.subjectPlaceholder")}
             className="w-full px-3 py-1.5 bg-surface-container border border-outline-variant rounded-lg text-sm"
           />
         </div>
@@ -172,7 +176,7 @@ export function EmailTemplateBuilder({ templateId, templateType, onSave }: Props
             className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container border border-outline-variant rounded-lg text-sm text-on-surface hover:bg-surface-container-high transition-colors"
           >
             {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            {showPreview ? "Edit" : "Preview"}
+            {showPreview ? t("builder.edit") : t("builder.preview")}
           </button>
           <button
             onClick={() => handleSave("DRAFT")}
@@ -180,7 +184,7 @@ export function EmailTemplateBuilder({ templateId, templateType, onSave }: Props
             className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container border border-outline-variant rounded-lg text-sm text-on-surface hover:bg-surface-container-high transition-colors disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
-            Draft
+            {t("builder.draft")}
           </button>
           <button
             onClick={() => handleSave("PUBLISHED")}
@@ -188,7 +192,7 @@ export function EmailTemplateBuilder({ templateId, templateType, onSave }: Props
             className="flex items-center gap-1.5 px-4 py-1.5 bg-primary text-on-primary rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
             <Send className="w-4 h-4" />
-            Publish
+            {t("builder.publish")}
           </button>
         </div>
       </div>
@@ -199,7 +203,7 @@ export function EmailTemplateBuilder({ templateId, templateType, onSave }: Props
           type="text"
           value={previewText}
           onChange={(e) => setPreviewText(e.target.value)}
-          placeholder="Preview text (shown in email client inbox)..."
+          placeholder={t("builder.previewTextPlaceholder")}
           className="w-full px-3 py-1.5 bg-surface border border-outline-variant rounded-lg text-sm text-on-surface-variant"
         />
       </div>
@@ -215,11 +219,11 @@ export function EmailTemplateBuilder({ templateId, templateType, onSave }: Props
             onDragEnd={handleDragEnd}
           >
             <SidebarTools showVariables />
-            <BuilderCanvas placeholder="Drag blocks here to build your email template" />
+            <BuilderCanvas placeholder={t("builder.canvasPlaceholder")} />
             <DragOverlay>
               {activeToolType ? (
                 <div className="px-4 py-2 bg-primary text-on-primary rounded shadow-lg text-sm">
-                  Drop to add {activeToolType}
+                  {t("builder.dropToAdd", { type: t(`builder.blocks.${activeToolType}`, { defaultValue: activeToolType }) })}
                 </div>
               ) : null}
             </DragOverlay>

@@ -21,5 +21,14 @@
   "createGroup": "Grup oluştur",
   "creating": "Oluşturuluyor…",
   "members": "üye",
-  "attach": "Dosya ekle"
+  "attach": "Dosya ekle",
+  "sendHint": "Göndermek için Enter · Yeni satır için Shift+Enter",
+  "errorUpload": "Ek yüklenemedi",
+  "groupDetails": "Grup Detayları",
+  "adminRole": " (Yönetici)",
+  "remove": "Çıkar",
+  "addMembers": "Üye Ekle",
+  "add": "Ekle",
+  "leaveGroup": "Gruptan Ayrıl",
+  "leaving": "Ayrılıyor..."
 }

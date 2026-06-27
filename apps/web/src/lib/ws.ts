@@ -1,6 +1,6 @@
 export type RealtimeEvent =
   | { type: "connected" }
-  | { type: "notification"; payload: { id?: string; title: string; body?: string; actionUrl?: string } }
+  | { type: "notification"; payload: { id?: string; type?: string; title: string; body?: string; actionUrl?: string } }
   | { type: "ticket.created"; payload: { ticketId: string } }
   | { type: "ticket.updated"; payload: { ticketId: string } }
   | { type: "ticket.assigned"; payload: { ticketId: string; assigneeId: string } }

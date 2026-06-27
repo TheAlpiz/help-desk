@@ -6,7 +6,7 @@ import { selectAssigneeWithinTx } from "../ticket/assignment.service";
 import { ticketTag } from "../ticket/ticket-tag.schema";
 import { ticketMessage } from "../ticket/ticket-message.schema";
 import { task } from "../task/task.schema";
-import { auditLog } from "../audit-log/audit-log.schema";
+import { auditLog, SYSTEM_ACTOR_ID } from "../audit-log/audit-log.schema";
 import { user } from "../user/user.schema";
 import { contact } from "../contact/contact.schema";
 import { attachment } from "../attachment/attachment.schema";
@@ -209,8 +209,8 @@ export const AutomationService = {
 
                 if (currentTicket[0].assigneeId !== assigneeId) {
                   await tx.update(ticket).set({ assigneeId, status: "assigned" }).where(eq(ticket.id, ticketId));
-                  emitEvent("ticket.assigned", { ticketId, assigneeId, actorId: "system", organizationId: tenantId });
-                  await tx.insert(auditLog).values({ organizationId: tenantId, entityType: "ticket", entityId: ticketId, actorId: "system", action: "assigned", oldValues: { assigneeId: currentTicket[0].assigneeId }, newValues: { assigneeId, viaAutomation: rule.id } });
+                  emitEvent("ticket.assigned", { ticketId, assigneeId, actorId: SYSTEM_ACTOR_ID, organizationId: tenantId });
+                  await tx.insert(auditLog).values({ organizationId: tenantId, entityType: "ticket", entityId: ticketId, actorId: SYSTEM_ACTOR_ID, action: "assigned", oldValues: { assigneeId: currentTicket[0].assigneeId }, newValues: { assigneeId, viaAutomation: rule.id } });
                 }
                 
                 break;
@@ -296,7 +296,7 @@ export const AutomationService = {
                   priority,
                   dueDate,
                 }).returning();
-                await tx.insert(auditLog).values({ organizationId: tenantId, entityType: "task", entityId: createdTask.id, actorId: actorId ?? "system", action: "created", newValues: { title: createdTask.title, assigneeId, priority, dueDate, viaAutomation: rule.id } });
+                await tx.insert(auditLog).values({ organizationId: tenantId, entityType: "task", entityId: createdTask.id, actorId: actorId ?? SYSTEM_ACTOR_ID, action: "created", newValues: { title: createdTask.title, assigneeId, priority, dueDate, viaAutomation: rule.id } });
                 break;
               }
               case "send_email": {
@@ -390,7 +390,7 @@ export const AutomationService = {
         }
 
         await tx.update(automation).set({ runCount: (rule.runCount ?? 0) + 1 }).where(eq(automation.id, rule.id));
-        await tx.insert(auditLog).values({ organizationId: tenantId, entityType: "ticket", entityId: ticketId, actorId: actorId ?? "system", action: "automation_fired", newValues: { automationId: rule.id, automationName: rule.name } });
+        await tx.insert(auditLog).values({ organizationId: tenantId, entityType: "ticket", entityId: ticketId, actorId: actorId ?? SYSTEM_ACTOR_ID, action: "automation_fired", newValues: { automationId: rule.id, automationName: rule.name } });
       }
     });
 

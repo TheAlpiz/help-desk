@@ -1,6 +1,7 @@
 import { eq, and, or, desc, gte, lte, ilike } from "drizzle-orm";
 import { withTenantTransaction, withSuperAdminTransaction } from "../../infra/db/index";
 import { auditLog, NewAuditLog } from "./audit-log.schema";
+import { user } from "../user/user.schema";
 import { GetAuditLogsQueryInput } from "@help-desk/shared";
 import { sql } from "drizzle-orm";
 
@@ -29,9 +30,26 @@ export const AuditLogService = {
         .from(auditLog)
         .where(and(...conditions));
 
+      // Resolve the actor to a real user. actorId is a varchar (UUID or 'SYSTEM'),
+      // so join against user.id cast to text — 'SYSTEM'/null simply yields no match.
       const data = await tx
-        .select()
+        .select({
+          id: auditLog.id,
+          entityType: auditLog.entityType,
+          entityId: auditLog.entityId,
+          actorId: auditLog.actorId,
+          action: auditLog.action,
+          oldValues: auditLog.oldValues,
+          newValues: auditLog.newValues,
+          ipAddress: auditLog.ipAddress,
+          userAgent: auditLog.userAgent,
+          createdAt: auditLog.createdAt,
+          actorFirstName: user.firstName,
+          actorLastName: user.lastName,
+          actorEmail: user.email,
+        })
         .from(auditLog)
+        .leftJoin(user, eq(sql`${user.id}::text`, auditLog.actorId))
         .where(and(...conditions))
         .orderBy(desc(auditLog.createdAt))
         .limit(filters.limit)

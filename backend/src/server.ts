@@ -24,6 +24,7 @@ import { AttachmentArchivalWorker } from "./workers/attachment-archival.worker";
 import { ReminderWorker } from "./workers/reminder.worker";
 import { NotificationService } from "./modules/notification/notification.service";
 import { initAutomationListeners } from "./workers/automation.listener";
+import { initEmailTemplateListeners } from "./workers/email-template.listener";
 import { Queue } from "bullmq";
 import { setupDatabaseTriggers } from "./infra/db/setup-triggers";
 import { setupRowLevelSecurity } from "./infra/db/rls";
@@ -94,6 +95,9 @@ NotificationService.initListeners();
 
 // Initialize Automation Event Listeners
 initAutomationListeners();
+
+// Initialize event-driven email template dispatch (ticket_created, ticket_closed)
+initEmailTemplateListeners();
 
 // Initialize Archival Workers (Cron)
 new AuditArchivalWorker({

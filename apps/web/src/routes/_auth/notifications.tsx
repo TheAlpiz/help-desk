@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Bell, CheckCheck, Filter } from "lucide-react";
 import { useAppStore } from "@/store";
 import { useTranslation } from "react-i18next";
+import { notifTitle, notifBody, notifTypeLabel } from "@/lib/notificationText";
 
 export const Route = createFileRoute("/_auth/notifications")({
   component: NotificationsList,
@@ -17,7 +18,8 @@ function NotificationsList() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { accessToken, tenantId } = useAppStore();
-  const [filterKey, setFilterKey] = useState<FilterKey>("all");
+  // Default to "unread" so users land on what still needs attention.
+  const [filterKey, setFilterKey] = useState<FilterKey>("unread");
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
   const FILTER_OPTIONS: { key: FilterKey; label: string }[] = [
@@ -26,16 +28,9 @@ function NotificationsList() {
     { key: "read", label: t("filter.read") },
   ];
 
-  const TYPE_LABELS: Record<string, string> = {
-    ticket_assigned: t("types.ticket_assigned"),
-    ticket_reply: t("types.ticket_reply"),
-    ticket_closed: t("types.ticket_closed"),
-    sla_breach: t("types.sla_breach"),
-    sla_escalation: t("types.sla_escalation", "SLA Escalation"),
-    mention: t("types.mention"),
-    task_assigned: t("types.task_assigned"),
-    system: t("types.system"),
-  };
+  // Notification title/body localization lives in @/lib/notificationText so the
+  // page, header bell, and realtime toasts all share one mapping.
+  const typeLabel = notifTypeLabel;
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["notifications"],
@@ -132,11 +127,11 @@ function NotificationsList() {
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
               className="px-2.5 py-1 text-xs bg-surface-container-high border border-outline-variant rounded-lg text-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary/50 transition-colors"
-              aria-label="Filter by type"
+              aria-label={t("filter.allTypes")}
             >
               <option value="all">{t("filter.allTypes")}</option>
               {types.map((type: any) => (
-                <option key={type} value={type}>{TYPE_LABELS[type] ?? type}</option>
+                <option key={type} value={type}>{typeLabel(type)}</option>
               ))}
             </select>
           </>
@@ -151,7 +146,7 @@ function NotificationsList() {
             ))}
           </div>
         ) : error ? (
-          <div className="p-8 text-center text-error text-sm">Failed to load notifications.</div>
+          <div className="p-8 text-center text-error text-sm">{t("loadFailed")}</div>
         ) : notifications.length === 0 ? (
           <div className="p-16 text-center">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
@@ -187,11 +182,11 @@ function NotificationsList() {
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <p className="text-sm font-medium text-on-surface truncate">
-                        {n.title ?? TYPE_LABELS[n.type] ?? n.type ?? t("types.notification")}
+                        {notifTitle(n)}
                       </p>
                       {n.type && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-on-surface-variant/50 border border-white/10 shrink-0">
-                          {TYPE_LABELS[n.type] ?? n.type}
+                          {typeLabel(n.type)}
                         </span>
                       )}
                     </div>
@@ -200,7 +195,7 @@ function NotificationsList() {
                     </span>
                   </div>
                   <p className="text-xs text-on-surface-variant mt-0.5 leading-relaxed">
-                    {n.body ?? n.message ?? n.payload?.message ?? ""}
+                    {notifBody(n)}
                   </p>
                 </div>
               </div>

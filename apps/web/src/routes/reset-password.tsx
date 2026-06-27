@@ -30,12 +30,13 @@ function ResetPassword() {
         const res = await api.auths["reset-password"].$post({
           json: { token, password: value.password },
         });
-        const data = (await res.json()) as any;
-        if (!res.ok) throw new Error(data?.error?.message || "Reset failed");
+        // Defensive parse: a server error (e.g. 502) returns no JSON body.
+        const data = (await res.json().catch(() => null)) as any;
+        if (!res.ok || !data) throw new Error(data?.error?.message || t("resetPassword.failed"));
         setSuccess(true);
         setTimeout(() => navigate({ to: "/login" }), 3000);
       } catch (err: any) {
-        setSubmitError(err.message ?? "Something went wrong");
+        setSubmitError(err.message ?? t("resetPassword.failed"));
       }
     },
   });

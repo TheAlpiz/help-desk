@@ -3,6 +3,9 @@
     "name": "Alpis",
     "tagline": "Enterprise Service Desk"
   },
+  "yes": "Yes",
+  "no": "No",
+  "selectPlaceholder": "Select…",
   "actions": {
     "save": "Save",
     "cancel": "Cancel",
@@ -76,6 +79,27 @@
     "tooShort": "Must be at least {{min}} characters.",
     "tooLong": "Must be no more than {{max}} characters."
   },
+  "validation": {
+    "email": "Invalid email address",
+    "nameRequired": "Name is required",
+    "firstNameRequired": "First name is required",
+    "lastNameRequired": "Last name is required",
+    "roleRequired": "Role is required",
+    "passwordMin8": "Password must be at least 8 characters",
+    "orgNameMin": "Organization name must be at least 2 characters",
+    "domainRequired": "Domain is required",
+    "timeFormat": "Must be in HH:MM format",
+    "logoTooLarge": "Logo is too large",
+    "hexColor": "Must be a #rrggbb hex color",
+    "imapHostRequired": "IMAP host is required",
+    "smtpHostRequired": "SMTP host is required",
+    "atLeastOneField": "At least one field must be provided",
+    "atLeastOneAction": "At least one action is required",
+    "subjectRequired": "Subject is required",
+    "htmlBodyRequired": "HTML body is required",
+    "plainTextRequired": "Plain text body is required",
+    "htmlContentRequired": "HTML content is required"
+  },
   "empty": {
     "noData": "No data",
     "noResults": "No results found.",
@@ -131,7 +155,11 @@
     "noAttachments": "No attachments yet",
     "dropHint": "Drop files here or click to browse",
     "progressFailed": "failed",
-    "progressDone": "done"
+    "progressDone": "done",
+    "download": "Download",
+    "delete": "Delete",
+    "preview": "Preview",
+    "close": "Close"
   },
   "commandPalette": {
     "placeholder": "Search or jump to…",

@@ -75,14 +75,11 @@ interface AutomationRule {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const TRIGGER_LABELS: Record<TriggerType, string> = {
-  ticket_created: "Ticket is created",
-  ticket_updated: "Ticket is updated",
-  ticket_assigned: "Ticket is assigned",
-  reply_received: "Reply is received",
-  sla_breached: "SLA is breached",
-  tag_added: "Tag is added",
-};
+// Stable key order for the dropdowns. Visible labels are resolved at render via
+// i18n (`triggerLabels.*`, `conditionFields.*`, `operators.*`, `actionLabels.*`).
+const TRIGGER_KEYS: TriggerType[] = [
+  "ticket_created", "ticket_updated", "ticket_assigned", "reply_received", "sla_breached", "tag_added",
+];
 
 const TRIGGER_ICONS: Record<TriggerType, React.ReactNode> = {
   ticket_created: <Zap className="w-3.5 h-3.5" />,
@@ -93,51 +90,34 @@ const TRIGGER_ICONS: Record<TriggerType, React.ReactNode> = {
   tag_added: <Tag className="w-3.5 h-3.5" />,
 };
 
-const FIELD_LABELS: Record<ConditionField, string> = {
-  status: "Status",
-  priority: "Priority",
-  tag: "Tag",
-  assignee: "Assignee",
-  department: "Department",
-  subject_contains: "Subject",
-  source: "Source",
-  requester_email: "Requester email",
-  has_attachment: "Has attachment",
-  ticket_age_hours: "Ticket age (hours)",
-  body: "Message body",
-};
+const FIELD_KEYS: ConditionField[] = [
+  "status", "priority", "tag", "assignee", "department", "subject_contains",
+  "source", "requester_email", "has_attachment", "ticket_age_hours", "body",
+];
 
-const OPERATOR_LABELS: Record<ConditionOperator, string> = {
-  equals: "equals",
-  not_equals: "does not equal",
-  contains: "contains",
-  not_contains: "does not contain",
-  is_empty: "is empty",
-  is_not_empty: "is not empty",
-  starts_with: "starts with",
-  ends_with: "ends with",
-  greater_than: "greater than",
-  less_than: "less than",
-  matches_regex: "matches regex",
-  not_matches_regex: "does not match regex",
-};
+const OPERATOR_KEYS: ConditionOperator[] = [
+  "equals", "not_equals", "contains", "not_contains", "is_empty", "is_not_empty",
+  "starts_with", "ends_with", "greater_than", "less_than", "matches_regex", "not_matches_regex",
+];
 
-const ACTION_LABELS: Record<ActionType, { label: string; icon: React.ReactNode; hasValue: boolean }> = {
-  set_status: { label: "Set status to", icon: <Zap className="w-3 h-3" />, hasValue: true },
-  set_priority: { label: "Set priority to", icon: <AlertTriangle className="w-3 h-3" />, hasValue: true },
-  assign_to: { label: "Assign to agent", icon: <UserCheck className="w-3 h-3" />, hasValue: true },
-  set_department: { label: "Assign to department", icon: <Building2 className="w-3 h-3" />, hasValue: true },
-  add_tag: { label: "Add tag", icon: <Tag className="w-3 h-3" />, hasValue: true },
-  remove_tag: { label: "Remove tag", icon: <Tag className="w-3 h-3" />, hasValue: true },
-  send_email: { label: "Send email", icon: <Mail className="w-3 h-3" />, hasValue: true },
-  add_note: { label: "Add internal note", icon: <MessageSquare className="w-3 h-3" />, hasValue: true },
-  create_task: { label: "Create task (title)", icon: <ListChecks className="w-3 h-3" />, hasValue: true },
-  notify: { label: "Notify user", icon: <Bell className="w-3 h-3" />, hasValue: true },
-  webhook: { label: "Call webhook (URL)", icon: <Webhook className="w-3 h-3" />, hasValue: true },
-  resolve_ticket: { label: "Resolve ticket", icon: <CheckCircle className="w-3 h-3" />, hasValue: false },
-  close_ticket: { label: "Close ticket", icon: <XCircle className="w-3 h-3" />, hasValue: false },
-  set_due_date: { label: "Set due date", icon: <CalendarClock className="w-3 h-3" />, hasValue: false },
+// Per-action icon + whether it takes a value input. Label comes from i18n.
+const ACTION_META: Record<ActionType, { icon: React.ReactNode; hasValue: boolean }> = {
+  set_status: { icon: <Zap className="w-3 h-3" />, hasValue: true },
+  set_priority: { icon: <AlertTriangle className="w-3 h-3" />, hasValue: true },
+  assign_to: { icon: <UserCheck className="w-3 h-3" />, hasValue: true },
+  set_department: { icon: <Building2 className="w-3 h-3" />, hasValue: true },
+  add_tag: { icon: <Tag className="w-3 h-3" />, hasValue: true },
+  remove_tag: { icon: <Tag className="w-3 h-3" />, hasValue: true },
+  send_email: { icon: <Mail className="w-3 h-3" />, hasValue: true },
+  add_note: { icon: <MessageSquare className="w-3 h-3" />, hasValue: true },
+  create_task: { icon: <ListChecks className="w-3 h-3" />, hasValue: true },
+  notify: { icon: <Bell className="w-3 h-3" />, hasValue: true },
+  webhook: { icon: <Webhook className="w-3 h-3" />, hasValue: true },
+  resolve_ticket: { icon: <CheckCircle className="w-3 h-3" />, hasValue: false },
+  close_ticket: { icon: <XCircle className="w-3 h-3" />, hasValue: false },
+  set_due_date: { icon: <CalendarClock className="w-3 h-3" />, hasValue: false },
 };
+const ACTION_KEYS = Object.keys(ACTION_META) as ActionType[];
 
 function normalizeRule(r: any): AutomationRule {
   return {
@@ -186,6 +166,7 @@ function ConditionRow({
   onChange: (patch: Partial<Condition>) => void;
   onRemove: () => void;
 }) {
+  const { t } = useTranslation("automations");
   const needsValue = cond.operator !== "is_empty" && cond.operator !== "is_not_empty";
   return (
     <div className="flex items-center gap-2 flex-wrap">
@@ -194,10 +175,10 @@ function ConditionRow({
           value={cond.field}
           onChange={(e) => onChange({ field: e.target.value as ConditionField })}
           className={selectCls}
-          aria-label="Condition field"
+          aria-label={t("conditionFields.status")}
         >
-          {(Object.keys(FIELD_LABELS) as ConditionField[]).map((f) => (
-            <option key={f} value={f}>{FIELD_LABELS[f]}</option>
+          {FIELD_KEYS.map((f) => (
+            <option key={f} value={f}>{t(`conditionFields.${f}`)}</option>
           ))}
         </select>
         <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant/40 pointer-events-none" />
@@ -207,10 +188,10 @@ function ConditionRow({
           value={cond.operator}
           onChange={(e) => onChange({ operator: e.target.value as ConditionOperator })}
           className={selectCls}
-          aria-label="Condition operator"
+          aria-label={t("operators.equals")}
         >
-          {(Object.keys(OPERATOR_LABELS) as ConditionOperator[]).map((op) => (
-            <option key={op} value={op}>{OPERATOR_LABELS[op]}</option>
+          {OPERATOR_KEYS.map((op) => (
+            <option key={op} value={op}>{t(`operators.${op}`)}</option>
           ))}
         </select>
         <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant/40 pointer-events-none" />
@@ -245,7 +226,8 @@ function ActionRow({
   onChange: (patch: Partial<AutoAction>) => void;
   onRemove: () => void;
 }) {
-  const meta = ACTION_LABELS[action.type];
+  const { t } = useTranslation("automations");
+  const meta = ACTION_META[action.type];
   return (
     <div className="flex items-center gap-2 flex-wrap">
       <div className="flex items-center gap-1.5 text-on-surface-variant/60 shrink-0">
@@ -256,10 +238,10 @@ function ActionRow({
           value={action.type}
           onChange={(e) => onChange({ type: e.target.value as ActionType })}
           className={selectCls}
-          aria-label="Action type"
+          aria-label={t("fields.actions")}
         >
-          {(Object.keys(ACTION_LABELS) as ActionType[]).map((t) => (
-            <option key={t} value={t}>{ACTION_LABELS[t].label}</option>
+          {ACTION_KEYS.map((k) => (
+            <option key={k} value={k}>{t(`actionLabels.${k}`)}</option>
           ))}
         </select>
         <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant/40 pointer-events-none" />
@@ -273,12 +255,12 @@ function ActionRow({
           selectClassName={`${selectCls} w-36`}
           ariaLabel="Action value"
           placeholder={
-            action.type === "create_task" ? "task title"
-              : action.type === "send_email" ? "email body (HTML)"
-              : action.type === "notify" ? "message"
-              : action.type === "webhook" ? "https://…"
-              : action.type === "add_note" ? "note text"
-              : "value"
+            action.type === "create_task" ? t("placeholders.taskTitle")
+              : action.type === "send_email" ? t("placeholders.emailBody")
+              : action.type === "notify" ? t("placeholders.message")
+              : action.type === "webhook" ? t("placeholders.webhook")
+              : action.type === "add_note" ? t("placeholders.note")
+              : t("placeholders.value")
           }
         />
       )}
@@ -302,7 +284,7 @@ function ActionRow({
               aria-label="Task priority"
             >
               {(["LOW", "MEDIUM", "HIGH", "URGENT"] as TaskPriority[]).map((p) => (
-                <option key={p} value={p}>{p[0] + p.slice(1).toLowerCase()}</option>
+                <option key={p} value={p}>{t(`taskPriority.${p}`)}</option>
               ))}
             </select>
             <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant/40 pointer-events-none" />
@@ -315,9 +297,9 @@ function ActionRow({
             onChange={(e) =>
               onChange({ dueInDays: e.target.value === "" ? undefined : Number(e.target.value) })
             }
-            placeholder="due (days)"
+            placeholder={t("placeholders.dueDays")}
             className={`${inputCls} w-28`}
-            aria-label="Task due in days"
+            aria-label={t("placeholders.dueDays")}
           />
         </>
       )}
@@ -327,9 +309,9 @@ function ActionRow({
           <input
             value={action.subject ?? ""}
             onChange={(e) => onChange({ subject: e.target.value || undefined })}
-            placeholder="subject (optional)"
+            placeholder={t("placeholders.subject")}
             className={`${inputCls} w-40`}
-            aria-label="Email subject"
+            aria-label={t("placeholders.subject")}
           />
           {/* Recipient — defaults to the ticket requester; pick an agent to override */}
           <FieldValueInput
@@ -362,9 +344,9 @@ function ActionRow({
           max={365}
           value={action.dueInDays ?? ""}
           onChange={(e) => onChange({ dueInDays: e.target.value === "" ? undefined : Number(e.target.value) })}
-          placeholder="due (days)"
+          placeholder={t("placeholders.dueDays")}
           className={`${inputCls} w-28`}
-          aria-label="Due in days"
+          aria-label={t("placeholders.dueDays")}
         />
       )}
 
@@ -437,7 +419,7 @@ function RuleCard({
           aria-label={t("fields.name")}
         />
         {rule.runCount > 0 && (
-          <span className="text-[10px] text-on-surface-variant/40 font-mono">{rule.runCount} runs</span>
+          <span className="text-[10px] text-on-surface-variant/40 font-mono">{t("ui.runs", { count: rule.runCount })}</span>
         )}
         <button onClick={onDuplicate} aria-label="Duplicate rule" className="p-1 rounded text-on-surface-variant/40 hover:text-on-surface transition-colors">
           <Copy className="w-3.5 h-3.5" />
@@ -450,7 +432,7 @@ function RuleCard({
       <div className="p-4 space-y-4">
         {/* Trigger */}
         <div className="flex items-center gap-3">
-          <span className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide w-16 shrink-0">When</span>
+          <span className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide w-16 shrink-0">{t("ui.when")}</span>
           <div className="flex items-center gap-2">
             <span className={`inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg bg-primary/10 text-primary`}>
               {TRIGGER_ICONS[rule.trigger]}
@@ -462,8 +444,8 @@ function RuleCard({
                 className={`${selectCls} text-xs`}
                 aria-label={t("fields.trigger")}
               >
-                {(Object.keys(TRIGGER_LABELS) as TriggerType[]).map((trig) => (
-                  <option key={trig} value={trig}>{TRIGGER_LABELS[trig]}</option>
+                {TRIGGER_KEYS.map((trig) => (
+                  <option key={trig} value={trig}>{t(`triggerLabels.${trig}`)}</option>
                 ))}
               </select>
               <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant/40 pointer-events-none" />
@@ -474,24 +456,54 @@ function RuleCard({
         {/* Conditions */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide">{t("fields.conditions")} (all match)</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wide">{t("fields.conditions")}</span>
+              {/* AND/OR matcher — only meaningful with 2+ conditions */}
+              {rule.conditions.length > 1 && (
+                <div className="inline-flex rounded-md border border-outline-variant overflow-hidden" role="group" aria-label={t("fields.conditions")}>
+                  {(["all", "any"] as const).map((m) => {
+                    const selected = (rule.conditionMatch ?? "all") === m;
+                    return (
+                      <button
+                        key={m}
+                        onClick={() => onUpdate({ conditionMatch: m })}
+                        title={m === "all" ? t("ui.matchAllHint") : t("ui.matchAnyHint")}
+                        className={`px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition-colors ${
+                          selected
+                            ? "bg-primary/15 text-primary"
+                            : "text-on-surface-variant/50 hover:text-on-surface-variant"
+                        }`}
+                      >
+                        {m === "all" ? t("ui.matchAll") : t("ui.matchAny")}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
             <button
               onClick={addCondition}
               className="text-[11px] text-primary/70 hover:text-primary transition-colors"
             >
-              + Add condition
+              {t("ui.addCondition")}
             </button>
           </div>
           {rule.conditions.length === 0 ? (
-            <p className="text-xs text-on-surface-variant/30 italic">No conditions — rule runs on every trigger</p>
+            <p className="text-xs text-on-surface-variant/30 italic">{t("ui.noConditions")}</p>
           ) : (
-            rule.conditions.map((c) => (
-              <ConditionRow
-                key={c.id}
-                cond={c}
-                onChange={(patch) => updateCondition(c.id, patch)}
-                onRemove={() => removeCondition(c.id)}
-              />
+            rule.conditions.map((c, i) => (
+              <div key={c.id} className="space-y-2">
+                {i > 0 && (
+                  <span className="text-[10px] font-bold uppercase tracking-wide text-on-surface-variant/40 pl-1">
+                    {(rule.conditionMatch ?? "all") === "any" ? t("ui.or") : t("ui.and")}
+                  </span>
+                )}
+                <ConditionRow
+                  cond={c}
+                  onChange={(patch) => updateCondition(c.id, patch)}
+                  onRemove={() => removeCondition(c.id)}
+                />
+              </div>
             ))
           )}
         </div>
@@ -504,11 +516,11 @@ function RuleCard({
               onClick={addAction}
               className="text-[11px] text-primary/70 hover:text-primary transition-colors"
             >
-              + Add action
+              {t("ui.addAction")}
             </button>
           </div>
           {rule.actions.length === 0 ? (
-            <p className="text-xs text-error/60 italic">No actions configured — add at least one</p>
+            <p className="text-xs text-error/60 italic">{t("ui.noActions")}</p>
           ) : (
             rule.actions.map((a) => (
               <ActionRow
@@ -568,7 +580,7 @@ function AutomationsPage() {
       const res = await api.automations[":id"].$delete({ param: { id } });
       if (!res.ok) throw new Error(await res.text());
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["automations"] }); success("Rule deleted"); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["automations"] }); success(t("toasts.ruleDeleted")); },
     onError: (e: any) => showError(e.message),
   });
 
@@ -586,7 +598,7 @@ function AutomationsPage() {
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["automations"] }); success("Rule created"); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["automations"] }); success(t("toasts.ruleCreated")); },
     onError: (e: any) => showError(e.message),
   });
 
@@ -607,7 +619,7 @@ function AutomationsPage() {
         if (!res.ok) throw new Error(await res.text());
       }));
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["automations"] }); success("All rules saved"); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["automations"] }); success(t("toasts.allSaved")); },
     onError: (e: any) => showError(e.message),
   });
 
@@ -640,7 +652,7 @@ function AutomationsPage() {
   };
 
   const duplicateRule = (rule: AutomationRule) => {
-    createMutation.mutate({ ...rule, name: `${rule.name} (copy)`, enabled: false });
+    createMutation.mutate({ ...rule, name: `${rule.name} (${t("ui.copySuffix")})`, enabled: false });
   };
 
   const activeCount = rules.filter((r) => r.enabled).length;
@@ -652,7 +664,7 @@ function AutomationsPage() {
         <div>
           <h1 className="text-[15px] font-semibold text-on-surface">{t("title")}</h1>
           <p className="text-xs text-on-surface-variant mt-1">
-            {activeCount} active rule{activeCount !== 1 ? "s" : ""} · Runs automatically on ticket events
+            {t("ui.subtitle", { count: activeCount })}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -661,7 +673,7 @@ function AutomationsPage() {
             disabled={saveAllMutation.isPending}
             className="px-3 py-1.5 text-xs border border-outline-variant rounded-lg text-on-surface-variant hover:text-on-surface hover:border-outline transition-colors disabled:opacity-40"
           >
-            {saveAllMutation.isPending ? "Saving…" : "Save all"}
+            {saveAllMutation.isPending ? t("ui.saving") : t("ui.saveAll")}
           </button>
           <Button onClick={addRule} disabled={createMutation.isPending} loading={createMutation.isPending}>
             {!createMutation.isPending && <><Plus className="w-3.5 h-3.5" />{t("new")}</>}
@@ -672,9 +684,9 @@ function AutomationsPage() {
       {/* Stats bar */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: "Total rules", value: rules.length, icon: <Zap className="w-3.5 h-3.5" /> },
+          { label: t("ui.totalRules"), value: rules.length, icon: <Zap className="w-3.5 h-3.5" /> },
           { label: t("fields.active"), value: activeCount, icon: <Play className="w-3.5 h-3.5 text-emerald-400" /> },
-          { label: "Inactive", value: rules.length - activeCount, icon: <Pause className="w-3.5 h-3.5 text-on-surface-variant/40" /> },
+          { label: t("ui.inactive"), value: rules.length - activeCount, icon: <Pause className="w-3.5 h-3.5 text-on-surface-variant/40" /> },
         ].map((s) => (
           <div key={s.label} className="bg-surface-container border border-outline-variant rounded-xl px-4 py-3 flex items-center gap-3">
             <span className="text-on-surface-variant/50">{s.icon}</span>
@@ -687,7 +699,7 @@ function AutomationsPage() {
       </div>
 
       {isLoading ? (
-        <div className="py-16 text-center text-xs text-on-surface-variant/40">Loading…</div>
+        <div className="py-16 text-center text-xs text-on-surface-variant/40">{t("ui.loading")}</div>
       ) : rules.length === 0 ? (
         <div className="text-center py-16 bg-surface-container border border-outline-variant rounded-xl">
           <Zap className="w-10 h-10 text-on-surface-variant/15 mx-auto mb-3" />

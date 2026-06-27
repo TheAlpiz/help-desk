@@ -4,7 +4,7 @@ import { slaEscalationRule, SlaEscalationActionDef } from "./sla-escalation-rule
 import { ticket } from "../ticket/ticket.schema";
 import { ticketTag } from "../ticket/ticket-tag.schema";
 import { user } from "../user/user.schema";
-import { auditLog } from "../audit-log/audit-log.schema";
+import { auditLog, SYSTEM_ACTOR_ID } from "../audit-log/audit-log.schema";
 import { TicketService } from "../ticket/ticket.service";
 import { CHANNEL_QUEUE } from "../notification/notification.constants";
 import { Queue } from "bullmq";
@@ -186,7 +186,7 @@ export const SlaEscalationRuleService = {
             organizationId: tenantId,
             entityType: "ticket",
             entityId: ticketId,
-            actorId: "SYSTEM",
+            actorId: SYSTEM_ACTOR_ID,
             action: "sla_escalation_fired",
             newValues: { ruleId: rule.id, ruleName: rule.name, condition },
           });
@@ -276,7 +276,7 @@ async function executeAction(
         targetId = candidates[0]?.id ?? "";
       }
       if (!targetId) return;
-      await TicketService.assignTicket(tenantId, t.id, "SYSTEM", targetId);
+      await TicketService.assignTicket(tenantId, t.id, SYSTEM_ACTOR_ID, targetId);
       return;
     }
     case "add_tag": {
@@ -291,7 +291,7 @@ async function executeAction(
       const cur = (t.priority ?? "medium").toLowerCase();
       const next = order[Math.min(order.indexOf(cur) + 1, order.length - 1)];
       if (next !== cur) {
-        await TicketService.updatePriority(tenantId, t.id, "SYSTEM", next as any);
+        await TicketService.updatePriority(tenantId, t.id, SYSTEM_ACTOR_ID, next as any);
       }
       return;
     }

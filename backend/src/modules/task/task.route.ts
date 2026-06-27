@@ -82,6 +82,7 @@ export const taskRouter = new Hono<{
           id,
           user.userId,
           data.status,
+          user.globalRole
         );
         return ResponseHandler.success(c, task, {
           message: "Task status updated",
@@ -177,7 +178,7 @@ export const taskRouter = new Hono<{
       const id = c.req.param("id") as string;
       const data = c.req.valid("json");
       try {
-        const task = await TaskService.updateTask(tenantId, id, user.userId, data);
+        const task = await TaskService.updateTask(tenantId, id, user.userId, data, user.globalRole);
         return ResponseHandler.ok(c, task);
       } catch (err: any) {
         return ResponseHandler.badRequest(c, err.message);
@@ -189,7 +190,7 @@ export const taskRouter = new Hono<{
     const user = c.get("user");
     const id = c.req.param("id") as string;
     try {
-      const result = await TaskService.deleteTask(tenantId, id, user.userId);
+      const result = await TaskService.deleteTask(tenantId, id, user.userId, user.globalRole);
       return ResponseHandler.ok(c, result);
     } catch (err: any) {
       return ResponseHandler.badRequest(c, err.message);

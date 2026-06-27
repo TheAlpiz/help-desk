@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useDraggable } from "@dnd-kit/core";
 import {
   GripVertical,
@@ -23,55 +24,54 @@ import {
 } from "lucide-react";
 import type { BlockType } from "../store";
 
-const BLOCK_GROUPS: { label: string; blocks: { type: BlockType; label: string; icon: React.ComponentType<any> }[] }[] = [
+// Group `key` → i18n `builder.groups.<key>`; block label → `builder.blocks.<type>`.
+const BLOCK_GROUPS: { key: string; blocks: { type: BlockType; icon: React.ComponentType<any> }[] }[] = [
   {
-    label: "Content",
+    key: "content",
     blocks: [
-      { type: "HEADING", label: "Heading", icon: Heading },
-      { type: "TEXT", label: "Text", icon: Type },
-      { type: "LINK", label: "Link", icon: ExternalLink },
-      { type: "LIST", label: "List", icon: List },
-      { type: "QUOTE", label: "Quote", icon: Quote },
-      { type: "HTML", label: "Raw HTML", icon: Code },
+      { type: "HEADING", icon: Heading },
+      { type: "TEXT", icon: Type },
+      { type: "LINK", icon: ExternalLink },
+      { type: "LIST", icon: List },
+      { type: "QUOTE", icon: Quote },
+      { type: "HTML", icon: Code },
     ],
   },
   {
-    label: "Media",
+    key: "media",
+    blocks: [{ type: "IMAGE", icon: Image }],
+  },
+  {
+    key: "layout",
     blocks: [
-      { type: "IMAGE", label: "Image", icon: Image },
+      { type: "COLUMNS", icon: Columns2 },
+      { type: "SECTION", icon: Square },
+      { type: "CALLOUT", icon: AlertCircle },
+      { type: "DIVIDER", icon: Minus },
+      { type: "SPACER", icon: Space },
     ],
   },
   {
-    label: "Layout",
+    key: "interactive",
     blocks: [
-      { type: "COLUMNS", label: "Columns", icon: Columns2 },
-      { type: "SECTION", label: "Section", icon: Square },
-      { type: "CALLOUT", label: "Callout", icon: AlertCircle },
-      { type: "DIVIDER", label: "Divider", icon: Minus },
-      { type: "SPACER", label: "Spacer", icon: Space },
+      { type: "BUTTON", icon: MousePointer2 },
+      { type: "FEEDBACK", icon: Star },
+      { type: "SOCIAL_LINKS", icon: Link2 },
     ],
   },
   {
-    label: "Interactive",
-    blocks: [
-      { type: "BUTTON", label: "Button", icon: MousePointer2 },
-      { type: "FEEDBACK", label: "Feedback", icon: Star },
-      { type: "SOCIAL_LINKS", label: "Social Links", icon: Link2 },
-    ],
-  },
-  {
-    label: "Dynamic",
-    blocks: [
-      { type: "VARIABLE", label: "Variable", icon: Code2 },
-    ],
+    key: "dynamic",
+    blocks: [{ type: "VARIABLE", icon: Code2 }],
   },
 ];
 
+// Group `key` → i18n `builder.varGroups.<key>`. Variable tokens stay literal.
 const VARIABLES = [
   {
-    group: "Ticket",
+    key: "ticket",
     vars: [
       "ticket_id",
+      "ticket_number",
       "ticket_subject",
       "ticket_status",
       "ticket_priority",
@@ -80,15 +80,19 @@ const VARIABLES = [
     ],
   },
   {
-    group: "Customer",
-    vars: ["customer_name", "customer_email"],
+    key: "message",
+    vars: ["content", "ticket_description", "latest_message"],
   },
   {
-    group: "Agent",
-    vars: ["agent_name", "agent_email", "agent_title"],
+    key: "customer",
+    vars: ["customer_name", "customer_first_name", "customer_email"],
   },
   {
-    group: "Organization",
+    key: "agent",
+    vars: ["agent_name", "agent_email", "agent_role"],
+  },
+  {
+    key: "organization",
     vars: [
       "organization_name",
       "organization_email",
@@ -97,20 +101,19 @@ const VARIABLES = [
     ],
   },
   {
-    group: "System",
+    key: "system",
     vars: ["current_date", "current_year"],
   },
 ];
 
 function DraggableTool({
   type,
-  label,
   icon: Icon,
 }: {
   type: BlockType;
-  label: string;
   icon: React.ComponentType<any>;
 }) {
+  const { t } = useTranslation("emailTemplates");
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `tool-${type}`,
     data: { type, isTool: true },
@@ -127,12 +130,13 @@ function DraggableTool({
     >
       <GripVertical className="w-3.5 h-3.5 text-on-surface-variant/40 shrink-0" />
       <Icon className="w-3.5 h-3.5 text-primary shrink-0" />
-      <span className="text-xs font-medium text-on-surface">{label}</span>
+      <span className="text-xs font-medium text-on-surface">{t(`builder.blocks.${type}`)}</span>
     </div>
   );
 }
 
 function VariablePicker() {
+  const { t } = useTranslation("emailTemplates");
   const [copied, setCopied] = useState<string | null>(null);
 
   const copyVar = (name: string) => {
@@ -143,10 +147,10 @@ function VariablePicker() {
 
   return (
     <div className="p-4 space-y-4">
-      {VARIABLES.map(({ group, vars }) => (
-        <div key={group}>
+      {VARIABLES.map(({ key, vars }) => (
+        <div key={key}>
           <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
-            {group}
+            {t(`builder.varGroups.${key}`)}
           </p>
           <div className="flex flex-col gap-1">
             {vars.map((v) => (
@@ -171,25 +175,26 @@ function VariablePicker() {
 }
 
 export function SidebarTools({ showVariables = false }: { showVariables?: boolean }) {
+  const { t } = useTranslation("emailTemplates");
   const [tab, setTab] = useState<"blocks" | "variables">("blocks");
 
   return (
     <div className="w-60 border-r border-outline-variant bg-surface-container-lowest flex flex-col h-full">
       <div className="p-3 border-b border-outline-variant">
-        <h3 className="font-semibold text-on-surface text-sm">Components</h3>
+        <h3 className="font-semibold text-on-surface text-sm">{t("builder.components")}</h3>
         {showVariables && (
           <div className="flex mt-2 bg-surface border border-outline-variant rounded-lg overflow-hidden">
             <button
               onClick={() => setTab("blocks")}
               className={`flex-1 py-1 text-xs font-medium transition-colors ${tab === "blocks" ? "bg-primary text-on-primary" : "text-on-surface-variant hover:bg-surface-container"}`}
             >
-              Blocks
+              {t("builder.tabBlocks")}
             </button>
             <button
               onClick={() => setTab("variables")}
               className={`flex-1 py-1 text-xs font-medium transition-colors ${tab === "variables" ? "bg-primary text-on-primary" : "text-on-surface-variant hover:bg-surface-container"}`}
             >
-              Variables
+              {t("builder.tabVariables")}
             </button>
           </div>
         )}
@@ -201,9 +206,9 @@ export function SidebarTools({ showVariables = false }: { showVariables?: boolea
         ) : (
           <div className="p-3 space-y-4">
             {BLOCK_GROUPS.map((group) => (
-              <div key={group.label}>
+              <div key={group.key}>
                 <p className="text-[10px] font-semibold text-on-surface-variant/60 uppercase tracking-wider mb-1.5 px-0.5">
-                  {group.label}
+                  {t(`builder.groups.${group.key}`)}
                 </p>
                 <div className="flex flex-col gap-1.5">
                   {group.blocks.map((tool) => (

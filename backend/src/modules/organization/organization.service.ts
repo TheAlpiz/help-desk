@@ -1,5 +1,6 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { organization, NewOrganization } from "./organization.schema";
+import { user } from "../user/user.schema";
 import { withTenantTransaction, withSuperAdminTransaction } from "../../infra/db";
 import { PermissionService } from "../permission/permission.service";
 
@@ -142,6 +143,16 @@ export const OrganizationService = {
   // Only Super Admins can delete orgs
   remove: async (id: string) => {
     return withSuperAdminTransaction(async (tx) => {
+      // The platform organization (the seeded org that owns the SUPER_ADMIN) is
+      // the system root tenant — never deletable.
+      const [root] = await tx
+        .select({ id: user.id })
+        .from(user)
+        .where(and(eq(user.organizationId, id), eq(user.globalRole, "SUPER_ADMIN")))
+        .limit(1);
+      if (root) {
+        throw new Error("The platform organization cannot be deleted");
+      }
       await tx.delete(organization).where(eq(organization.id, id));
     });
   },

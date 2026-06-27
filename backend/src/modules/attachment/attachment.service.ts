@@ -30,6 +30,24 @@ export const AttachmentService = {
     };
   },
 
+  // Stage an upload: the browser sends the file to the API, which streams it to
+  // MinIO server-side (no browser→MinIO CORS). Returns the storage key + metadata
+  // but creates no DB row yet — the caller links it to an entity later via
+  // `confirmUpload` once the parent (e.g. a chat message) exists.
+  stageUpload: async (
+    tenantId: string,
+    input: { buffer: Buffer; filename: string; mimeType: string; sizeBytes: number },
+  ) => {
+    const safeFilename = input.filename.replace(/[^a-zA-Z0-9.\-_]/g, "");
+    const storageKey = `${tenantId}/staged/${uuidv4()}-${safeFilename}`;
+
+    await minioClient.putObject(BUCKET_NAME, storageKey, input.buffer, input.sizeBytes, {
+      "Content-Type": input.mimeType,
+    });
+
+    return { storageKey, filename: safeFilename, mimeType: input.mimeType, sizeBytes: input.sizeBytes };
+  },
+
   confirmUpload: async (
     tenantId: string,
     actorId: string,

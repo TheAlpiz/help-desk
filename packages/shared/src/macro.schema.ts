@@ -6,9 +6,9 @@ export const macroActionSchema = z.object({
 });
 
 export const createMacroSchema = z.object({
-  name: z.string().min(1, "Name is required").max(255),
+  name: z.string().min(1, "validation.nameRequired").max(255),
   description: z.string().max(1000).optional(),
-  actions: z.array(macroActionSchema).min(1, "At least one action is required"),
+  actions: z.array(macroActionSchema).min(1, "validation.atLeastOneAction"),
 });
 
 export const updateMacroSchema = z.object({

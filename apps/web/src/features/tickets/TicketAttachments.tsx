@@ -5,6 +5,18 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Paperclip, Upload, Download, FileText, X, Loader2, Trash2 } from "lucide-react";
 import { useAppStore } from "@/store";
 
+export const isImage = (mimeType?: string) => !!mimeType && mimeType.startsWith("image/");
+
+// Resolve a short-lived presigned GET URL for an attachment.
+export async function getAttachmentUrl(id: string): Promise<string | null> {
+  const res = await api.attachments[":id"].download.$get({ param: { id } });
+  if (!res.ok) return null;
+  const json = (await res.json().catch(() => null)) as any;
+  return json?.data?.url ?? null;
+}
+
+export type LightboxItem = { url: string; filename: string };
+
 interface Props {
   /** Entity this attachment list is scoped to. Defaults to TICKET for back-compat. */
   entityType?: "TICKET" | "TASK" | "TICKET_MESSAGE" | "EMAIL";
@@ -21,6 +33,89 @@ function formatBytes(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+// Image attachment rendered as a clickable thumbnail. Presigned URLs expire
+// (~5 min), so cache briefly and refetch as needed.
+export function ImageThumb({
+  att,
+  onOpen,
+  onDelete,
+  deleteTitle,
+}: {
+  att: any;
+  onOpen: (item: LightboxItem) => void;
+  onDelete?: (id: string) => void;
+  deleteTitle?: string;
+}) {
+  const { data: url, isLoading } = useQuery({
+    queryKey: ["attachment-url", att.id],
+    queryFn: () => getAttachmentUrl(att.id),
+    staleTime: 4 * 60 * 1000,
+  });
+
+  return (
+    <div className="relative group rounded-lg overflow-hidden border border-outline-variant bg-white/5 aspect-square">
+      <button
+        type="button"
+        onClick={() => url && onOpen({ url, filename: att.filename })}
+        className="w-full h-full flex items-center justify-center"
+        title={att.filename}
+      >
+        {isLoading || !url ? (
+          <Loader2 className="w-4 h-4 text-on-surface-variant/40 animate-spin" />
+        ) : (
+          <img src={url} alt={att.filename} className="w-full h-full object-cover" loading="lazy" />
+        )}
+      </button>
+      {onDelete && (
+        <button
+          onClick={() => onDelete(att.id)}
+          title={deleteTitle}
+          className="absolute top-1 right-1 p-1 rounded bg-black/50 text-white/80 opacity-0 group-hover:opacity-100 hover:text-error transition-opacity"
+        >
+          <Trash2 className="w-3 h-3" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+// Full-size image preview with a download button.
+export function Lightbox({ item, onClose }: { item: LightboxItem; onClose: () => void }) {
+  const { t } = useTranslation("common");
+  return (
+    <div
+      className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6"
+      onClick={onClose}
+    >
+      <div className="relative max-w-[90vw] max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <span className="text-sm text-white/90 truncate">{item.filename}</span>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <a
+              href={item.url}
+              download={item.filename}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              <Download className="w-3.5 h-3.5" />
+              {t("attachments.download")}
+            </a>
+            <button
+              onClick={onClose}
+              title={t("attachments.close")}
+              className="p-1.5 rounded-lg text-white/80 hover:bg-white/10 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        <img src={item.url} alt={item.filename} className="max-w-full max-h-[80vh] object-contain rounded-lg" />
+      </div>
+    </div>
+  );
+}
+
 export function TicketAttachments({ entityType = "TICKET", entityId, ticketId }: Props) {
   const { t } = useTranslation("common");
   const eid = (entityId ?? ticketId) as string;
@@ -28,6 +123,7 @@ export function TicketAttachments({ entityType = "TICKET", entityId, ticketId }:
   const { accessToken, tenantId } = useAppStore();
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploads, setUploads] = useState<UploadState[]>([]);
+  const [lightbox, setLightbox] = useState<LightboxItem | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["attachments", entityType, eid],
@@ -40,6 +136,8 @@ export function TicketAttachments({ entityType = "TICKET", entityId, ticketId }:
   });
 
   const attachments: any[] = (data as any)?.data ?? [];
+  const imageAttachments = attachments.filter((a) => isImage(a.mimeType));
+  const fileAttachments = attachments.filter((a) => !isImage(a.mimeType));
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -200,36 +298,58 @@ export function TicketAttachments({ entityType = "TICKET", entityId, ticketId }:
           {t("attachments.noAttachments")}
         </p>
       ) : (
-        <div className="space-y-1">
-          {attachments.map((att: any) => (
-            <div
-              key={att.id}
-              className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors text-left group"
-            >
-              <button
-                onClick={() => handleDownload(att.id)}
-                className="flex-1 min-w-0 flex items-center gap-2 text-left"
-              >
-                <FileText className="w-3.5 h-3.5 text-on-surface-variant/50 shrink-0" />
-                <span className="flex-1 min-w-0">
-                  <span className="text-[11px] text-on-surface truncate block">{att.filename}</span>
-                  <span className="text-[10px] text-on-surface-variant/40">
-                    {formatBytes(att.sizeBytes)}
-                  </span>
-                </span>
-                <Download className="w-3 h-3 text-on-surface-variant/30 group-hover:text-primary transition-colors shrink-0" />
-              </button>
-              <button
-                onClick={() => handleDelete(att.id)}
-                title={t("attachments.delete", "Delete")}
-                className="p-1 rounded text-on-surface-variant/30 hover:text-error transition-colors shrink-0"
-              >
-                <Trash2 className="w-3 h-3" />
-              </button>
+        <div className="space-y-2">
+          {/* Image attachments — thumbnail grid with lightbox preview */}
+          {imageAttachments.length > 0 && (
+            <div className="grid grid-cols-3 gap-2">
+              {imageAttachments.map((att: any) => (
+                <ImageThumb
+                  key={att.id}
+                  att={att}
+                  onOpen={setLightbox}
+                  onDelete={handleDelete}
+                  deleteTitle={t("attachments.delete")}
+                />
+              ))}
             </div>
-          ))}
+          )}
+
+          {/* Non-image attachments — file rows */}
+          {fileAttachments.length > 0 && (
+            <div className="space-y-1">
+              {fileAttachments.map((att: any) => (
+                <div
+                  key={att.id}
+                  className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors text-left group"
+                >
+                  <button
+                    onClick={() => handleDownload(att.id)}
+                    className="flex-1 min-w-0 flex items-center gap-2 text-left"
+                  >
+                    <FileText className="w-3.5 h-3.5 text-on-surface-variant/50 shrink-0" />
+                    <span className="flex-1 min-w-0">
+                      <span className="text-[11px] text-on-surface truncate block">{att.filename}</span>
+                      <span className="text-[10px] text-on-surface-variant/40">
+                        {formatBytes(att.sizeBytes)}
+                      </span>
+                    </span>
+                    <Download className="w-3 h-3 text-on-surface-variant/30 group-hover:text-primary transition-colors shrink-0" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(att.id)}
+                    title={t("attachments.delete")}
+                    className="p-1 rounded text-on-surface-variant/30 hover:text-error transition-colors shrink-0"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
+
+      {lightbox && <Lightbox item={lightbox} onClose={() => setLightbox(null)} />}
 
       {/* Drop zone hint */}
       <div

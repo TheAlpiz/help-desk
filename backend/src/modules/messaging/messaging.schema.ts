@@ -8,6 +8,7 @@ export const conversation = pgTable("conversation", {
   organizationId: uuid("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
   type: varchar("type", { length: 20 }).notNull().default("direct"),
   name: varchar("name", { length: 255 }),
+  adminId: uuid("admin_id").references(() => user.id, { onDelete: "set null" }),
   ...timestamps,
 });
 

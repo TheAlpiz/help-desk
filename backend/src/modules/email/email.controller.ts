@@ -27,8 +27,12 @@ export class EmailController {
     if (!orgId) return c.json({ error: "Unauthorized" }, 401);
 
     const body = await c.req.json<{ type: string; name: string }>();
-    const template = await emailService.createTemplate(orgId, body.type, body.name);
-    return c.json({ data: template }, 201);
+    try {
+      const template = await emailService.createTemplate(orgId, body.type, body.name);
+      return c.json({ data: template }, 201);
+    } catch (err: any) {
+      return c.json({ error: err?.message || "Failed to create template" }, 400);
+    }
   }
 
 

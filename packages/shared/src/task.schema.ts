@@ -7,6 +7,7 @@ export const createTaskSchema = z.object({
   ticketId: z.string().uuid().optional().nullable(),
   parentTaskId: z.string().uuid().optional().nullable(),
   dueDate: z.string().datetime().optional(),
+  assigneeId: z.string().uuid().optional().nullable(),
 });
 
 export const updateTaskStatusSchema = z.object({
@@ -31,7 +32,7 @@ export const updateTaskSchema = z
     parentTaskId: z.string().uuid().nullable().optional(),
   })
   .refine((d) => Object.keys(d).length > 0, {
-    message: "At least one field must be provided",
+    message: "validation.atLeastOneField",
   });
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;

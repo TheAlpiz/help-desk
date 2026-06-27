@@ -29,6 +29,102 @@
     "send_reply": "Yanıt gönder",
     "add_note": "Dahili not ekle"
   },
+  "triggerLabels": {
+    "ticket_created": "Talep oluşturulduğunda",
+    "ticket_updated": "Talep güncellendiğinde",
+    "ticket_assigned": "Talep atandığında",
+    "reply_received": "Yanıt alındığında",
+    "sla_breached": "SLA ihlal edildiğinde",
+    "tag_added": "Etiket eklendiğinde"
+  },
+  "conditionFields": {
+    "status": "Durum",
+    "priority": "Öncelik",
+    "tag": "Etiket",
+    "assignee": "Atanan",
+    "department": "Departman",
+    "subject_contains": "Konu",
+    "source": "Kaynak",
+    "requester_email": "Talep eden e-posta",
+    "has_attachment": "Eki var",
+    "ticket_age_hours": "Talep yaşı (saat)",
+    "body": "Mesaj içeriği"
+  },
+  "operators": {
+    "equals": "eşittir",
+    "not_equals": "eşit değildir",
+    "contains": "içerir",
+    "not_contains": "içermez",
+    "is_empty": "boştur",
+    "is_not_empty": "boş değildir",
+    "starts_with": "ile başlar",
+    "ends_with": "ile biter",
+    "greater_than": "büyüktür",
+    "less_than": "küçüktür",
+    "matches_regex": "regex eşleşir",
+    "not_matches_regex": "regex eşleşmez"
+  },
+  "actionLabels": {
+    "set_status": "Durumu şuna ayarla",
+    "set_priority": "Önceliği şuna ayarla",
+    "assign_to": "Ajana ata",
+    "set_department": "Departmana ata",
+    "add_tag": "Etiket ekle",
+    "remove_tag": "Etiketi kaldır",
+    "send_email": "E-posta gönder",
+    "add_note": "Dahili not ekle",
+    "create_task": "Görev oluştur (başlık)",
+    "notify": "Kullanıcıyı bilgilendir",
+    "webhook": "Webhook çağır (URL)",
+    "resolve_ticket": "Talebi çöz",
+    "close_ticket": "Talebi kapat",
+    "set_due_date": "Son tarih belirle"
+  },
+  "taskPriority": {
+    "LOW": "Düşük",
+    "MEDIUM": "Orta",
+    "HIGH": "Yüksek",
+    "URGENT": "Acil"
+  },
+  "placeholders": {
+    "taskTitle": "görev başlığı",
+    "emailBody": "e-posta içeriği (HTML)",
+    "message": "mesaj",
+    "webhook": "https://…",
+    "note": "not metni",
+    "value": "değer",
+    "subject": "konu (isteğe bağlı)",
+    "dueDays": "son tarih (gün)"
+  },
+  "ui": {
+    "when": "Ne zaman",
+    "allMatch": "tümü eşleşir",
+    "matchAll": "TÜMÜ eşleşsin",
+    "matchAny": "HERHANGİ biri eşleşsin",
+    "matchAllHint": "Tüm koşullar doğru olmalı (VE)",
+    "matchAnyHint": "Herhangi bir koşul doğru olabilir (VEYA)",
+    "and": "VE",
+    "or": "VEYA",
+    "addCondition": "+ Koşul ekle",
+    "addAction": "+ Eylem ekle",
+    "noConditions": "Koşul yok — kural her tetiklemede çalışır",
+    "noActions": "Eylem yapılandırılmadı — en az bir tane ekleyin",
+    "runs_one": "{{count}} çalışma",
+    "runs_other": "{{count}} çalışma",
+    "saveAll": "Tümünü kaydet",
+    "saving": "Kaydediliyor…",
+    "loading": "Yükleniyor…",
+    "totalRules": "Toplam kural",
+    "inactive": "Pasif",
+    "subtitle_one": "{{count}} aktif kural · Talep olaylarında otomatik çalışır",
+    "subtitle_other": "{{count}} aktif kural · Talep olaylarında otomatik çalışır",
+    "copySuffix": "kopya"
+  },
+  "toasts": {
+    "ruleCreated": "Kural oluşturuldu",
+    "ruleDeleted": "Kural silindi",
+    "allSaved": "Tüm kurallar kaydedildi"
+  },
   "empty": {
     "title": "Otomasyon yok",
     "subtitle": "Zamandan kazanmak için tekrarlayan görevleri otomatikleştirin."

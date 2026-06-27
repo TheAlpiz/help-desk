@@ -1,7 +1,7 @@
 import { withTenantTransaction } from "../../infra/db";
 import { ticket } from "../ticket/ticket.schema";
 import { task } from "../task/task.schema";
-import { eq, count, sql, and, lt } from "drizzle-orm";
+import { eq, count, sql, and, lt, ne } from "drizzle-orm";
 
 export const AnalyticsService = {
   getTicketsSummary: async (tenantId: string) => {
@@ -42,14 +42,18 @@ export const AnalyticsService = {
 
   getSlaCompliance: async (tenantId: string) => {
     return withTenantTransaction(tenantId, async (tx) => {
+      // Archived tickets (e.g. bulk-archived inbound email) never get worked, so
+      // counting them would tank compliance — exclude them from SLA metrics.
+      const notArchived = ne(ticket.status, "archived");
+
       const totalWithFirstResponseSla = await tx.select({ count: count() }).from(ticket)
-        .where(and(eq(ticket.organizationId, tenantId), sql`${ticket.firstResponseTargetAt} IS NOT NULL`));
+        .where(and(eq(ticket.organizationId, tenantId), notArchived, sql`${ticket.firstResponseTargetAt} IS NOT NULL`));
 
       const metFirstResponseSla = await tx.select({ count: count() }).from(ticket)
-        .where(and(eq(ticket.organizationId, tenantId), eq(ticket.firstResponseMet, true)));
+        .where(and(eq(ticket.organizationId, tenantId), notArchived, eq(ticket.firstResponseMet, true)));
 
       const breachedResolutionSla = await tx.select({ count: count() }).from(ticket)
-        .where(and(eq(ticket.organizationId, tenantId), eq(ticket.resolutionBreached, true)));
+        .where(and(eq(ticket.organizationId, tenantId), notArchived, eq(ticket.resolutionBreached, true)));
 
       const total = Number(totalWithFirstResponseSla[0].count);
       const met = Number(metFirstResponseSla[0].count);

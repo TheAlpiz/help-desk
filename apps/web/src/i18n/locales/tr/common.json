@@ -3,6 +3,9 @@
     "name": "Alpis",
     "tagline": "Kurumsal Servis Masası"
   },
+  "yes": "Evet",
+  "no": "Hayır",
+  "selectPlaceholder": "Seçin…",
   "actions": {
     "save": "Kaydet",
     "cancel": "İptal",
@@ -76,6 +79,27 @@
     "tooShort": "En az {{min}} karakter olmalıdır.",
     "tooLong": "En fazla {{max}} karakter olabilir."
   },
+  "validation": {
+    "email": "Geçersiz e-posta adresi",
+    "nameRequired": "Ad zorunludur",
+    "firstNameRequired": "Ad zorunludur",
+    "lastNameRequired": "Soyad zorunludur",
+    "roleRequired": "Rol zorunludur",
+    "passwordMin8": "Parola en az 8 karakter olmalıdır",
+    "orgNameMin": "Organizasyon adı en az 2 karakter olmalıdır",
+    "domainRequired": "Alan adı zorunludur",
+    "timeFormat": "SS:DD biçiminde olmalıdır",
+    "logoTooLarge": "Logo çok büyük",
+    "hexColor": "#rrggbb hex renk olmalıdır",
+    "imapHostRequired": "IMAP sunucusu zorunludur",
+    "smtpHostRequired": "SMTP sunucusu zorunludur",
+    "atLeastOneField": "En az bir alan sağlanmalıdır",
+    "atLeastOneAction": "En az bir eylem zorunludur",
+    "subjectRequired": "Konu zorunludur",
+    "htmlBodyRequired": "HTML gövdesi zorunludur",
+    "plainTextRequired": "Düz metin gövdesi zorunludur",
+    "htmlContentRequired": "HTML içeriği zorunludur"
+  },
   "empty": {
     "noData": "Veri yok",
     "noResults": "Sonuç bulunamadı.",
@@ -131,7 +155,11 @@
     "noAttachments": "Henüz ek yok",
     "dropHint": "Dosyaları buraya bırakın veya göz atmak için tıklayın",
     "progressFailed": "başarısız",
-    "progressDone": "tamamlandı"
+    "progressDone": "tamamlandı",
+    "download": "İndir",
+    "delete": "Sil",
+    "preview": "Önizleme",
+    "close": "Kapat"
   },
   "commandPalette": {
     "placeholder": "Ara veya atla…",

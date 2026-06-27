@@ -14,8 +14,8 @@ export const organizationListResponseSchema = z.array(organizationResponseSchema
 export type OrganizationResponse = z.infer<typeof organizationResponseSchema>;
 
 export const updateOrganizationSchema = z.object({
-  name: z.string().min(1, "Name is required").max(255).optional(),
-  domain: z.string().min(1, "Domain is required").max(255).optional(),
+  name: z.string().min(1, "validation.nameRequired").max(255).optional(),
+  domain: z.string().min(1, "validation.domainRequired").max(255).optional(),
   status: z.enum(["active", "suspended"]).optional(),
 });
 
@@ -46,8 +46,8 @@ export type ProvisionOrganizationInput = z.infer<typeof provisionOrganizationSch
 
 const dayScheduleSchema = z.object({
   enabled: z.boolean(),
-  start: z.string().regex(/^\d{2}:\d{2}$/, "Must be HH:MM"),
-  end: z.string().regex(/^\d{2}:\d{2}$/, "Must be HH:MM"),
+  start: z.string().regex(/^\d{2}:\d{2}$/, "validation.timeFormat"),
+  end: z.string().regex(/^\d{2}:\d{2}$/, "validation.timeFormat"),
 });
 
 export const businessHoursConfigSchema = z.object({
@@ -69,18 +69,18 @@ export type BusinessHoursConfig = z.infer<typeof businessHoursConfigSchema>;
 export const brandingConfigSchema = z.object({
   logoUrl: z
     .string()
-    .max(2_500_000, "Logo too large (max ~2MB)")
+    .max(2_500_000, "validation.logoTooLarge")
     .nullable()
     .optional(),
   supportEmail: z
     .string()
-    .email("Invalid email")
+    .email("validation.email")
     .or(z.literal(""))
     .nullable()
     .optional(),
   brandColor: z
     .string()
-    .regex(/^#[0-9a-fA-F]{6}$/, "Must be a #rrggbb hex color")
+    .regex(/^#[0-9a-fA-F]{6}$/, "validation.hexColor")
     .nullable()
     .optional(),
 });

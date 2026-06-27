@@ -1,26 +1,32 @@
+import { useTranslation } from "react-i18next";
 import { useEmailBuilderStore } from "../store";
 
 const VARIABLE_NAMES = [
   "ticket_id",
+  "ticket_number",
   "ticket_subject",
   "ticket_status",
   "ticket_priority",
   "ticket_url",
   "ticket_created_at",
+  "content",
+  "ticket_description",
+  "latest_message",
   "customer_name",
+  "customer_first_name",
   "customer_email",
   "agent_name",
   "agent_email",
-  "agent_title",
+  "agent_role",
   "organization_name",
   "organization_email",
   "organization_website",
-  "organization_phone",
   "current_date",
   "current_year",
 ];
 
 export function PropertiesPanel() {
+  const { t } = useTranslation("emailTemplates");
   const { selectedBlockId, blocks, updateBlock, globalStyles, setGlobalStyles } =
     useEmailBuilderStore();
   const selectedBlock = blocks.find((b) => b.id === selectedBlockId);
@@ -29,10 +35,10 @@ export function PropertiesPanel() {
     return (
       <div className="w-72 border-l border-outline-variant bg-surface-container-lowest h-full overflow-y-auto pretty-scroll">
         <div className="p-4 border-b border-outline-variant">
-          <h3 className="font-semibold text-on-surface text-sm">Global Styles</h3>
+          <h3 className="font-semibold text-on-surface text-sm">{t("builder.props.globalStyles")}</h3>
         </div>
         <div className="p-4 space-y-4">
-          <Field label="Font Family">
+          <Field label={t("builder.props.fontFamily")}>
             <input
               type="text"
               value={globalStyles.fontFamily}
@@ -41,17 +47,17 @@ export function PropertiesPanel() {
             />
           </Field>
           <ColorField
-            label="Primary Color"
+            label={t("builder.props.primaryColor")}
             value={globalStyles.primaryColor}
             onChange={(v) => setGlobalStyles({ primaryColor: v })}
           />
           <ColorField
-            label="Text Color"
+            label={t("builder.props.textColor")}
             value={globalStyles.textColor}
             onChange={(v) => setGlobalStyles({ textColor: v })}
           />
           <ColorField
-            label="Background"
+            label={t("builder.props.background")}
             value={globalStyles.backgroundColor}
             onChange={(v) => setGlobalStyles({ backgroundColor: v })}
           />
@@ -73,7 +79,7 @@ export function PropertiesPanel() {
   return (
     <div className="w-72 border-l border-outline-variant bg-surface-container-lowest h-full overflow-y-auto pretty-scroll">
       <div className="p-4 border-b border-outline-variant">
-        <h3 className="font-semibold text-on-surface text-sm">Block Settings</h3>
+        <h3 className="font-semibold text-on-surface text-sm">{t("builder.props.blockSettings")}</h3>
         <p className="text-xs text-on-surface-variant mt-0.5 capitalize">
           {selectedBlock.type.replace(/_/g, " ").toLowerCase()}
         </p>
@@ -84,35 +90,35 @@ export function PropertiesPanel() {
         {selectedBlock.type === "TEXT" && (
           <>
             <AlignField value={selectedBlock.styles.textAlign} onChange={(v) => setStyle("textAlign", v)} />
-            <Field label="Content (HTML supported)">
+            <Field label={t("builder.props.contentHtml")}>
               <textarea
                 value={selectedBlock.content.text ?? ""}
                 onChange={(e) => set("text", e.target.value)}
                 className={`${inputCls} h-32 resize-y`}
               />
             </Field>
-            <Field label="Font Size">
+            <Field label={t("builder.props.fontSize")}>
               <input type="text" value={selectedBlock.styles.fontSize ?? "14px"} onChange={(e) => setStyle("fontSize", e.target.value)} className={inputCls} />
             </Field>
-            <ColorField label="Color" value={selectedBlock.styles.color ?? globalStyles.textColor} onChange={(v) => setStyle("color", v)} />
+            <ColorField label={t("builder.props.color")} value={selectedBlock.styles.color ?? globalStyles.textColor} onChange={(v) => setStyle("color", v)} />
           </>
         )}
 
         {/* ── HEADING ──────────────────────────────── */}
         {selectedBlock.type === "HEADING" && (
           <>
-            <Field label="Level">
+            <Field label={t("builder.props.level")}>
               <select value={selectedBlock.content.level ?? "h2"} onChange={(e) => set("level", e.target.value)} className={inputCls}>
-                <option value="h1">H1 — Large</option>
-                <option value="h2">H2 — Medium</option>
-                <option value="h3">H3 — Small</option>
+                <option value="h1">{t("builder.props.headingLarge")}</option>
+                <option value="h2">{t("builder.props.headingMedium")}</option>
+                <option value="h3">{t("builder.props.headingSmall")}</option>
               </select>
             </Field>
             <AlignField value={selectedBlock.styles.textAlign} onChange={(v) => setStyle("textAlign", v)} />
-            <Field label="Text">
+            <Field label={t("builder.props.text")}>
               <input type="text" value={selectedBlock.content.text ?? ""} onChange={(e) => set("text", e.target.value)} className={inputCls} />
             </Field>
-            <ColorField label="Color" value={selectedBlock.content.color ?? globalStyles.textColor} onChange={(v) => set("color", v)} />
+            <ColorField label={t("builder.props.color")} value={selectedBlock.content.color ?? globalStyles.textColor} onChange={(v) => set("color", v)} />
           </>
         )}
 
@@ -120,13 +126,13 @@ export function PropertiesPanel() {
         {selectedBlock.type === "IMAGE" && (
           <>
             <AlignField value={selectedBlock.styles.textAlign} onChange={(v) => setStyle("textAlign", v)} />
-            <Field label="Image URL">
+            <Field label={t("builder.props.imageUrl")}>
               <input type="text" value={selectedBlock.content.url ?? ""} onChange={(e) => set("url", e.target.value)} className={inputCls} placeholder="https://..." />
             </Field>
-            <Field label="Alt Text">
+            <Field label={t("builder.props.altText")}>
               <input type="text" value={selectedBlock.content.alt ?? ""} onChange={(e) => set("alt", e.target.value)} className={inputCls} />
             </Field>
-            <Field label="Width (px or %)">
+            <Field label={t("builder.props.width")}>
               <input type="text" value={selectedBlock.styles.width ?? "100%"} onChange={(e) => setStyle("width", e.target.value)} className={inputCls} />
             </Field>
           </>
@@ -135,10 +141,10 @@ export function PropertiesPanel() {
         {/* ── DIVIDER ──────────────────────────────── */}
         {selectedBlock.type === "DIVIDER" && (
           <>
-            <Field label="Thickness (px)">
+            <Field label={t("builder.props.thickness")}>
               <input type="number" min={1} max={8} value={selectedBlock.styles.thickness ?? 1} onChange={(e) => setStyle("thickness", parseInt(e.target.value))} className={inputCls} />
             </Field>
-            <ColorField label="Color" value={selectedBlock.styles.color ?? "#e5e7eb"} onChange={(v) => setStyle("color", v)} />
+            <ColorField label={t("builder.props.color")} value={selectedBlock.styles.color ?? "#e5e7eb"} onChange={(v) => setStyle("color", v)} />
           </>
         )}
 
@@ -146,15 +152,15 @@ export function PropertiesPanel() {
         {selectedBlock.type === "BUTTON" && (
           <>
             <AlignField value={selectedBlock.styles.textAlign} onChange={(v) => setStyle("textAlign", v)} />
-            <Field label="Label">
+            <Field label={t("builder.props.label")}>
               <input type="text" value={selectedBlock.content.text ?? ""} onChange={(e) => set("text", e.target.value)} className={inputCls} />
             </Field>
-            <Field label="URL">
+            <Field label={t("builder.props.url")}>
               <input type="text" value={selectedBlock.content.url ?? ""} onChange={(e) => set("url", e.target.value)} className={inputCls} placeholder="https://..." />
             </Field>
-            <ColorField label="Background" value={selectedBlock.content.backgroundColor || globalStyles.primaryColor} onChange={(v) => set("backgroundColor", v)} />
-            <ColorField label="Text Color" value={selectedBlock.content.color ?? "#ffffff"} onChange={(v) => set("color", v)} />
-            <Field label="Border Radius (px)">
+            <ColorField label={t("builder.props.background")} value={selectedBlock.content.backgroundColor || globalStyles.primaryColor} onChange={(v) => set("backgroundColor", v)} />
+            <ColorField label={t("builder.props.textColor")} value={selectedBlock.content.color ?? "#ffffff"} onChange={(v) => set("color", v)} />
+            <Field label={t("builder.props.borderRadius")}>
               <input type="number" min={0} max={50} value={selectedBlock.styles.borderRadius ?? 6} onChange={(e) => setStyle("borderRadius", parseInt(e.target.value))} className={inputCls} />
             </Field>
           </>
@@ -163,32 +169,32 @@ export function PropertiesPanel() {
         {/* ── SOCIAL_LINKS ─────────────────────────── */}
         {selectedBlock.type === "SOCIAL_LINKS" && (
           <>
-            <Field label="Layout">
+            <Field label={t("builder.props.layout")}>
               <select value={selectedBlock.content.layout ?? "flex-row"} onChange={(e) => set("layout", e.target.value)} className={inputCls}>
-                <option value="flex-row">Horizontal</option>
-                <option value="flex-col">Vertical</option>
+                <option value="flex-row">{t("builder.props.horizontal")}</option>
+                <option value="flex-col">{t("builder.props.vertical")}</option>
               </select>
             </Field>
             <AlignField value={selectedBlock.styles.textAlign} onChange={(v) => setStyle("textAlign", v)} />
             <div className="space-y-2">
-              <label className="block text-xs font-medium text-on-surface-variant">Links</label>
+              <label className="block text-xs font-medium text-on-surface-variant">{t("builder.props.links")}</label>
               {(selectedBlock.content.links ?? []).map((link: any, i: number) => (
                 <div key={i} className="flex gap-2 items-start p-2 bg-surface border border-outline-variant rounded-lg">
                   <div className="flex-1 space-y-1.5">
-                    <input type="text" placeholder="Label" value={link.label} onChange={(e) => { const links = [...(selectedBlock.content.links ?? [])]; links[i] = { ...links[i], label: e.target.value }; set("links", links); }} className="w-full px-2 py-1 bg-surface-container border border-outline-variant rounded text-xs" />
-                    <input type="text" placeholder="URL" value={link.url} onChange={(e) => { const links = [...(selectedBlock.content.links ?? [])]; links[i] = { ...links[i], url: e.target.value }; set("links", links); }} className="w-full px-2 py-1 bg-surface-container border border-outline-variant rounded text-xs" />
+                    <input type="text" placeholder={t("builder.props.label")} value={link.label} onChange={(e) => { const links = [...(selectedBlock.content.links ?? [])]; links[i] = { ...links[i], label: e.target.value }; set("links", links); }} className="w-full px-2 py-1 bg-surface-container border border-outline-variant rounded text-xs" />
+                    <input type="text" placeholder={t("builder.props.url")} value={link.url} onChange={(e) => { const links = [...(selectedBlock.content.links ?? [])]; links[i] = { ...links[i], url: e.target.value }; set("links", links); }} className="w-full px-2 py-1 bg-surface-container border border-outline-variant rounded text-xs" />
                   </div>
                   <button onClick={() => { const links = [...(selectedBlock.content.links ?? [])]; links.splice(i, 1); set("links", links); }} className="w-6 h-6 flex items-center justify-center bg-error/10 text-error rounded hover:bg-error/20 shrink-0 mt-0.5">×</button>
                 </div>
               ))}
-              <button onClick={() => { const links = [...(selectedBlock.content.links ?? [])]; links.push({ label: "Link", url: "https://" }); set("links", links); }} className={addBtnCls}>+ Add Link</button>
+              <button onClick={() => { const links = [...(selectedBlock.content.links ?? [])]; links.push({ label: "Link", url: "https://" }); set("links", links); }} className={addBtnCls}>{t("builder.props.addLink")}</button>
             </div>
           </>
         )}
 
         {/* ── VARIABLE ─────────────────────────────── */}
         {selectedBlock.type === "VARIABLE" && (
-          <Field label="Variable">
+          <Field label={t("builder.props.variable")}>
             <select value={selectedBlock.content.variableName ?? "ticket_id"} onChange={(e) => set("variableName", e.target.value)} className={`${inputCls} font-mono`}>
               {VARIABLE_NAMES.map((v) => (
                 <option key={v} value={v}>{`{{${v}}}`}</option>
@@ -199,8 +205,8 @@ export function PropertiesPanel() {
 
         {/* ── SPACER ───────────────────────────────── */}
         {selectedBlock.type === "SPACER" && (
-          <Field label="Height">
-            <input type="text" value={selectedBlock.content.height ?? "20px"} onChange={(e) => set("height", e.target.value)} className={inputCls} placeholder="e.g. 20px" />
+          <Field label={t("builder.props.height")}>
+            <input type="text" value={selectedBlock.content.height ?? "20px"} onChange={(e) => set("height", e.target.value)} className={inputCls} placeholder={t("builder.props.heightHint")} />
           </Field>
         )}
 
@@ -208,14 +214,14 @@ export function PropertiesPanel() {
         {selectedBlock.type === "LINK" && (
           <>
             <AlignField value={selectedBlock.styles.textAlign} onChange={(v) => setStyle("textAlign", v)} />
-            <Field label="Link Text">
+            <Field label={t("builder.props.linkText")}>
               <input type="text" value={selectedBlock.content.text ?? ""} onChange={(e) => set("text", e.target.value)} className={inputCls} />
             </Field>
-            <Field label="URL">
+            <Field label={t("builder.props.url")}>
               <input type="text" value={selectedBlock.content.url ?? ""} onChange={(e) => set("url", e.target.value)} className={inputCls} placeholder="https://..." />
             </Field>
-            <ColorField label="Link Color" value={selectedBlock.content.color || globalStyles.primaryColor} onChange={(v) => set("color", v)} />
-            <Field label="Font Size">
+            <ColorField label={t("builder.props.linkColor")} value={selectedBlock.content.color || globalStyles.primaryColor} onChange={(v) => set("color", v)} />
+            <Field label={t("builder.props.fontSize")}>
               <input type="text" value={selectedBlock.styles.fontSize ?? "14px"} onChange={(e) => setStyle("fontSize", e.target.value)} className={inputCls} />
             </Field>
           </>
@@ -225,24 +231,24 @@ export function PropertiesPanel() {
         {selectedBlock.type === "FEEDBACK" && (
           <>
             <AlignField value={selectedBlock.styles.textAlign} onChange={(v) => setStyle("textAlign", v)} />
-            <Field label="Question">
+            <Field label={t("builder.props.question")}>
               <input type="text" value={selectedBlock.content.question ?? ""} onChange={(e) => set("question", e.target.value)} className={inputCls} />
             </Field>
-            <Field label="Widget Type">
+            <Field label={t("builder.props.widgetType")}>
               <select value={selectedBlock.content.type ?? "stars"} onChange={(e) => set("type", e.target.value)} className={inputCls}>
-                <option value="stars">⭐ Stars</option>
-                <option value="thumbs">👍 Thumbs Up / Down</option>
-                <option value="emoji">😊 Emoji Scale</option>
+                <option value="stars">{t("builder.props.widgetStars")}</option>
+                <option value="thumbs">{t("builder.props.widgetThumbs")}</option>
+                <option value="emoji">{t("builder.props.widgetEmoji")}</option>
               </select>
             </Field>
             {selectedBlock.content.type === "stars" && (
-              <Field label="Star Count">
+              <Field label={t("builder.props.starCount")}>
                 <input type="number" min={3} max={10} value={selectedBlock.content.scale ?? 5} onChange={(e) => set("scale", parseInt(e.target.value))} className={inputCls} />
               </Field>
             )}
-            <Field label="Feedback Base URL">
+            <Field label={t("builder.props.feedbackBaseUrl")}>
               <input type="text" value={selectedBlock.content.baseUrl ?? ""} onChange={(e) => set("baseUrl", e.target.value)} className={inputCls} placeholder="https://..." />
-              <p className="text-xs text-on-surface-variant mt-1">?rating=N appended per option</p>
+              <p className="text-xs text-on-surface-variant mt-1">{t("builder.props.feedbackHint")}</p>
             </Field>
           </>
         )}
@@ -250,7 +256,7 @@ export function PropertiesPanel() {
         {/* ── COLUMNS ──────────────────────────────── */}
         {selectedBlock.type === "COLUMNS" && (
           <>
-            <Field label="Column Ratio">
+            <Field label={t("builder.props.columnRatio")}>
               <select value={selectedBlock.content.ratio ?? "50:50"} onChange={(e) => set("ratio", e.target.value)} className={inputCls}>
                 <option value="50:50">50 / 50</option>
                 <option value="60:40">60 / 40</option>
@@ -259,13 +265,13 @@ export function PropertiesPanel() {
                 <option value="30:70">30 / 70</option>
               </select>
             </Field>
-            <Field label="Gap">
+            <Field label={t("builder.props.gap")}>
               <input type="text" value={selectedBlock.content.gap ?? "16px"} onChange={(e) => set("gap", e.target.value)} className={inputCls} placeholder="16px" />
             </Field>
-            <Field label="Left Column (HTML)">
+            <Field label={t("builder.props.leftColumnHtml")}>
               <textarea value={selectedBlock.content.col1 ?? ""} onChange={(e) => set("col1", e.target.value)} className={`${inputCls} h-24 resize-y`} />
             </Field>
-            <Field label="Right Column (HTML)">
+            <Field label={t("builder.props.rightColumnHtml")}>
               <textarea value={selectedBlock.content.col2 ?? ""} onChange={(e) => set("col2", e.target.value)} className={`${inputCls} h-24 resize-y`} />
             </Field>
           </>
@@ -274,18 +280,18 @@ export function PropertiesPanel() {
         {/* ── SECTION ──────────────────────────────── */}
         {selectedBlock.type === "SECTION" && (
           <>
-            <Field label="Content (HTML supported)">
+            <Field label={t("builder.props.contentHtml")}>
               <textarea value={selectedBlock.content.text ?? ""} onChange={(e) => set("text", e.target.value)} className={`${inputCls} h-28 resize-y`} />
             </Field>
-            <ColorField label="Background" value={selectedBlock.content.backgroundColor ?? "#f9fafb"} onChange={(v) => set("backgroundColor", v)} />
-            <ColorField label="Border Color" value={selectedBlock.content.borderColor ?? "#e5e7eb"} onChange={(v) => set("borderColor", v)} />
-            <Field label="Border Width (px)">
+            <ColorField label={t("builder.props.background")} value={selectedBlock.content.backgroundColor ?? "#f9fafb"} onChange={(v) => set("backgroundColor", v)} />
+            <ColorField label={t("builder.props.borderColor")} value={selectedBlock.content.borderColor ?? "#e5e7eb"} onChange={(v) => set("borderColor", v)} />
+            <Field label={t("builder.props.borderWidth")}>
               <input type="number" min={0} max={8} value={selectedBlock.content.borderWidth ?? 1} onChange={(e) => set("borderWidth", parseInt(e.target.value))} className={inputCls} />
             </Field>
-            <Field label="Border Radius (px)">
+            <Field label={t("builder.props.borderRadius")}>
               <input type="number" min={0} max={32} value={selectedBlock.content.borderRadius ?? 8} onChange={(e) => set("borderRadius", parseInt(e.target.value))} className={inputCls} />
             </Field>
-            <Field label="Inner Padding">
+            <Field label={t("builder.props.innerPadding")}>
               <input type="text" value={selectedBlock.content.padding ?? "24px"} onChange={(e) => set("padding", e.target.value)} className={inputCls} placeholder="24px" />
             </Field>
           </>
@@ -294,16 +300,16 @@ export function PropertiesPanel() {
         {/* ── CALLOUT ──────────────────────────────── */}
         {selectedBlock.type === "CALLOUT" && (
           <>
-            <Field label="Icon (emoji)">
+            <Field label={t("builder.props.iconEmoji")}>
               <input type="text" value={selectedBlock.content.icon ?? "💡"} onChange={(e) => set("icon", e.target.value)} className={inputCls} />
             </Field>
-            <Field label="Text">
+            <Field label={t("builder.props.text")}>
               <textarea value={selectedBlock.content.text ?? ""} onChange={(e) => set("text", e.target.value)} className={`${inputCls} h-24 resize-y`} />
             </Field>
-            <ColorField label="Background" value={selectedBlock.content.backgroundColor ?? "#eff6ff"} onChange={(v) => set("backgroundColor", v)} />
-            <ColorField label="Text Color" value={selectedBlock.content.textColor ?? "#1e40af"} onChange={(v) => set("textColor", v)} />
-            <ColorField label="Border Color" value={selectedBlock.content.borderColor ?? "#bfdbfe"} onChange={(v) => set("borderColor", v)} />
-            <Field label="Border Radius (px)">
+            <ColorField label={t("builder.props.background")} value={selectedBlock.content.backgroundColor ?? "#eff6ff"} onChange={(v) => set("backgroundColor", v)} />
+            <ColorField label={t("builder.props.textColor")} value={selectedBlock.content.textColor ?? "#1e40af"} onChange={(v) => set("textColor", v)} />
+            <ColorField label={t("builder.props.borderColor")} value={selectedBlock.content.borderColor ?? "#bfdbfe"} onChange={(v) => set("borderColor", v)} />
+            <Field label={t("builder.props.borderRadius")}>
               <input type="number" min={0} max={32} value={selectedBlock.content.borderRadius ?? 8} onChange={(e) => set("borderRadius", parseInt(e.target.value))} className={inputCls} />
             </Field>
           </>
@@ -312,30 +318,30 @@ export function PropertiesPanel() {
         {/* ── QUOTE ────────────────────────────────── */}
         {selectedBlock.type === "QUOTE" && (
           <>
-            <Field label="Quote Text">
+            <Field label={t("builder.props.quoteText")}>
               <textarea value={selectedBlock.content.text ?? ""} onChange={(e) => set("text", e.target.value)} className={`${inputCls} h-24 resize-y`} />
             </Field>
-            <Field label="Attribution">
-              <input type="text" value={selectedBlock.content.attribution ?? ""} onChange={(e) => set("attribution", e.target.value)} className={inputCls} placeholder="— Author Name" />
+            <Field label={t("builder.props.attribution")}>
+              <input type="text" value={selectedBlock.content.attribution ?? ""} onChange={(e) => set("attribution", e.target.value)} className={inputCls} placeholder={t("builder.props.attributionPlaceholder")} />
             </Field>
-            <ColorField label="Border Color" value={selectedBlock.content.borderColor || globalStyles.primaryColor} onChange={(v) => set("borderColor", v)} />
+            <ColorField label={t("builder.props.borderColor")} value={selectedBlock.content.borderColor || globalStyles.primaryColor} onChange={(v) => set("borderColor", v)} />
           </>
         )}
 
         {/* ── LIST ─────────────────────────────────── */}
         {selectedBlock.type === "LIST" && (
           <>
-            <Field label="List Type">
+            <Field label={t("builder.props.listType")}>
               <div className="flex bg-surface border border-outline-variant rounded-lg overflow-hidden">
-                <button onClick={() => set("ordered", false)} className={`flex-1 py-1.5 text-xs ${!selectedBlock.content.ordered ? "bg-primary text-on-primary" : "text-on-surface hover:bg-surface-container"}`}>• Unordered</button>
-                <button onClick={() => set("ordered", true)} className={`flex-1 py-1.5 text-xs ${selectedBlock.content.ordered ? "bg-primary text-on-primary" : "text-on-surface hover:bg-surface-container"}`}>1. Ordered</button>
+                <button onClick={() => set("ordered", false)} className={`flex-1 py-1.5 text-xs ${!selectedBlock.content.ordered ? "bg-primary text-on-primary" : "text-on-surface hover:bg-surface-container"}`}>{t("builder.props.unordered")}</button>
+                <button onClick={() => set("ordered", true)} className={`flex-1 py-1.5 text-xs ${selectedBlock.content.ordered ? "bg-primary text-on-primary" : "text-on-surface hover:bg-surface-container"}`}>{t("builder.props.ordered")}</button>
               </div>
             </Field>
-            <Field label="Font Size">
+            <Field label={t("builder.props.fontSize")}>
               <input type="text" value={selectedBlock.styles.fontSize ?? "14px"} onChange={(e) => setStyle("fontSize", e.target.value)} className={inputCls} />
             </Field>
             <div className="space-y-2">
-              <label className="block text-xs font-medium text-on-surface-variant">Items</label>
+              <label className="block text-xs font-medium text-on-surface-variant">{t("builder.props.items")}</label>
               {(selectedBlock.content.items ?? []).map((item: string, i: number) => (
                 <div key={i} className="flex gap-2 items-center">
                   <input
@@ -360,26 +366,26 @@ export function PropertiesPanel() {
                   </button>
                 </div>
               ))}
-              <button onClick={() => { const items = [...(selectedBlock.content.items ?? [])]; items.push("New item"); set("items", items); }} className={addBtnCls}>+ Add Item</button>
+              <button onClick={() => { const items = [...(selectedBlock.content.items ?? [])]; items.push(t("builder.props.newItem")); set("items", items); }} className={addBtnCls}>{t("builder.props.addItem")}</button>
             </div>
           </>
         )}
 
         {/* ── HTML ─────────────────────────────────── */}
         {selectedBlock.type === "HTML" && (
-          <Field label="Raw HTML">
+          <Field label={t("builder.props.rawHtml")}>
             <textarea value={selectedBlock.content.html ?? ""} onChange={(e) => set("html", e.target.value)} className={`${inputCls} h-48 resize-y font-mono text-xs`} placeholder="<!-- your HTML -->" />
-            <p className="text-xs text-on-surface-variant mt-1">Injected directly into the email. Use with care.</p>
+            <p className="text-xs text-on-surface-variant mt-1">{t("builder.props.rawHtmlHint")}</p>
           </Field>
         )}
 
         {/* ── Universal spacing ─────────────────────── */}
         <div className="pt-4 border-t border-outline-variant space-y-4">
-          <h4 className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Spacing</h4>
-          <Field label="Padding">
+          <h4 className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">{t("builder.props.spacing")}</h4>
+          <Field label={t("builder.props.padding")}>
             <input type="text" value={selectedBlock.styles.padding ?? "8px 0"} onChange={(e) => setStyle("padding", e.target.value)} className={inputCls} />
           </Field>
-          <Field label="Margin">
+          <Field label={t("builder.props.margin")}>
             <input type="text" value={selectedBlock.styles.margin ?? "0"} onChange={(e) => setStyle("margin", e.target.value)} className={inputCls} />
           </Field>
         </div>
@@ -412,12 +418,13 @@ function ColorField({ label, value, onChange }: { label: string; value: string; 
 }
 
 function AlignField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { t } = useTranslation("emailTemplates");
   return (
-    <Field label="Alignment">
+    <Field label={t("builder.props.alignment")}>
       <div className="flex bg-surface border border-outline-variant rounded-lg overflow-hidden">
         {["left", "center", "right"].map((a) => (
-          <button key={a} onClick={() => onChange(a)} className={`flex-1 py-1.5 text-xs capitalize ${value === a ? "bg-primary text-on-primary" : "text-on-surface hover:bg-surface-container"}`}>
-            {a}
+          <button key={a} onClick={() => onChange(a)} className={`flex-1 py-1.5 text-xs ${value === a ? "bg-primary text-on-primary" : "text-on-surface hover:bg-surface-container"}`}>
+            {t(`builder.props.${a}`)}
           </button>
         ))}
       </div>

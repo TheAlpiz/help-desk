@@ -152,12 +152,22 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [templateOpen, setTemplateOpen] = useState(false);
 
+  const { data: agents = [] } = useQuery({
+    queryKey: ["users", "list"],
+    queryFn: async () => {
+      const res = await api.users.index.$get();
+      const json = (await res.json().catch(() => null)) as any;
+      return (json?.data ?? []) as Array<{ id: string; firstName: string; lastName: string; email: string }>;
+    },
+  });
+
   const form = useForm({
     defaultValues: {
       title: "",
       description: "",
       priority: "MEDIUM" as "LOW" | "MEDIUM" | "HIGH" | "URGENT",
       dueDate: "",
+      assigneeId: undefined as string | undefined,
     },
     validators: {
       // dueDate is relaxed to a plain optional string here: the
@@ -178,10 +188,11 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
         };
         if (value.description) payload.description = value.description;
         if (value.dueDate) payload.dueDate = new Date(value.dueDate).toISOString();
+        if (value.assigneeId) payload.assigneeId = value.assigneeId;
 
         const res = await api.tasks.index.$post({ json: payload as any });
         if (!res.ok) {
-          const body = (await res.json()) as any;
+          const body = (await res.json().catch(() => null)) as any;
           setError(body?.error?.message || body?.message || tCommon("errors.saveFailed"));
           return;
         }
@@ -313,6 +324,27 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
           />
         </div>
 
+        <form.Field
+          name="assigneeId"
+          children={(field) => (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-on-surface">{t("fields.assignee")}</label>
+              <select
+                className={selectCls}
+                value={field.state.value ?? ""}
+                onChange={(e) => field.handleChange(e.target.value || undefined)}
+              >
+                <option value="">{t("fields.unassigned")}</option>
+                {agents.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {[a.firstName, a.lastName].filter(Boolean).join(" ") || a.email}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        />
+
         <div className="flex gap-2 justify-end pt-1">
           <Button type="button" variant="secondary" onClick={onClose}>{tCommon("actions.cancel")}</Button>
           <form.Subscribe
@@ -427,6 +459,8 @@ function TaskDetailDrawer({ task, onClose }: { task: Task; onClose: () => void }
   const { t } = useTranslation("tasks");
   const queryClient = useQueryClient();
   const [comment, setComment] = useState("");
+  const [isEditingDesc, setIsEditingDesc] = useState(false);
+  const [editDesc, setEditDesc] = useState(task.description || "");
 
   const { data: detailData } = useQuery({
     queryKey: ["task", task.id],
@@ -501,13 +535,31 @@ function TaskDetailDrawer({ task, onClose }: { task: Task; onClose: () => void }
     },
   });
 
+  const updateDescMutation = useMutation({
+    mutationFn: async (description: string) => {
+      const res = await api.tasks[":id"].$patch({
+        param: { id: task.id },
+        json: { description },
+      });
+      if (!res.ok) throw new Error("Failed to update description");
+    },
+    onSuccess: () => {
+      setIsEditingDesc(false);
+      queryClient.invalidateQueries({ queryKey: ["task", task.id] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+  });
+
   const comments: any[] = (commentsData as any)?.data ?? [];
   const prio = PRIORITY_CONFIG[task.priority];
 
   // ABAC: only the assignee manages an assigned task. Unassigned → open.
+  // Admins bypass this check.
   const myId = useAppStore((s) => s.user?.id);
+  const myGlobalRole = useAppStore((s) => s.user?.globalRole);
+  const isAdmin = myGlobalRole === "SUPER_ADMIN" || myGlobalRole === "ADMIN";
   const assigneeId = detail?.assigneeId ?? task.assigneeId ?? null;
-  const canManage = !assigneeId || assigneeId === myId;
+  const canManage = isAdmin || !assigneeId || assigneeId === myId;
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -565,12 +617,55 @@ function TaskDetailDrawer({ task, onClose }: { task: Task; onClose: () => void }
           </div>
 
           {/* Description */}
-          {task.description && (
-            <div>
-              <h4 className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-1.5">{t("fields.description")}</h4>
-              <p className="text-sm text-on-surface-variant leading-relaxed">{task.description}</p>
+          <div className="group">
+            <div className="flex items-center justify-between mb-1.5">
+              <h4 className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider">{t("fields.description")}</h4>
+              {!isEditingDesc && canManage && (
+                <button
+                  onClick={() => setIsEditingDesc(true)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-medium text-primary hover:underline"
+                >
+                  Edit
+                </button>
+              )}
             </div>
-          )}
+            
+            {isEditingDesc ? (
+              <div className="space-y-2">
+                <textarea
+                  value={editDesc}
+                  onChange={(e) => setEditDesc(e.target.value)}
+                  className={textareaCls}
+                  rows={4}
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setIsEditingDesc(false);
+                      setEditDesc(task.description || "");
+                    }}
+                    disabled={updateDescMutation.isPending}
+                    className="py-1.5 px-3 text-xs"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => updateDescMutation.mutate(editDesc)}
+                    disabled={updateDescMutation.isPending}
+                    className="py-1.5 px-3 text-xs"
+                  >
+                    Save
+                  </Button>
+                </div>
+              </div>
+            ) : task.description ? (
+              <p className="text-sm text-on-surface-variant leading-relaxed whitespace-pre-wrap">{task.description}</p>
+            ) : (
+              <p className="text-xs text-on-surface-variant/40 italic">No description</p>
+            )}
+          </div>
 
           {/* Attachments */}
           <EntityAttachments entityType="TASK" entityId={task.id} />

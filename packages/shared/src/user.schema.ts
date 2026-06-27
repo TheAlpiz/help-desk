@@ -43,11 +43,11 @@ export const userListResponseSchema = z.array(userResponseSchema);
 export type UserResponse = z.infer<typeof userResponseSchema>;
 
 export const inviteUserSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  firstName: z.string().min(1, "First name is required").max(100),
-  lastName: z.string().min(1, "Last name is required").max(100),
-  globalRole: z.string().min(1, "Role is required"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  email: z.string().email("validation.email"),
+  firstName: z.string().min(1, "validation.firstNameRequired").max(100),
+  lastName: z.string().min(1, "validation.lastNameRequired").max(100),
+  globalRole: z.string().min(1, "validation.roleRequired"),
+  password: z.string().min(8, "validation.passwordMin8"),
 });
 
 export const updateUserSchema = z.object({

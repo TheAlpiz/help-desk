@@ -13,8 +13,12 @@
     "actor": "Aktör",
     "action": "Eylem",
     "entity": "Varlık",
-    "entityId": "Varlık ID"
+    "entityId": "Varlık ID",
+    "details": "Ayrıntılar"
   },
-  "system": "sistem",
+  "system": "Sistem",
+  "noChanges": "—",
+  "created": "Oluşturuldu",
+  "deleted": "Silindi",
   "pagination": "Sayfa {{page}} / {{total}}"
 }

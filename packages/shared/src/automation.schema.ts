@@ -80,11 +80,11 @@ export const automationActionSchema = z.object({
 });
 
 export const createAutomationSchema = z.object({
-  name: z.string().min(1, "Name is required").max(255),
+  name: z.string().min(1, "validation.nameRequired").max(255),
   description: z.string().max(1000).optional(),
   trigger: z.enum(AUTOMATION_TRIGGERS),
   conditions: z.array(automationConditionSchema).default([]),
-  actions: z.array(automationActionSchema).min(1, "At least one action is required"),
+  actions: z.array(automationActionSchema).min(1, "validation.atLeastOneAction"),
   conditionMatch: z.enum(["all", "any"]).default("all"),
 });
 
