@@ -43,6 +43,18 @@ services:
       - LOG_LEVEL=info
       - EMAIL_INGEST_BLOCKLIST=info@yerliva.com
       - MINIO_PUBLIC_URL=https://minio.yerliva.com
+      # ── GitHub App ──────────────────────────────────────────────────────────
+      # Non-secret identifiers can stay here; secrets are sourced from server env /
+      # EasyPanel and must never be committed. Feature stays inert if unset.
+      - GITHUB_APP_ID=${GITHUB_APP_ID:-}
+      - GITHUB_APP_SLUG=${GITHUB_APP_SLUG:-}
+      - GITHUB_APP_CLIENT_ID=${GITHUB_APP_CLIENT_ID:-}
+      # PEM private key — multiline. Set in server env (quoted, real newlines) or as
+      # a single line with literal \n; the app normalizes both.
+      - GITHUB_APP_PRIVATE_KEY=${GITHUB_APP_PRIVATE_KEY:-}
+      - GITHUB_APP_CLIENT_SECRET=${GITHUB_APP_CLIENT_SECRET:-}
+      # Must match the Secret configured on the GitHub App; every webhook is HMAC-verified.
+      - GITHUB_APP_WEBHOOK_SECRET=${GITHUB_APP_WEBHOOK_SECRET:-}
     depends_on:
       - db
       - redis
