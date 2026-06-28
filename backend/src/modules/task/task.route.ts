@@ -19,16 +19,35 @@ export const taskRouter = new Hono<{
   .get("/", requirePermission("task.read"), async (c) => {
     const tenantId = c.get("tenantId");
     if (!tenantId) return ResponseHandler.unauthorized(c, "Tenant ID required");
+    const user = c.get("user");
     try {
       const query = c.req.query();
       const limit = Math.min(Number(query.limit) || 25, 100);
       const offset = Number(query.offset) || 0;
-      
+
+      // Workspace scope guard — mirrors the ticket list endpoint.
+      //   scope=personal    → only tasks assigned to the current user
+      //   scope=dept:<uuid> → tasks whose ticket is in that department; members
+      //                       (or org admins) only.
+      let assigneeId = query.assigneeId;
+      let departmentId: string | undefined;
+      const scope = query.scope;
+      const isOrgAdmin = user.globalRole === "ADMIN" || user.globalRole === "SUPER_ADMIN";
+      if (scope === "personal") {
+        assigneeId = user.userId;
+      } else if (scope?.startsWith("dept:")) {
+        departmentId = scope.slice("dept:".length);
+        if (!isOrgAdmin && !(user.departmentIds ?? []).includes(departmentId)) {
+          return ResponseHandler.forbidden(c, "Not a member of this department");
+        }
+      }
+
       const tasks = await TaskService.findAll(tenantId, {
         ticketId: query.ticketId,
-        assigneeId: query.assigneeId,
+        assigneeId,
         standalone: query.standalone === "true",
         search: query.search,
+        departmentId,
         limit,
         offset,
       });

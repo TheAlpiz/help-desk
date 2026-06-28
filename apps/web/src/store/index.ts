@@ -18,6 +18,11 @@ type UserContext = {
 // Live presence for org members, keyed by userId. Online = has a WS socket.
 export type PresenceEntry = { online: boolean; availability?: string };
 
+// Workspace switcher: "personal" (My Space — only own tickets/tasks, slim nav)
+// vs "corporate" (full nav, scoped by permission/department). In corporate mode
+// `workspaceDeptId` narrows to one department; null = whole organization.
+export type WorkspaceMode = "personal" | "corporate";
+
 type AppState = {
   user: UserContext | null;
   tenantId: string | null;
@@ -27,9 +32,12 @@ type AppState = {
   language: SupportedLanguage;
   notificationSound: boolean;
   presence: Record<string, PresenceEntry>;
+  workspaceMode: WorkspaceMode;
+  workspaceDeptId: string | null;
 
   // Actions
   setUser: (user: UserContext | null) => void;
+  setWorkspace: (mode: WorkspaceMode, deptId?: string | null) => void;
   setTenantId: (tenantId: string | null) => void;
   setAccessToken: (token: string | undefined) => void;
   toggleSidebar: () => void;
@@ -54,8 +62,12 @@ export const useAppStore = create<AppState>()(
       language: "tr",
       notificationSound: true,
       presence: {},
+      workspaceMode: "corporate",
+      workspaceDeptId: null,
 
       setUser: (user) => set({ user }),
+      setWorkspace: (mode, deptId = null) =>
+        set({ workspaceMode: mode, workspaceDeptId: mode === "corporate" ? deptId : null }),
       setTenantId: (tenantId) => set({ tenantId }),
       setAccessToken: (accessToken) => set({ accessToken }),
       toggleSidebar: () =>
@@ -97,19 +109,23 @@ export const useAppStore = create<AppState>()(
       // SECURITY: only UI preferences are persisted. The access token lives in
       // memory only (XSS cannot read it from storage), and user/tenant identity is
       // re-hydrated from the server (GET /auths/me) after a silent refresh on boot.
-      partialize: (state) => ({ 
-        theme: state.theme, 
-        sidebarOpen: state.sidebarOpen, 
+      partialize: (state) => ({
+        theme: state.theme,
+        sidebarOpen: state.sidebarOpen,
         language: state.language,
-        notificationSound: state.notificationSound 
+        notificationSound: state.notificationSound,
+        workspaceMode: state.workspaceMode,
+        workspaceDeptId: state.workspaceDeptId,
       }),
-      // v4 migration: default language changed to tr
-      version: 4,
+      // v5 migration: added workspace switcher state
+      version: 5,
       migrate: (persisted: any, version: number) => ({
         theme: persisted?.theme ?? "system",
         sidebarOpen: persisted?.sidebarOpen ?? true,
         language: (version < 4 ? "tr" : persisted?.language) ?? "tr",
         notificationSound: persisted?.notificationSound ?? true,
+        workspaceMode: persisted?.workspaceMode ?? "corporate",
+        workspaceDeptId: persisted?.workspaceDeptId ?? null,
       }),
     },
   ),

@@ -19,6 +19,9 @@ const DIRECT_TENANT_TABLES = [
   "user_role",
   "session",
   "user_note",
+  "ticket_filter_rule",
+  "github_installation",
+  "github_event",
 ];
 
 /**
@@ -30,6 +33,7 @@ const CHILD_TENANT_TABLES: { table: string; fk: string; parent: string }[] = [
   { table: "ticket_tag", fk: "ticket_id", parent: "ticket" },
   { table: "ticket_link", fk: "source_ticket_id", parent: "ticket" },
   { table: "task_comment", fk: "task_id", parent: "task" },
+  { table: "task_github_link", fk: "task_id", parent: "task" },
   { table: "notification", fk: "user_id", parent: "user" },
   { table: "notification_preference", fk: "user_id", parent: "user" },
   { table: "permission", fk: "role_id", parent: "role" },

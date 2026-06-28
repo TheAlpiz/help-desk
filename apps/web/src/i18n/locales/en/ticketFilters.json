@@ -1,0 +1,32 @@
+{
+  "title": "Ticket Filters",
+  "subtitle": "Drop inbound tickets from blocked senders, domains, or subjects before they are created.",
+  "new": "New Rule",
+  "empty": "No filter rules yet. Add one to start blocking unwanted tickets.",
+  "adminOnly": "Only organization admins can manage filter rules.",
+  "active": "Active",
+  "inactive": "Inactive",
+  "delete": "Delete",
+  "save": "Save Rule",
+  "cancel": "Cancel",
+  "fields": {
+    "name": "Rule name",
+    "field": "Match on",
+    "value": "Value",
+    "action": "Action"
+  },
+  "matchFields": {
+    "sender_email": "Sender email",
+    "sender_domain": "Sender domain",
+    "subject_contains": "Subject contains"
+  },
+  "actions": {
+    "drop": "Drop ticket"
+  },
+  "placeholders": {
+    "name": "e.g. Block spam@bad.com",
+    "sender_email": "spam@bad.com",
+    "sender_domain": "bad.com",
+    "subject_contains": "unsubscribe"
+  }
+}

@@ -1,5 +1,6 @@
-import { eq, and, or, desc, isNull, ilike, count } from "drizzle-orm";
+import { eq, and, or, desc, isNull, ilike, count, inArray } from "drizzle-orm";
 import { task } from "./task.schema";
+import { ticket } from "../ticket/ticket.schema";
 import { taskComment } from "./task-comment.schema";
 import { auditLog } from "../audit-log/audit-log.schema";
 import { withTenantTransaction } from "../../infra/db/index";
@@ -20,13 +21,23 @@ function assertCanManage(t: { assigneeId: string | null }, actorId: string, glob
 export const TaskService = {
   findAll: async (
     tenantId: string,
-    filters?: { ticketId?: string; assigneeId?: string; standalone?: boolean; search?: string; limit?: number; offset?: number }
+    filters?: { ticketId?: string; assigneeId?: string; standalone?: boolean; search?: string; departmentId?: string; limit?: number; offset?: number }
   ) => {
     return withTenantTransaction(tenantId, async (tx) => {
       const conditions = [eq(task.organizationId, tenantId)];
       if (filters?.ticketId) conditions.push(eq(task.ticketId, filters.ticketId));
       if (filters?.assigneeId) conditions.push(eq(task.assigneeId, filters.assigneeId));
       if (filters?.standalone) conditions.push(isNull(task.ticketId));
+      // Department scope: a task belongs to a department via its parent ticket.
+      // Standalone tasks (no ticket) are intentionally excluded from a dept view.
+      if (filters?.departmentId) {
+        conditions.push(
+          inArray(
+            task.ticketId,
+            tx.select({ id: ticket.id }).from(ticket).where(eq(ticket.departmentId, filters.departmentId)),
+          ),
+        );
+      }
       
       let searchFilter;
       if (filters?.search) {
@@ -88,6 +99,19 @@ export const TaskService = {
       if (created.assigneeId && created.assigneeId !== actorId) {
         emitEvent("task.assigned", { taskId: created.id, assigneeId: created.assigneeId, actorId, organizationId: tenantId });
       }
+      // Optional GitHub linkage: enqueue branch creation (network-bound) so the
+      // HTTP request returns immediately. Failure here never blocks task creation.
+      if (input.githubRepoFullName) {
+        import("../github/github.queue")
+          .then(({ enqueueGithubLink }) =>
+            enqueueGithubLink({
+              tenantId,
+              taskId: created.id,
+              repoFullName: input.githubRepoFullName!,
+            }),
+          )
+          .catch(() => {});
+      }
       return created;
     });
   },
@@ -108,7 +132,13 @@ export const TaskService = {
         }
       }
 
-      const updated = await tx.update(task).set({ status: newStatus }).where(eq(task.id, taskId)).returning();
+      // Stamp completion time on entering a terminal status; clear it on reopen.
+      const TERMINAL = newStatus === "DONE" || newStatus === "CANCELED";
+      const updated = await tx
+        .update(task)
+        .set({ status: newStatus, completedAt: TERMINAL ? new Date() : null })
+        .where(eq(task.id, taskId))
+        .returning();
 
       await tx.insert(auditLog).values({
         organizationId: tenantId,

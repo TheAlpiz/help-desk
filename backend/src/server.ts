@@ -22,6 +22,7 @@ import { AuditArchivalWorker } from "./workers/audit-archival.worker";
 import { TicketArchivalWorker } from "./workers/ticket-archival.worker";
 import { AttachmentArchivalWorker } from "./workers/attachment-archival.worker";
 import { ReminderWorker } from "./workers/reminder.worker";
+import { GithubWorker } from "./workers/github.worker";
 import { NotificationService } from "./modules/notification/notification.service";
 import { initAutomationListeners } from "./workers/automation.listener";
 import { initEmailTemplateListeners } from "./workers/email-template.listener";
@@ -89,6 +90,9 @@ new EmailDeliveryWorker({
 
 // Initialize Personal-Note Reminder Worker (delayed jobs → in-app notification + sound)
 new ReminderWorker();
+
+// Initialize GitHub Worker (branch creation + webhook-driven task sync)
+new GithubWorker();
 
 // Initialize Notification Event Bus Listeners
 NotificationService.initListeners();

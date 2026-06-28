@@ -30,6 +30,8 @@ import enOnboarding from "./locales/en/onboarding.json";
 import enMessages from "./locales/en/messages.json";
 import enEmailAnalytics from "./locales/en/emailAnalytics.json";
 import enEmailTemplates from "./locales/en/emailTemplates.json";
+import enTicketFilters from "./locales/en/ticketFilters.json";
+import enGithub from "./locales/en/github.json";
 
 // ── TR namespaces ─────────────────────────────────────────────────────────────
 import trCommon from "./locales/tr/common.json";
@@ -59,6 +61,8 @@ import trOnboarding from "./locales/tr/onboarding.json";
 import trMessages from "./locales/tr/messages.json";
 import trEmailAnalytics from "./locales/tr/emailAnalytics.json";
 import trEmailTemplates from "./locales/tr/emailTemplates.json";
+import trTicketFilters from "./locales/tr/ticketFilters.json";
+import trGithub from "./locales/tr/github.json";
 
 export const SUPPORTED_LANGUAGES = ["tr", "en"] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
@@ -98,6 +102,8 @@ export const NAMESPACES = [
   "messages",
   "emailAnalytics",
   "emailTemplates",
+  "ticketFilters",
+  "github",
 ] as const;
 
 export type Namespace = (typeof NAMESPACES)[number];
@@ -135,6 +141,8 @@ i18n
         messages: enMessages,
         emailAnalytics: enEmailAnalytics,
         emailTemplates: enEmailTemplates,
+        ticketFilters: enTicketFilters,
+        github: enGithub,
       },
       tr: {
         common: trCommon,
@@ -164,6 +172,8 @@ i18n
         messages: trMessages,
         emailAnalytics: trEmailAnalytics,
         emailTemplates: trEmailTemplates,
+        ticketFilters: trTicketFilters,
+        github: trGithub,
       },
     },
     defaultNS: "common",

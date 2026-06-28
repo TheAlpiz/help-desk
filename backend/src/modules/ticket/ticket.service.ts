@@ -14,6 +14,7 @@ import { ticketVisibilityFilter, canViewTicket, TicketActor } from "../auth/abac
 import { emitEvent } from "../../infra/events";
 import { parseMentions } from "../notification/notification.constants";
 import { CreateTicketInput, UpdateTicketStatusInput } from "@help-desk/shared";
+import { TicketFilterService } from "../ticket-filter/ticket-filter.service";
 
 type AddMessageInput = {
   content: string;
@@ -41,7 +42,7 @@ export const TicketService = {
   findAll: async (
     tenantId: string,
     actor?: TicketActor,
-    opts?: { limit?: number; offset?: number; status?: string; priority?: string; search?: string; assigneeId?: string; unassigned?: string },
+    opts?: { limit?: number; offset?: number; status?: string; priority?: string; search?: string; assigneeId?: string; unassigned?: string; departmentId?: string },
   ) => {
     const limit = opts?.limit ?? 25;
     const offset = opts?.offset ?? 0;
@@ -71,7 +72,9 @@ export const TicketService = {
         assigneeFilter = isNull(ticket.assigneeId);
       }
 
-      const where = and(eq(ticket.organizationId, tenantId), abac, statusFilter, priorityFilter, searchFilter, assigneeFilter);
+      const departmentFilter = opts?.departmentId ? eq(ticket.departmentId, opts.departmentId) : undefined;
+
+      const where = and(eq(ticket.organizationId, tenantId), abac, statusFilter, priorityFilter, searchFilter, assigneeFilter, departmentFilter);
 
       const [rows, [{ total }]] = await Promise.all([
         tx.select().from(ticket).where(where).orderBy(desc(ticket.createdAt)).limit(limit).offset(offset),
@@ -128,6 +131,17 @@ export const TicketService = {
   },
 
   createTicket: async (tenantId: string, actorId: string, input: CreateTicketInput & { mailboxId?: string }) => {
+    // Inbound filter rules apply to every channel. Resolve the requester's email
+    // and drop the request if a rule matches (portal/API surface this as an error).
+    const actorEmail = await withTenantTransaction(tenantId, async (tx) => {
+      const rows = await tx.select({ email: user.email }).from(user).where(eq(user.id, actorId)).limit(1);
+      return rows[0]?.email ?? null;
+    }).catch(() => null);
+    const filterHit = await TicketFilterService.evaluate(tenantId, { email: actorEmail, subject: input.subject });
+    if (filterHit) {
+      throw new Error("Ticket blocked by inbound filter rule");
+    }
+
     return await withTenantTransaction(tenantId, async (tx) => {
       if (!input.mailboxId) {
         // Resolve first available mailbox for this tenant

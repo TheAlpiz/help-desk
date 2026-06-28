@@ -20,6 +20,8 @@ import { EmailRouter } from "../modules/email";
 import { messagingRouter } from "../modules/messaging";
 import { ContactRouter } from "../modules/contact";
 import { NoteRouter } from "../modules/note";
+import { TicketFilterRouter } from "../modules/ticket-filter";
+import { GithubRouter } from "../modules/github";
 
 const router = new Hono({ strict: false })
   .route("/auths", AuthRouter)
@@ -43,6 +45,8 @@ const router = new Hono({ strict: false })
   .route("/email", EmailRouter)
   .route("/contact", ContactRouter)
   .route("/conversations", messagingRouter)
-  .route("/notes", NoteRouter);
+  .route("/notes", NoteRouter)
+  .route("/ticket-filters", TicketFilterRouter)
+  .route("/github", GithubRouter);
 
 export default router;

@@ -29,6 +29,7 @@ import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthWhatsappRouteImport } from './routes/_auth/whatsapp'
 import { Route as AuthUsersRouteImport } from './routes/_auth/users'
+import { Route as AuthTicketFiltersRouteImport } from './routes/_auth/ticket-filters'
 import { Route as AuthTenantsRouteImport } from './routes/_auth/tenants'
 import { Route as AuthTasksRouteImport } from './routes/_auth/tasks'
 import { Route as AuthSlaRouteImport } from './routes/_auth/sla'
@@ -46,6 +47,7 @@ import { Route as AuthMailboxesRouteImport } from './routes/_auth/mailboxes'
 import { Route as AuthMacrosRouteImport } from './routes/_auth/macros'
 import { Route as AuthGlobalUsersRouteImport } from './routes/_auth/global-users'
 import { Route as AuthGlobalRolesRouteImport } from './routes/_auth/global-roles'
+import { Route as AuthGithubRouteImport } from './routes/_auth/github'
 import { Route as AuthExportRouteImport } from './routes/_auth/export'
 import { Route as AuthEmailTemplatesRouteImport } from './routes/_auth/email-templates'
 import { Route as AuthDepartmentsRouteImport } from './routes/_auth/departments'
@@ -59,6 +61,7 @@ import { Route as AuthAccountSecurityRouteImport } from './routes/_auth/account-
 import { Route as AuthTicketsIndexRouteImport } from './routes/_auth/tickets/index'
 import { Route as AuthTicketsTicketIdRouteImport } from './routes/_auth/tickets/$ticketId'
 import { Route as AuthTenantTenantIdRouteImport } from './routes/_auth/tenant.$tenantId'
+import { Route as AuthGithubSetupRouteImport } from './routes/_auth/github.setup'
 
 const AuthDashboardLazyRouteImport = createFileRoute('/_auth/dashboard')()
 
@@ -158,6 +161,11 @@ const AuthUsersRoute = AuthUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthTicketFiltersRoute = AuthTicketFiltersRouteImport.update({
+  id: '/ticket-filters',
+  path: '/ticket-filters',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthTenantsRoute = AuthTenantsRouteImport.update({
   id: '/tenants',
   path: '/tenants',
@@ -244,6 +252,11 @@ const AuthGlobalRolesRoute = AuthGlobalRolesRouteImport.update({
   path: '/global-roles',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthGithubRoute = AuthGithubRouteImport.update({
+  id: '/github',
+  path: '/github',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthExportRoute = AuthExportRouteImport.update({
   id: '/export',
   path: '/export',
@@ -309,6 +322,11 @@ const AuthTenantTenantIdRoute = AuthTenantTenantIdRouteImport.update({
   path: '/tenant/$tenantId',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthGithubSetupRoute = AuthGithubSetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => AuthGithubRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -336,6 +354,7 @@ export interface FileRoutesByFullPath {
   '/departments': typeof AuthDepartmentsRoute
   '/email-templates': typeof AuthEmailTemplatesRoute
   '/export': typeof AuthExportRoute
+  '/github': typeof AuthGithubRouteWithChildren
   '/global-roles': typeof AuthGlobalRolesRoute
   '/global-users': typeof AuthGlobalUsersRoute
   '/macros': typeof AuthMacrosRoute
@@ -353,9 +372,11 @@ export interface FileRoutesByFullPath {
   '/sla': typeof AuthSlaRoute
   '/tasks': typeof AuthTasksRoute
   '/tenants': typeof AuthTenantsRoute
+  '/ticket-filters': typeof AuthTicketFiltersRoute
   '/users': typeof AuthUsersRoute
   '/whatsapp': typeof AuthWhatsappRoute
   '/dashboard': typeof AuthDashboardLazyRoute
+  '/github/setup': typeof AuthGithubSetupRoute
   '/tenant/$tenantId': typeof AuthTenantTenantIdRoute
   '/tickets/$ticketId': typeof AuthTicketsTicketIdRoute
   '/tickets/': typeof AuthTicketsIndexRoute
@@ -386,6 +407,7 @@ export interface FileRoutesByTo {
   '/departments': typeof AuthDepartmentsRoute
   '/email-templates': typeof AuthEmailTemplatesRoute
   '/export': typeof AuthExportRoute
+  '/github': typeof AuthGithubRouteWithChildren
   '/global-roles': typeof AuthGlobalRolesRoute
   '/global-users': typeof AuthGlobalUsersRoute
   '/macros': typeof AuthMacrosRoute
@@ -403,9 +425,11 @@ export interface FileRoutesByTo {
   '/sla': typeof AuthSlaRoute
   '/tasks': typeof AuthTasksRoute
   '/tenants': typeof AuthTenantsRoute
+  '/ticket-filters': typeof AuthTicketFiltersRoute
   '/users': typeof AuthUsersRoute
   '/whatsapp': typeof AuthWhatsappRoute
   '/dashboard': typeof AuthDashboardLazyRoute
+  '/github/setup': typeof AuthGithubSetupRoute
   '/tenant/$tenantId': typeof AuthTenantTenantIdRoute
   '/tickets/$ticketId': typeof AuthTicketsTicketIdRoute
   '/tickets': typeof AuthTicketsIndexRoute
@@ -438,6 +462,7 @@ export interface FileRoutesById {
   '/_auth/departments': typeof AuthDepartmentsRoute
   '/_auth/email-templates': typeof AuthEmailTemplatesRoute
   '/_auth/export': typeof AuthExportRoute
+  '/_auth/github': typeof AuthGithubRouteWithChildren
   '/_auth/global-roles': typeof AuthGlobalRolesRoute
   '/_auth/global-users': typeof AuthGlobalUsersRoute
   '/_auth/macros': typeof AuthMacrosRoute
@@ -455,9 +480,11 @@ export interface FileRoutesById {
   '/_auth/sla': typeof AuthSlaRoute
   '/_auth/tasks': typeof AuthTasksRoute
   '/_auth/tenants': typeof AuthTenantsRoute
+  '/_auth/ticket-filters': typeof AuthTicketFiltersRoute
   '/_auth/users': typeof AuthUsersRoute
   '/_auth/whatsapp': typeof AuthWhatsappRoute
   '/_auth/dashboard': typeof AuthDashboardLazyRoute
+  '/_auth/github/setup': typeof AuthGithubSetupRoute
   '/_auth/tenant/$tenantId': typeof AuthTenantTenantIdRoute
   '/_auth/tickets/$ticketId': typeof AuthTicketsTicketIdRoute
   '/_auth/tickets/': typeof AuthTicketsIndexRoute
@@ -490,6 +517,7 @@ export interface FileRouteTypes {
     | '/departments'
     | '/email-templates'
     | '/export'
+    | '/github'
     | '/global-roles'
     | '/global-users'
     | '/macros'
@@ -507,9 +535,11 @@ export interface FileRouteTypes {
     | '/sla'
     | '/tasks'
     | '/tenants'
+    | '/ticket-filters'
     | '/users'
     | '/whatsapp'
     | '/dashboard'
+    | '/github/setup'
     | '/tenant/$tenantId'
     | '/tickets/$ticketId'
     | '/tickets/'
@@ -540,6 +570,7 @@ export interface FileRouteTypes {
     | '/departments'
     | '/email-templates'
     | '/export'
+    | '/github'
     | '/global-roles'
     | '/global-users'
     | '/macros'
@@ -557,9 +588,11 @@ export interface FileRouteTypes {
     | '/sla'
     | '/tasks'
     | '/tenants'
+    | '/ticket-filters'
     | '/users'
     | '/whatsapp'
     | '/dashboard'
+    | '/github/setup'
     | '/tenant/$tenantId'
     | '/tickets/$ticketId'
     | '/tickets'
@@ -591,6 +624,7 @@ export interface FileRouteTypes {
     | '/_auth/departments'
     | '/_auth/email-templates'
     | '/_auth/export'
+    | '/_auth/github'
     | '/_auth/global-roles'
     | '/_auth/global-users'
     | '/_auth/macros'
@@ -608,9 +642,11 @@ export interface FileRouteTypes {
     | '/_auth/sla'
     | '/_auth/tasks'
     | '/_auth/tenants'
+    | '/_auth/ticket-filters'
     | '/_auth/users'
     | '/_auth/whatsapp'
     | '/_auth/dashboard'
+    | '/_auth/github/setup'
     | '/_auth/tenant/$tenantId'
     | '/_auth/tickets/$ticketId'
     | '/_auth/tickets/'
@@ -770,6 +806,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthUsersRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/ticket-filters': {
+      id: '/_auth/ticket-filters'
+      path: '/ticket-filters'
+      fullPath: '/ticket-filters'
+      preLoaderRoute: typeof AuthTicketFiltersRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/tenants': {
       id: '/_auth/tenants'
       path: '/tenants'
@@ -889,6 +932,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthGlobalRolesRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/github': {
+      id: '/_auth/github'
+      path: '/github'
+      fullPath: '/github'
+      preLoaderRoute: typeof AuthGithubRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/export': {
       id: '/_auth/export'
       path: '/export'
@@ -980,8 +1030,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthTenantTenantIdRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/github/setup': {
+      id: '/_auth/github/setup'
+      path: '/setup'
+      fullPath: '/github/setup'
+      preLoaderRoute: typeof AuthGithubSetupRouteImport
+      parentRoute: typeof AuthGithubRoute
+    }
   }
 }
+
+interface AuthGithubRouteChildren {
+  AuthGithubSetupRoute: typeof AuthGithubSetupRoute
+}
+
+const AuthGithubRouteChildren: AuthGithubRouteChildren = {
+  AuthGithubSetupRoute: AuthGithubSetupRoute,
+}
+
+const AuthGithubRouteWithChildren = AuthGithubRoute._addFileChildren(
+  AuthGithubRouteChildren,
+)
 
 interface AuthRouteChildren {
   AuthAccountSecurityRoute: typeof AuthAccountSecurityRoute
@@ -994,6 +1063,7 @@ interface AuthRouteChildren {
   AuthDepartmentsRoute: typeof AuthDepartmentsRoute
   AuthEmailTemplatesRoute: typeof AuthEmailTemplatesRoute
   AuthExportRoute: typeof AuthExportRoute
+  AuthGithubRoute: typeof AuthGithubRouteWithChildren
   AuthGlobalRolesRoute: typeof AuthGlobalRolesRoute
   AuthGlobalUsersRoute: typeof AuthGlobalUsersRoute
   AuthMacrosRoute: typeof AuthMacrosRoute
@@ -1011,6 +1081,7 @@ interface AuthRouteChildren {
   AuthSlaRoute: typeof AuthSlaRoute
   AuthTasksRoute: typeof AuthTasksRoute
   AuthTenantsRoute: typeof AuthTenantsRoute
+  AuthTicketFiltersRoute: typeof AuthTicketFiltersRoute
   AuthUsersRoute: typeof AuthUsersRoute
   AuthWhatsappRoute: typeof AuthWhatsappRoute
   AuthDashboardLazyRoute: typeof AuthDashboardLazyRoute
@@ -1030,6 +1101,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthDepartmentsRoute: AuthDepartmentsRoute,
   AuthEmailTemplatesRoute: AuthEmailTemplatesRoute,
   AuthExportRoute: AuthExportRoute,
+  AuthGithubRoute: AuthGithubRouteWithChildren,
   AuthGlobalRolesRoute: AuthGlobalRolesRoute,
   AuthGlobalUsersRoute: AuthGlobalUsersRoute,
   AuthMacrosRoute: AuthMacrosRoute,
@@ -1047,6 +1119,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthSlaRoute: AuthSlaRoute,
   AuthTasksRoute: AuthTasksRoute,
   AuthTenantsRoute: AuthTenantsRoute,
+  AuthTicketFiltersRoute: AuthTicketFiltersRoute,
   AuthUsersRoute: AuthUsersRoute,
   AuthWhatsappRoute: AuthWhatsappRoute,
   AuthDashboardLazyRoute: AuthDashboardLazyRoute,

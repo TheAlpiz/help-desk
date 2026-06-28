@@ -45,6 +45,7 @@ export type AutomationActionDef =
   | { type: "webhook"; value: string }
   | { type: "resolve_ticket"; value?: string }
   | { type: "close_ticket"; value?: string }
+  | { type: "archive_ticket"; value?: string }
   | { type: "set_due_date"; value?: string; dueInDays?: number };
 
 export type Automation = typeof automation.$inferSelect;

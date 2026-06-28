@@ -8,6 +8,13 @@ export const createTaskSchema = z.object({
   parentTaskId: z.string().uuid().optional().nullable(),
   dueDate: z.string().datetime().optional(),
   assigneeId: z.string().uuid().optional().nullable(),
+  // Optional: link the new task to a GitHub repo. The backend auto-creates a branch
+  // (and draft PR) asynchronously. Format: "owner/repo".
+  githubRepoFullName: z
+    .string()
+    .regex(/^[^/\s]+\/[^/\s]+$/, "Invalid repo (expected owner/repo)")
+    .optional()
+    .nullable(),
 });
 
 export const updateTaskStatusSchema = z.object({

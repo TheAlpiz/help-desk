@@ -78,6 +78,7 @@
     "webhook": "Webhook çağır (URL)",
     "resolve_ticket": "Talebi çöz",
     "close_ticket": "Talebi kapat",
+    "archive_ticket": "Talebi arşivle",
     "set_due_date": "Son tarih belirle"
   },
   "taskPriority": {

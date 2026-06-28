@@ -5,7 +5,8 @@ import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import {
   Plus, X, AlertCircle, AlertTriangle, Minus, ListChecks, MessageSquare, Send,
-  CheckSquare, Square, LayoutList, Kanban, Trash2, ChevronDown, Clock, CalendarDays, BarChartHorizontal
+  CheckSquare, Square, LayoutList, Kanban, Trash2, ChevronDown, Clock, CalendarDays, BarChartHorizontal,
+  GitBranch, GitPullRequest
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
@@ -15,6 +16,7 @@ import { Button, Input, FormAlert, FormError, fieldErrors } from "@/components/u
 import { TaskCalendar } from "@/features/tasks/TaskCalendar";
 import { TaskGantt } from "@/features/tasks/TaskGantt";
 import { useAppStore } from "@/store";
+import { useWorkspaceScope } from "@/lib/useWorkspace";
 
 export const Route = createFileRoute("/_auth/tasks")({
   component: TasksList,
@@ -28,6 +30,7 @@ type Task = {
   status: string;
   dueDate?: string | null;
   assigneeId?: string | null;
+  completedAt?: string | null;
 };
 
 const PRIORITY_CONFIG: Record<string, { icon: React.ReactNode; cls: string }> = {
@@ -57,7 +60,22 @@ const COLUMNS = [
   { key: "DONE", labelKey: "columns.done", accent: "text-emerald-400" },
 ];
 
+// Working board excludes the terminal column — completed tasks live in the
+// "Completed" tab (daily), so the board stays focused on open work.
+const BOARD_COLUMNS = COLUMNS.filter((c) => c.key !== "DONE");
+
 const TASK_STATUSES = ["TODO", "IN_PROGRESS", "BLOCKED", "REVIEW", "DONE", "CANCELED"] as const;
+
+const isToday = (iso?: string | null) => {
+  if (!iso) return false;
+  const d = new Date(iso);
+  const now = new Date();
+  return (
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate()
+  );
+};
 
 const textareaCls =
   "w-full px-3 py-2 bg-surface-container-high border border-outline-variant rounded-lg text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/60 transition-colors";
@@ -151,6 +169,9 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [templateOpen, setTemplateOpen] = useState(false);
+  // GitHub repo to link the new task to (optional). Kept outside the form so the
+  // empty default doesn't trip createTaskSchema's owner/repo regex.
+  const [githubRepo, setGithubRepo] = useState("");
 
   const { data: agents = [] } = useQuery({
     queryKey: ["users", "list"],
@@ -158,6 +179,28 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
       const res = await api.users.index.$get();
       const json = (await res.json().catch(() => null)) as any;
       return (json?.data ?? []) as Array<{ id: string; firstName: string; lastName: string; email: string }>;
+    },
+  });
+
+  // GitHub connection status + accessible repos (repo picker only shows when connected).
+  const { data: ghStatus } = useQuery({
+    queryKey: ["github", "installation"],
+    queryFn: async () => {
+      const res = await api.github.installation.$get();
+      if (!res.ok) return null;
+      return res.json();
+    },
+  });
+  const githubConnected = Boolean((ghStatus as any)?.data?.connected);
+
+  const { data: ghRepos = [] } = useQuery({
+    queryKey: ["github", "repos"],
+    enabled: githubConnected,
+    queryFn: async () => {
+      const res = await api.github.repos.$get();
+      if (!res.ok) return [];
+      const json = (await res.json().catch(() => null)) as any;
+      return (json?.data ?? []) as Array<{ id: number; fullName: string }>;
     },
   });
 
@@ -189,6 +232,7 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
         if (value.description) payload.description = value.description;
         if (value.dueDate) payload.dueDate = new Date(value.dueDate).toISOString();
         if (value.assigneeId) payload.assigneeId = value.assigneeId;
+        if (githubRepo) payload.githubRepoFullName = githubRepo;
 
         const res = await api.tasks.index.$post({ json: payload as any });
         if (!res.ok) {
@@ -345,6 +389,33 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
           )}
         />
 
+        {/* GitHub repo link (optional) — only when the org has connected GitHub. */}
+        {githubConnected && (
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-on-surface flex items-center gap-1.5">
+              <GitBranch className="w-3.5 h-3.5" />
+              {t("github.repoLabel", "Link a GitHub repo")}
+            </label>
+            <select
+              className={selectCls}
+              value={githubRepo}
+              onChange={(e) => setGithubRepo(e.target.value)}
+            >
+              <option value="">{t("github.repoNone", "No repository")}</option>
+              {ghRepos.map((r) => (
+                <option key={r.id} value={r.fullName}>
+                  {r.fullName}
+                </option>
+              ))}
+            </select>
+            {githubRepo && (
+              <p className="text-[10px] text-on-surface-variant/50">
+                {t("github.repoHint", "A branch will be created automatically.")}
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="flex gap-2 justify-end pt-1">
           <Button type="button" variant="secondary" onClick={onClose}>{tCommon("actions.cancel")}</Button>
           <form.Subscribe
@@ -482,6 +553,21 @@ function TaskDetailDrawer({ task, onClose }: { task: Task; onClose: () => void }
       return res.json();
     },
   });
+
+  // GitHub link — branch (+ PR) created asynchronously after task creation, so we
+  // poll until it appears, then stop.
+  const { data: ghLinkData } = useQuery({
+    queryKey: ["github-link", task.id],
+    refetchInterval: (q) => ((q.state.data as any)?.data ? false : 5000),
+    queryFn: async () => {
+      const res = await api.github.tasks[":taskId"].link.$get({ param: { taskId: task.id } });
+      if (!res.ok) return null;
+      return res.json();
+    },
+  });
+  const ghLink = (ghLinkData as any)?.data as
+    | { branchName: string; branchUrl: string | null; prNumber: number | null; prUrl: string | null; repoFullName: string }
+    | null;
 
   const statusMutation = useMutation({
     mutationFn: async (status: string) => {
@@ -667,6 +753,39 @@ function TaskDetailDrawer({ task, onClose }: { task: Task; onClose: () => void }
             )}
           </div>
 
+          {/* GitHub branch / PR */}
+          {ghLink && (
+            <div>
+              <h4 className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <GitBranch className="w-3 h-3" />
+                {t("github.section", "GitHub")}
+              </h4>
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-mono text-on-surface-variant/60 truncate">{ghLink.repoFullName}</p>
+                <a
+                  href={ghLink.branchUrl ?? "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+                >
+                  <GitBranch className="w-3.5 h-3.5" />
+                  <span className="font-mono truncate">{ghLink.branchName}</span>
+                </a>
+                {ghLink.prUrl && (
+                  <a
+                    href={ghLink.prUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-xs text-primary hover:underline"
+                  >
+                    <GitPullRequest className="w-3.5 h-3.5" />
+                    {t("github.pr", "PR")} #{ghLink.prNumber}
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Attachments */}
           <EntityAttachments entityType="TASK" entityId={task.id} />
 
@@ -723,22 +842,31 @@ function TasksList() {
   const [updateTask, setUpdateTask] = useState<Task | null>(null);
   const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [viewMode, setViewMode] = useState<"kanban" | "list" | "calendar" | "gantt">("kanban");
+  const [tab, setTab] = useState<"active" | "completed">("active");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [dragId, setDragId] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
+  const { params: scopeParams, key: scopeKey } = useWorkspaceScope();
   const { data, isLoading, error } = useQuery({
-    queryKey: ["tasks"],
+    queryKey: ["tasks", scopeKey],
     queryFn: async () => {
-      const res = await api.tasks.index.$get();
+      const res = await api.tasks.index.$get({ query: scopeParams as any });
       if (!res.ok) throw new Error("Failed to fetch tasks");
       return res.json();
     },
   });
 
   const rawData = (data as any)?.data;
-  const tasks: Task[] = Array.isArray(rawData) ? rawData : (rawData?.data ?? []);
+  const allTasks: Task[] = Array.isArray(rawData) ? rawData : (rawData?.data ?? []);
+
+  // The working board shows only open tasks; old completed tasks are hidden.
+  // The "Completed" tab renders just today's completed (daily) tasks.
+  const tasks = allTasks.filter((tk) => !DONE_STATUSES.has(tk.status));
+  const completedToday = allTasks
+    .filter((tk) => DONE_STATUSES.has(tk.status) && isToday(tk.completedAt))
+    .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime());
 
   // ABAC: only the assignee may move/bulk-update an assigned task. Unassigned → open.
   const myId = useAppStore((s) => s.user?.id);
@@ -820,7 +948,8 @@ function TasksList() {
         <div className="flex items-center justify-between">
           <h1 className="text-[15px] font-semibold text-on-surface">{t("title")}</h1>
           <div className="flex items-center gap-2">
-            {/* View toggle */}
+            {/* View toggle (board only) */}
+            {tab === "active" && (
             <div className="flex items-center gap-0.5 bg-surface-container border border-outline-variant rounded-lg p-0.5">
               <button
                 onClick={() => setViewMode("kanban")}
@@ -851,11 +980,35 @@ function TasksList() {
                 <BarChartHorizontal className="w-3.5 h-3.5" />
               </button>
             </div>
+            )}
             <Button onClick={() => setShowCreate(true)}>
               <Plus className="w-4 h-4" />
               {t("new")}
             </Button>
           </div>
+        </div>
+
+        {/* Tabs: active board vs today's completed */}
+        <div className="flex items-center gap-1 border-b border-outline-variant">
+          {([
+            { key: "active", label: t("tabs.active") },
+            { key: "completed", label: t("tabs.completedToday"), count: completedToday.length },
+          ] as const).map((tb) => (
+            <button
+              key={tb.key}
+              onClick={() => setTab(tb.key)}
+              className={`relative px-3 py-2 text-xs font-medium transition-colors -mb-px border-b-2 ${
+                tab === tb.key
+                  ? "border-primary text-primary"
+                  : "border-transparent text-on-surface-variant hover:text-on-surface"
+              }`}
+            >
+              {tb.label}
+              {"count" in tb && tb.count > 0 && (
+                <span className="ml-1.5 text-[10px] font-mono text-on-surface-variant/50">{tb.count}</span>
+              )}
+            </button>
+          ))}
         </div>
 
         {/* Bulk actions bar */}
@@ -884,9 +1037,49 @@ function TasksList() {
           </div>
         )}
 
-        {isLoading ? (
-          <div className="grid grid-cols-5 gap-3">
-            {COLUMNS.map(({ key }) => (
+        {tab === "completed" ? (
+          /* ── Completed today ── */
+          completedToday.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-3">
+                <CheckSquare className="w-5 h-5 text-emerald-400" />
+              </div>
+              <p className="text-sm font-medium text-on-surface mb-1">{t("completed.emptyTitle")}</p>
+              <p className="text-xs text-on-surface-variant/50">{t("completed.emptyHint")}</p>
+            </div>
+          ) : (
+            <div className="bg-surface-container border border-outline-variant rounded-xl divide-y divide-outline-variant/30">
+              {completedToday.map((task) => {
+                const prio = PRIORITY_CONFIG[task.priority];
+                return (
+                  <button
+                    key={task.id}
+                    onClick={() => setDetailTask(task)}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/3 transition-colors"
+                  >
+                    <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-on-surface truncate line-through decoration-on-surface-variant/30">
+                        {task.title}
+                      </p>
+                      {task.description && (
+                        <p className="text-xs text-on-surface-variant/50 truncate">{task.description}</p>
+                      )}
+                    </div>
+                    <span className={`hidden md:inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded ${prio?.cls ?? "bg-white/8 text-on-surface-variant"}`}>
+                      {prio?.icon}{task.priority}
+                    </span>
+                    <span className="text-[10px] font-mono text-on-surface-variant/40 shrink-0">
+                      {task.completedAt ? new Date(task.completedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )
+        ) : isLoading ? (
+          <div className="grid grid-cols-4 gap-3">
+            {BOARD_COLUMNS.map(({ key }) => (
               <div key={key} className="bg-surface-container border border-outline-variant rounded-xl p-3 h-64 animate-pulse" />
             ))}
           </div>
@@ -894,8 +1087,8 @@ function TasksList() {
           <div className="p-8 text-center text-error text-sm">Failed to load tasks.</div>
         ) : viewMode === "kanban" ? (
           /* ── Kanban view ── */
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            {COLUMNS.map(({ key, labelKey, accent }) => {
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            {BOARD_COLUMNS.map(({ key, labelKey, accent }) => {
               const col = byStatus(key);
               const isOver = dropTarget === key;
               const label = t(labelKey);
@@ -1043,7 +1236,7 @@ function TasksList() {
           </div>
         )}
 
-        {tasks.length === 0 && !isLoading && !error && (
+        {tab === "active" && tasks.length === 0 && !isLoading && !error && (
           <div className="text-center py-16">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
               <ListChecks className="w-5 h-5 text-primary" />

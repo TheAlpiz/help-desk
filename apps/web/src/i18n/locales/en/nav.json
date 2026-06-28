@@ -18,6 +18,8 @@
     "roles": "Permissions",
     "macros": "Macros",
     "automations": "Automations",
+    "ticketFilters": "Ticket Filters",
+    "github": "GitHub",
     "export": "Export",
     "compliance": "Compliance",
     "auditLog": "Audit Log",
@@ -39,6 +41,11 @@
     "billing": "Billing",
     "notes": "My Notes",
     "logout": "Sign out"
+  },
+  "workspace": {
+    "personal": "My Space",
+    "corporate": "Corporate",
+    "allOrg": "All Organization"
   },
   "presence": {
     "heading": "Status",

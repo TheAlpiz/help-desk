@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "ts-node-dev src/server.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "test": "vitest run"
   },
   "dependencies": {
     "@help-desk/shared": "workspace:^",
@@ -58,6 +59,7 @@
     "drizzle-kit": "latest",
     "pino-pretty": "latest",
     "ts-node-dev": "latest",
-    "typescript": "latest"
+    "typescript": "latest",
+    "vitest": "^4.1.9"
   }
 }

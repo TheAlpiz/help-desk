@@ -18,6 +18,8 @@
     "roles": "İzinler",
     "macros": "Makrolar",
     "automations": "Otomasyonlar",
+    "ticketFilters": "Talep Filtreleri",
+    "github": "GitHub",
     "export": "Dışa Aktar",
     "compliance": "Uyumluluk",
     "auditLog": "Denetim Günlüğü",
@@ -39,6 +41,11 @@
     "billing": "Faturalama",
     "notes": "Notlarım",
     "logout": "Çıkış Yap"
+  },
+  "workspace": {
+    "personal": "Bireysel Alan",
+    "corporate": "Kurumsal",
+    "allOrg": "Tüm Organizasyon"
   },
   "presence": {
     "heading": "Durum",

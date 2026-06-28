@@ -30,6 +30,9 @@ import {
   X,
   Menu,
   Search,
+  Filter,
+  ChevronsUpDown,
+  Check,
   Archive,
   Zap,
   Download,
@@ -37,6 +40,7 @@ import {
   Mail,
   PenTool,
   StickyNote,
+  GitBranch,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -51,6 +55,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ForcePasswordChangeScreen } from "@/features/users/components/ForcePasswordChangeScreen";
 import { AppLogo } from "@/components/AppLogo";
 import { AVAILABILITY_ORDER, availabilityMeta } from "@/lib/presence";
+import { useMyDepartments } from "@/lib/useWorkspace";
 
 export const Route = createFileRoute("/_auth")({
   beforeLoad: async ({ location }) => {
@@ -136,6 +141,15 @@ const MAIN_NAV: NavItem[] = [
   },
 ];
 
+// "My Space" (personal workspace) — a deliberately slim nav. The user only ever
+// sees their own tickets/tasks here (enforced by the backend scope guard).
+const PERSONAL_NAV: NavItem[] = [
+  { to: "/tickets", labelKey: "main.tickets", icon: <Ticket className="w-4 h-4" /> },
+  { to: "/tasks", labelKey: "main.tasks", icon: <ListChecks className="w-4 h-4" /> },
+  { to: "/notes", labelKey: "user.notes", icon: <StickyNote className="w-4 h-4" /> },
+  { to: "/messages", labelKey: "main.messages", icon: <MessageSquare className="w-4 h-4" /> },
+];
+
 // roles mirror the backend permission each page's endpoints require:
 //   users(user.*) / departments(department.manage) / roles(role.manage) /
 //   compliance+settings(organization.manage) / email-templates(template.manage) → ADMIN
@@ -175,6 +189,18 @@ const ADMIN_NAV: NavItem[] = [
     labelKey: "admin.automations",
     icon: <Zap className="w-4 h-4" />,
     roles: SUPERVISOR_PLUS,
+  },
+  {
+    to: "/ticket-filters",
+    labelKey: "admin.ticketFilters",
+    icon: <Filter className="w-4 h-4" />,
+    roles: ADMIN_ONLY,
+  },
+  {
+    to: "/github",
+    labelKey: "admin.github",
+    icon: <GitBranch className="w-4 h-4" />,
+    roles: ADMIN_ONLY,
   },
   {
     to: "/export",
@@ -330,8 +356,9 @@ function NotificationBell() {
     refetchInterval: 30_000,
   });
 
-  const notifications: any[] = (data as any)?.data ?? [];
-  const unreadCount = (data as any)?.total ?? 0;
+  const allNotifications: any[] = (data as any)?.data ?? [];
+  const notifications = allNotifications.filter((n: any) => !n.isRead);
+  const unreadCount = notifications.length;
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -380,7 +407,7 @@ function NotificationBell() {
             </div>
           </div>
 
-          <div className="max-h-80 overflow-y-auto">
+          <div className="max-h-80 overflow-y-auto pretty-scroll">
             {notifications.length === 0 ? (
               <div className="p-8 text-center">
                 <Bell className="w-6 h-6 text-on-surface-variant/20 mx-auto mb-2" />
@@ -395,7 +422,7 @@ function NotificationBell() {
                     key={n.id}
                     className={cn(
                       "px-4 py-3 transition-colors hover:bg-white/3",
-                      !n.readAt && "bg-primary/5",
+                      !n.isRead && "bg-primary/5",
                     )}
                   >
                     <p className="text-xs font-medium text-on-surface leading-snug">
@@ -466,6 +493,126 @@ function EmailVerificationBanner() {
   );
 }
 
+// ─── Workspace switcher ─────────────────────────────────────────────────────
+// Toggles between "My Space" (personal) and "Corporate". In Corporate the user
+// can additionally narrow to one of their departments (or the whole org).
+function WorkspaceSwitcher() {
+  const { t } = useTranslation("nav");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const mode = useAppStore((s) => s.workspaceMode);
+  const deptId = useAppStore((s) => s.workspaceDeptId);
+  const setWorkspace = useAppStore((s) => s.setWorkspace);
+  const { data: departments = [] } = useMyDepartments();
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const currentDept = departments.find((d) => d.id === deptId);
+  const label =
+    mode === "personal"
+      ? t("workspace.personal")
+      : currentDept
+        ? currentDept.name
+        : t("workspace.allOrg");
+  const subLabel = mode === "personal" ? t("workspace.personal") : t("workspace.corporate");
+
+  const choose = (m: "personal" | "corporate", id: string | null = null) => {
+    setWorkspace(m, id);
+    setOpen(false);
+  };
+
+  const Row = ({
+    active,
+    onClick,
+    icon,
+    children,
+  }: {
+    active: boolean;
+    onClick: () => void;
+    icon?: React.ReactNode;
+    children: React.ReactNode;
+  }) => (
+    <button
+      onClick={onClick}
+      className={cn(
+        "w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors text-left",
+        active
+          ? "bg-primary/10 text-primary"
+          : "text-on-surface-variant hover:bg-white/5 hover:text-on-surface",
+      )}
+    >
+      <span className="w-4 h-4 shrink-0 flex items-center justify-center">{icon}</span>
+      <span className="flex-1 truncate">{children}</span>
+      {active && <Check className="w-3.5 h-3.5 shrink-0" />}
+    </button>
+  );
+
+  return (
+    <div ref={ref} className="relative px-2 pt-2">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg border border-outline-variant bg-surface-container hover:bg-white/5 transition-colors text-left"
+        aria-haspopup="true"
+        aria-expanded={open}
+      >
+        <div
+          className={cn(
+            "w-7 h-7 rounded-lg flex items-center justify-center shrink-0",
+            mode === "personal" ? "bg-primary/15 text-primary" : "bg-primary text-on-primary",
+          )}
+        >
+          {mode === "personal" ? <User className="w-4 h-4" /> : <Building2 className="w-4 h-4" />}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-semibold text-on-surface truncate">{label}</p>
+          <p className="text-[10px] text-on-surface-variant/60 truncate">{subLabel}</p>
+        </div>
+        <ChevronsUpDown className="w-3.5 h-3.5 text-on-surface-variant/40 shrink-0" />
+      </button>
+
+      {open && (
+        <div className="absolute left-2 right-2 top-full mt-1 bg-surface-container-high border border-outline-variant rounded-lg shadow-xl overflow-hidden z-50 py-1">
+          <Row
+            active={mode === "personal"}
+            onClick={() => choose("personal")}
+            icon={<User className="w-4 h-4" />}
+          >
+            {t("workspace.personal")}
+          </Row>
+
+          <div className="border-t border-outline-variant my-1" />
+          <div className="px-3 pt-1 pb-1 text-[10px] font-semibold text-on-surface-variant/40 uppercase tracking-wider">
+            {t("workspace.corporate")}
+          </div>
+          <Row
+            active={mode === "corporate" && !deptId}
+            onClick={() => choose("corporate", null)}
+            icon={<Building2 className="w-4 h-4" />}
+          >
+            {t("workspace.allOrg")}
+          </Row>
+          {departments.map((d) => (
+            <Row
+              key={d.id}
+              active={mode === "corporate" && deptId === d.id}
+              onClick={() => choose("corporate", d.id)}
+              icon={<Building2 className="w-4 h-4 opacity-60" />}
+            >
+              {d.name}
+            </Row>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AuthLayout() {
   const { t } = useTranslation(["nav", "common"]);
   const user = useAppStore((state) => state.user);
@@ -505,8 +652,15 @@ function AuthLayout() {
   const isSuperAdmin = user?.globalRole === "SUPER_ADMIN";
 
   const role = user?.globalRole ?? "";
+  const workspaceMode = useAppStore((s) => s.workspaceMode);
+  const isPersonal = workspaceMode === "personal";
   const visibleMainNav = MAIN_NAV.filter((item) => !item.roles || item.roles.includes(role));
   const visibleAdminNav = ADMIN_NAV.filter((item) => !item.roles || item.roles.includes(role));
+  // My Space collapses the sidebar to the four personal pages; Corporate shows
+  // the full role-filtered nav (main + admin + super sections).
+  const mainNav = isPersonal ? PERSONAL_NAV : visibleMainNav;
+  const showAdminNav = !isPersonal && visibleAdminNav.length > 0;
+  const showSuperNav = !isPersonal && isSuperAdmin;
   const navBadges = useNavBadges(user?.id);
 
   const setMyAvailability = useAppStore((s) => s.setMyAvailability);
@@ -570,16 +724,17 @@ function AuthLayout() {
                   <X className="w-4 h-4" />
                 </button>
               </div>
+              <WorkspaceSwitcher />
               <nav
                 className="flex-1 overflow-y-auto pretty-scroll py-3 px-2"
                 onClick={() => setMobileSidebarOpen(false)}
               >
                 <div className="space-y-0.5">
-                  {visibleMainNav.map((item) => (
+                  {mainNav.map((item) => (
                     <NavLink key={item.to} item={item} badge={navBadges[item.to]} />
                   ))}
                 </div>
-                {visibleAdminNav.length > 0 && (
+                {showAdminNav && (
                   <>
                     <div className="px-3 pt-5 pb-1.5 text-[10px] font-semibold text-on-surface-variant/40 uppercase tracking-wider">
                       {t("nav:admin.heading")}
@@ -591,7 +746,7 @@ function AuthLayout() {
                     </div>
                   </>
                 )}
-                {user?.globalRole === "SUPER_ADMIN" && (
+                {showSuperNav && (
                   <>
                     <div className="px-3 pt-5 pb-1.5 text-[10px] font-semibold text-on-surface-variant/40 uppercase tracking-wider">
                       {t("nav:super.heading")}
@@ -615,15 +770,18 @@ function AuthLayout() {
             <AppLogo className="h-7 w-auto" />
           </div>
 
+          {/* Workspace switcher */}
+          <WorkspaceSwitcher />
+
           {/* Nav */}
           <nav className="flex-1 overflow-y-auto pretty-scroll py-3 px-2">
             <div className="space-y-0.5">
-              {visibleMainNav.map((item) => (
+              {mainNav.map((item) => (
                 <NavLink key={item.to} item={item} badge={navBadges[item.to]} />
               ))}
             </div>
 
-            {visibleAdminNav.length > 0 && (
+            {showAdminNav && (
               <>
                 <div className="px-3 pt-5 pb-1.5 text-[10px] font-semibold text-on-surface-variant/40 uppercase tracking-wider">
                   {t("nav:admin.heading")}
@@ -636,7 +794,7 @@ function AuthLayout() {
               </>
             )}
 
-            {isSuperAdmin && (
+            {showSuperNav && (
               <>
                 <div className="px-3 pt-5 pb-1.5 text-[10px] font-semibold text-on-surface-variant/40 uppercase tracking-wider">
                   {t("nav:super.heading")}

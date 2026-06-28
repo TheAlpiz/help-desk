@@ -5,6 +5,7 @@ import { AssignmentService } from "./assignment.service";
 import { ResponseHandler } from "../../lib/response";
 import { authMiddleware, JwtPayload } from "../../middleware/auth.middleware";
 import { requirePermission } from "../../middleware/permission.middleware";
+import { hasOrgWideTicketRead } from "../auth/abac.service";
 import {
   createTicketSchema,
   updateTicketStatusSchema,
@@ -32,13 +33,30 @@ export const ticketRouter = new Hono<{
     const status = query.status || undefined;
     const priority = query.priority || undefined;
     const search = query.search || undefined;
-    const assigneeId = query.assigneeId || undefined;
+    let assigneeId = query.assigneeId || undefined;
     const unassigned = query.unassigned || undefined;
+    const actor = { userId: user.userId, departmentIds: user.departmentIds ?? [], permissions: c.get("permissions") ?? [] };
+
+    // Workspace scope guard (My Space vs Corporate department).
+    //   scope=personal    → force assigneeId to the current user (own tickets only)
+    //   scope=dept:<uuid> → restrict to that department; allowed only for members
+    //                       or actors with org-wide ticket read.
+    let departmentId: string | undefined;
+    const scope = query.scope || undefined;
+    if (scope === "personal") {
+      assigneeId = user.userId;
+    } else if (scope?.startsWith("dept:")) {
+      departmentId = scope.slice("dept:".length);
+      if (!hasOrgWideTicketRead(actor) && !actor.departmentIds.includes(departmentId)) {
+        return ResponseHandler.forbidden(c, "Not a member of this department");
+      }
+    }
+
     try {
       const result = await TicketService.findAll(
         tenantId,
-        { userId: user.userId, departmentIds: user.departmentIds ?? [], permissions: c.get("permissions") ?? [] },
-        { limit, offset, status, priority, search, assigneeId, unassigned },
+        actor,
+        { limit, offset, status, priority, search, assigneeId, unassigned, departmentId },
       );
       return ResponseHandler.ok(c, result);
     } catch (error: any) {

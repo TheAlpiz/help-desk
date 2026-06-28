@@ -1,0 +1,32 @@
+{
+  "title": "Talep Filtreleri",
+  "subtitle": "Engellenen gönderici, alan adı veya konuya sahip gelen talepleri oluşturulmadan önce eler.",
+  "new": "Yeni Kural",
+  "empty": "Henüz filtre kuralı yok. İstenmeyen talepleri engellemek için bir tane ekleyin.",
+  "adminOnly": "Filtre kurallarını yalnızca organizasyon yöneticileri yönetebilir.",
+  "active": "Aktif",
+  "inactive": "Pasif",
+  "delete": "Sil",
+  "save": "Kuralı Kaydet",
+  "cancel": "İptal",
+  "fields": {
+    "name": "Kural adı",
+    "field": "Eşleşme alanı",
+    "value": "Değer",
+    "action": "Eylem"
+  },
+  "matchFields": {
+    "sender_email": "Gönderici e-postası",
+    "sender_domain": "Gönderici alan adı",
+    "subject_contains": "Konu içeriyor"
+  },
+  "actions": {
+    "drop": "Talebi ele (sil)"
+  },
+  "placeholders": {
+    "name": "örn. spam@bad.com engelle",
+    "sender_email": "spam@bad.com",
+    "sender_domain": "bad.com",
+    "subject_contains": "abonelikten çık"
+  }
+}

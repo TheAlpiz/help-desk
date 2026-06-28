@@ -55,6 +55,7 @@ export const AUTOMATION_ACTION_TYPES = [
   "webhook",           // POST ticket payload to an external URL
   "resolve_ticket",
   "close_ticket",
+  "archive_ticket",    // move ticket to the archived terminal status
   "set_due_date",      // sets resolution target relative to fire time
 ] as const;
 

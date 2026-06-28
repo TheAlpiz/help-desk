@@ -53,6 +53,19 @@ const router = new Hono<{ Variables: { tenantId: string; user: JwtPayload } }>()
     }
   })
 
+  // Departments the current user belongs to — drives the workspace switcher.
+  // Auth-only (no user.read): every member may see their own memberships.
+  .get("/me/departments", async (c) => {
+    const tenantId = c.get("tenantId");
+    const me = c.get("user");
+    try {
+      const data = await DepartmentService.departmentsOfUser(tenantId, me.userId);
+      return ResponseHandler.ok(c, data);
+    } catch (error) {
+      return ResponseHandler.internalServerError(c, "Internal Server Error", error);
+    }
+  })
+
   .get("/", requirePermission("user.read"), async (c) => {
     try {
       const tenantId = c.get("tenantId");

@@ -1,0 +1,21 @@
+{
+  "title": "GitHub Entegrasyonu",
+  "subtitle": "GitHub App bağlayın; görevler otomatik dal oluştursun ve durumu eşitlesin.",
+  "adminOnly": "GitHub entegrasyonunu yalnızca yöneticiler yönetebilir.",
+  "notConfigured": "GitHub App bu sunucuda yapılandırılmamış. Yöneticinizle iletişime geçin.",
+  "notConnected": "Görevleri depolarla bağlamak için kuruluşunuzun GitHub hesabını bağlayın.",
+  "connect": "GitHub'a Bağlan",
+  "connectedAs": "{{account}} olarak bağlandı",
+  "suspended": "Bu kurulum askıya alındı. Devam etmek için uygulamayı GitHub'da yeniden kurun.",
+  "repos": "Erişilebilir depolar",
+  "disconnect": "Bağlantıyı Kes",
+  "section": "GitHub",
+  "pr": "PR",
+  "setup": {
+    "connecting": "GitHub bağlantısı tamamlanıyor…",
+    "success": "GitHub bağlandı. Yönlendiriliyor…",
+    "failed": "Bağlantı tamamlanamadı.",
+    "missingId": "GitHub bir kurulum kimliği sağlamadı.",
+    "connecting_short": "Bağlanıyor…"
+  }
+}

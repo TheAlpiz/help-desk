@@ -1,0 +1,21 @@
+{
+  "title": "GitHub Integration",
+  "subtitle": "Connect a GitHub App so tasks auto-create branches and sync status.",
+  "adminOnly": "Only administrators can manage the GitHub integration.",
+  "notConfigured": "GitHub App is not configured on this server. Contact your administrator.",
+  "notConnected": "Connect your organization's GitHub account to link tasks to repositories.",
+  "connect": "Connect GitHub",
+  "connectedAs": "Connected as {{account}}",
+  "suspended": "This installation is suspended. Reinstall the app on GitHub to resume.",
+  "repos": "Accessible repositories",
+  "disconnect": "Disconnect",
+  "section": "GitHub",
+  "pr": "PR",
+  "setup": {
+    "connecting": "Finishing GitHub connection…",
+    "success": "GitHub connected. Redirecting…",
+    "failed": "Could not complete the connection.",
+    "missingId": "No installation id was provided by GitHub.",
+    "connecting_short": "Connecting…"
+  }
+}

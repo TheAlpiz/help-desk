@@ -51,4 +51,15 @@ export const env = cleanEnv(process.env, {
   // URLs have their internal host rewritten to this value so browsers behind HTTPS
   // don't get mixed-content errors.
   MINIO_PUBLIC_URL: str({ default: '' }),
+  // ─── GitHub App integration ──────────────────────────────────────────────────
+  // All default to "" so local dev boots without GitHub configured; the feature is
+  // inert (routes return "not configured") until these are set. The private key is a
+  // PEM; when supplied via a single-line env var, literal "\n" sequences are restored
+  // to real newlines at read time (see github.client.ts).
+  GITHUB_APP_ID: str({ default: "" }),
+  GITHUB_APP_PRIVATE_KEY: str({ default: "" }),
+  GITHUB_APP_SLUG: str({ default: "" }),
+  GITHUB_APP_CLIENT_ID: str({ default: "" }),
+  GITHUB_APP_CLIENT_SECRET: str({ default: "" }),
+  GITHUB_APP_WEBHOOK_SECRET: str({ default: "" }),
 });

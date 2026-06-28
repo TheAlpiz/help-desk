@@ -2,6 +2,7 @@ import { ImapFlow } from "imapflow";
 import { simpleParser, ParsedMail } from "mailparser";
 import sanitizeHtml from "sanitize-html";
 import { TicketService } from "../modules/ticket/ticket.service";
+import { TicketFilterService } from "../modules/ticket-filter/ticket-filter.service";
 import { StorageService } from "../services/storage.service";
 import { withTenantTransaction, withSuperAdminTransaction } from "../infra/db";
 import { contact } from "../modules/contact/contact.schema";
@@ -176,6 +177,18 @@ export class EmailIngestionWorker {
 
     const senderName = parsed.from?.value[0]?.name || senderEmail;
     const subject = parsed.subject || "No Subject";
+
+    // Inbound filter rules (admin-configured): drop blocked senders/subjects
+    // before any ticket, contact, or attachment work happens.
+    try {
+      const hit = await TicketFilterService.evaluate(this.organizationId, { email: senderEmail, subject });
+      if (hit) {
+        console.log(`EmailIngestionWorker: Dropped mail from ${senderEmail} — filter rule "${hit.name}".`);
+        return;
+      }
+    } catch (err) {
+      console.error("EmailIngestionWorker: filter evaluation failed, proceeding:", err);
+    }
 
     let contactId: string;
     try {

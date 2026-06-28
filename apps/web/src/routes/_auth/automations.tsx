@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Plus, Trash2, Zap, ChevronDown, Play, Pause, Copy,
   Mail, Tag, UserCheck, AlertTriangle, MessageSquare, Building2, ListChecks,
-  Bell, Webhook, CheckCircle, XCircle, CalendarClock,
+  Bell, Webhook, CheckCircle, XCircle, CalendarClock, Archive,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/components/Toast";
@@ -38,7 +38,7 @@ type ConditionOperator =
 type ActionType =
   | "set_status" | "set_priority" | "assign_to" | "set_department" | "add_tag" | "remove_tag"
   | "send_email" | "add_note" | "create_task"
-  | "notify" | "webhook" | "resolve_ticket" | "close_ticket" | "set_due_date";
+  | "notify" | "webhook" | "resolve_ticket" | "close_ticket" | "archive_ticket" | "set_due_date";
 
 interface Condition {
   id: string;
@@ -115,6 +115,7 @@ const ACTION_META: Record<ActionType, { icon: React.ReactNode; hasValue: boolean
   webhook: { icon: <Webhook className="w-3 h-3" />, hasValue: true },
   resolve_ticket: { icon: <CheckCircle className="w-3 h-3" />, hasValue: false },
   close_ticket: { icon: <XCircle className="w-3 h-3" />, hasValue: false },
+  archive_ticket: { icon: <Archive className="w-3 h-3" />, hasValue: false },
   set_due_date: { icon: <CalendarClock className="w-3 h-3" />, hasValue: false },
 };
 const ACTION_KEYS = Object.keys(ACTION_META) as ActionType[];

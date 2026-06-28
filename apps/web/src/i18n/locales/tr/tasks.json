@@ -2,6 +2,21 @@
   "title": "Görevler",
   "new": "Yeni Görev",
   "create": "Görev Oluştur",
+  "github": {
+    "repoLabel": "GitHub deposu bağla",
+    "repoNone": "Depo yok",
+    "repoHint": "Otomatik olarak bir dal oluşturulacak.",
+    "section": "GitHub",
+    "pr": "PR"
+  },
+  "tabs": {
+    "active": "Aktif",
+    "completedToday": "Bugün Tamamlanan"
+  },
+  "completed": {
+    "emptyTitle": "Bugün tamamlanan görev yok",
+    "emptyHint": "Bugün bitirdiğiniz görevler burada görünür."
+  },
   "count_one": "{{count}} görev",
   "count_other": "{{count}} görev",
   "fields": {

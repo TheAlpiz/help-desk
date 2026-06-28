@@ -15,6 +15,7 @@ export const STATUS_OPTIONS: FieldOption[] = [
   { value: "resolved", label: "Resolved" },
   { value: "closed", label: "Closed" },
   { value: "reopened", label: "Reopened" },
+  { value: "archived", label: "Archived" },
 ];
 
 export const PRIORITY_OPTIONS: FieldOption[] = [

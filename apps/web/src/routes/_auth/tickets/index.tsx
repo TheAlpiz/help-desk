@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { useAppStore } from "@/store";
 import { api } from "@/lib/api";
+import { useWorkspaceScope } from "@/lib/useWorkspace";
 import { createTicketSchema } from "@help-desk/shared";
 import { ErrorState, getErrorVariant } from "@/components/ErrorState";
 import {
@@ -673,6 +674,7 @@ function TicketsList() {
     setPage(0);
   };
   const currentUser = useAppStore((s) => s.user);
+  const { params: scopeParams, key: scopeKey } = useWorkspaceScope();
 
   const view = SMART_VIEWS.find((v) => v.id === activeView) ?? SMART_VIEWS[0];
 
@@ -684,13 +686,14 @@ function TicketsList() {
   };
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["tickets", page, statusFilter, activeView, sortBy, sortDir],
+    queryKey: ["tickets", page, statusFilter, activeView, sortBy, sortDir, scopeKey],
     queryFn: async () => {
       const params: Record<string, string> = {
         limit: String(PAGE_SIZE),
         offset: String(page * PAGE_SIZE),
         sortBy,
         sortDir,
+        ...scopeParams,
       };
       if (view.statusFilter) {
         params.status = view.statusFilter;

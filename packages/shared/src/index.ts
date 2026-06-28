@@ -13,6 +13,8 @@ export * from "./mailbox.schema";
 export * from "./permission.schema";
 export * from "./macro.schema";
 export * from "./automation.schema";
+export * from "./ticket-filter.schema";
+export * from "./github.schema";
 export * from "./sla-escalation-rule.schema";
 export * from "./note.schema";
 export * from "./email";

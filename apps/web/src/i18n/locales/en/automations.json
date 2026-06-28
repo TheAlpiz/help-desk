@@ -78,6 +78,7 @@
     "webhook": "Call webhook (URL)",
     "resolve_ticket": "Resolve ticket",
     "close_ticket": "Close ticket",
+    "archive_ticket": "Archive ticket",
     "set_due_date": "Set due date"
   },
   "taskPriority": {

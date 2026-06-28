@@ -16,6 +16,9 @@ export const task = pgTable("task", {
   status: varchar("status", { length: 50 }).default("TODO").notNull(),
   priority: varchar("priority", { length: 50 }).default("MEDIUM").notNull(),
   dueDate: timestamp("due_date", { withTimezone: true }),
+  // Set when the task transitions into a terminal status (DONE/CANCELED),
+  // cleared if it is reopened. Drives the "completed today" daily view.
+  completedAt: timestamp("completed_at", { withTimezone: true }),
   ...timestamps,
 });
 

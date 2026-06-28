@@ -2,6 +2,21 @@
   "title": "Tasks",
   "new": "New Task",
   "create": "Create Task",
+  "github": {
+    "repoLabel": "Link a GitHub repo",
+    "repoNone": "No repository",
+    "repoHint": "A branch will be created automatically.",
+    "section": "GitHub",
+    "pr": "PR"
+  },
+  "tabs": {
+    "active": "Active",
+    "completedToday": "Completed Today"
+  },
+  "completed": {
+    "emptyTitle": "Nothing completed today",
+    "emptyHint": "Tasks you finish today show up here."
+  },
   "count_one": "{{count}} task",
   "count_other": "{{count}} tasks",
   "fields": {

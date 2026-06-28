@@ -142,20 +142,26 @@
 
 .btn-ghost:hover { background-color: rgb(var(--md-surface-container-high)); }
 
-/* Scrollbar - adapts to theme */
-.pretty-scroll {
+/* Scrollbar - adapts to theme. Applied globally + via .pretty-scroll */
+.pretty-scroll,
+* {
   scrollbar-width: thin;
   scrollbar-color: rgb(var(--md-outline-variant)) transparent;
 }
-.pretty-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
-.pretty-scroll::-webkit-scrollbar-track { background: transparent; }
-.pretty-scroll::-webkit-scrollbar-thumb {
+.pretty-scroll::-webkit-scrollbar,
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+.pretty-scroll::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track { background: transparent; }
+.pretty-scroll::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb {
   background-color: rgb(var(--md-outline-variant));
   border-radius: 9999px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
-.pretty-scroll::-webkit-scrollbar-thumb:hover {
+.pretty-scroll::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:hover {
   background-color: rgb(var(--md-primary) / 0.45);
 }
-.pretty-scroll::-webkit-scrollbar-corner { background: transparent; }
+.pretty-scroll::-webkit-scrollbar-corner,
+*::-webkit-scrollbar-corner { background: transparent; }

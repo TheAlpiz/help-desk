@@ -363,6 +363,9 @@ export const AutomationService = {
               case "close_ticket":
                 await tx.update(ticket).set({ status: "closed" }).where(eq(ticket.id, ticketId));
                 break;
+              case "archive_ticket":
+                await tx.update(ticket).set({ status: "archived" }).where(eq(ticket.id, ticketId));
+                break;
               case "set_due_date": {
                 const days = action.dueInDays ?? 1;
                 const [orgRow] = await tx.select({ businessHoursConfig: organization.businessHoursConfig })
