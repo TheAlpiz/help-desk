@@ -232,6 +232,20 @@
       "when": 1782681924136,
       "tag": "0032_shocking_onslaught",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1782687596682,
+      "tag": "0033_far_gravity",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1782688168282,
+      "tag": "0034_rapid_norrin_radd",
+      "breakpoints": true
     }
   ]
 }

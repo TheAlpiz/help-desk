@@ -4,6 +4,7 @@ import { withTenantTransaction, withSuperAdminTransaction } from "../../infra/db
 import { encryptSecret, decryptSecret } from "../../infra/crypto";
 import { logger } from "../../infra/logger";
 import { task } from "../task/task.schema";
+import { user } from "../user/user.schema";
 import { auditLog, SYSTEM_ACTOR_ID } from "../audit-log/audit-log.schema";
 import {
   githubInstallation,
@@ -39,22 +40,27 @@ export const GithubService = {
 
   // ─── Installation lifecycle ─────────────────────────────────────────────────
 
-  getInstallation: (tenantId: string) =>
+  // All installations a tenant has connected (one per GitHub account).
+  listInstallations: (tenantId: string) =>
     withTenantTransaction(tenantId, async (tx) => {
-      const rows = await tx
+      return tx
         .select()
         .from(githubInstallation)
-        .where(eq(githubInstallation.organizationId, tenantId))
-        .limit(1);
-      return rows[0] ?? null;
+        .where(eq(githubInstallation.organizationId, tenantId));
     }),
 
   /**
-   * Persist the org → installation mapping after the user installs the App.
-   * The installation id is verified against GitHub (App JWT) before we trust it,
-   * so a client cannot bind an arbitrary installation to their org.
+   * Persist an org → installation mapping after a user installs the App. Multiple
+   * installations per org are supported (different users / GitHub accounts); this
+   * upserts by installationId so reconnecting the same account updates in place
+   * without disturbing the others. The id is verified against GitHub (App JWT)
+   * before we trust it, so a client cannot bind an arbitrary installation.
    */
-  connectInstallation: async (tenantId: string, installationId: string) => {
+  connectInstallation: async (
+    tenantId: string,
+    installationId: string,
+    connectedByUserId?: string,
+  ) => {
     if (!gh.isGithubConfigured()) throw new gh.GithubNotConfiguredError();
 
     const info = await gh.getInstallation(installationId); // throws if not real
@@ -63,16 +69,22 @@ export const GithubService = {
       const existing = await tx
         .select()
         .from(githubInstallation)
-        .where(eq(githubInstallation.organizationId, tenantId))
+        .where(
+          and(
+            eq(githubInstallation.organizationId, tenantId),
+            eq(githubInstallation.installationId, installationId),
+          ),
+        )
         .limit(1);
 
       const values = {
         organizationId: tenantId,
         installationId,
+        connectedByUserId: connectedByUserId ?? null,
         accountLogin: info.account?.login ?? null,
         accountType: info.account?.type ?? null,
         suspendedAt: info.suspended_at ? new Date(info.suspended_at) : null,
-        // Drop any cached token from a previous install.
+        // Drop any stale cached token.
         tokenEncrypted: null,
         tokenExpiresAt: null,
       };
@@ -97,7 +109,7 @@ export const GithubService = {
         organizationId: tenantId,
         entityType: "github_installation",
         entityId: row.id,
-        actorId: SYSTEM_ACTOR_ID,
+        actorId: connectedByUserId ?? SYSTEM_ACTOR_ID,
         action: "connected",
         newValues: { installationId, accountLogin: row.accountLogin },
       });
@@ -120,17 +132,24 @@ export const GithubService = {
     }));
   },
 
-  disconnect: (tenantId: string) =>
+  /** Disconnect a single installation by GitHub installation id. */
+  disconnect: (tenantId: string, installationId: string, actorId?: string) =>
     withTenantTransaction(tenantId, async (tx) => {
       await tx
         .delete(githubInstallation)
-        .where(eq(githubInstallation.organizationId, tenantId));
+        .where(
+          and(
+            eq(githubInstallation.organizationId, tenantId),
+            eq(githubInstallation.installationId, installationId),
+          ),
+        );
       await tx.insert(auditLog).values({
         organizationId: tenantId,
         entityType: "github_installation",
         entityId: tenantId,
-        actorId: SYSTEM_ACTOR_ID,
+        actorId: actorId ?? SYSTEM_ACTOR_ID,
         action: "disconnected",
+        oldValues: { installationId },
       });
       return { ok: true };
     }),
@@ -169,19 +188,131 @@ export const GithubService = {
 
   // ─── Repos ──────────────────────────────────────────────────────────────────
 
+  // Aggregate repos across every connected installation (all GitHub accounts the
+  // org has linked). Each repo is tagged with its owning installation/account so
+  // the picker can group and the link step knows which token to use.
   listRepos: async (tenantId: string) => {
-    const install = await GithubService.getInstallation(tenantId);
+    const installs = (await GithubService.listInstallations(tenantId)).filter(
+      (i) => !i.suspendedAt,
+    );
+    const out: Array<{
+      id: number;
+      fullName: string;
+      defaultBranch: string;
+      private: boolean;
+      htmlUrl: string;
+      accountLogin: string | null;
+      installationId: string;
+    }> = [];
+
+    for (const install of installs) {
+      try {
+        const token = await GithubService.getValidInstallationToken(tenantId, install);
+        const repos = await gh.listInstallationRepos(token);
+        for (const r of repos) {
+          out.push({
+            id: r.id,
+            fullName: r.full_name,
+            defaultBranch: r.default_branch,
+            private: r.private,
+            htmlUrl: r.html_url,
+            accountLogin: install.accountLogin,
+            installationId: install.installationId,
+          });
+        }
+      } catch (err) {
+        logger.warn(
+          { err, installationId: install.installationId },
+          "[github] failed listing repos for installation",
+        );
+      }
+    }
+
+    // De-dup by repo id (a repo can only belong to one installation, but guard).
+    const seen = new Set<number>();
+    return out.filter((r) => (seen.has(r.id) ? false : (seen.add(r.id), true)));
+  },
+
+  // Pick the connected installation that can access `owner/repo`: prefer the one
+  // whose account login matches the repo owner, else probe each for access.
+  findInstallationForRepo: async (
+    tenantId: string,
+    repoFullName: string,
+  ): Promise<GithubInstallation | null> => {
+    const installs = (await GithubService.listInstallations(tenantId)).filter(
+      (i) => !i.suspendedAt,
+    );
+    if (installs.length === 0) return null;
+    const { owner, repo } = splitRepo(repoFullName);
+
+    const byOwner = installs.find(
+      (i) => i.accountLogin?.toLowerCase() === owner.toLowerCase(),
+    );
+    if (byOwner) return byOwner;
+
+    for (const cand of installs) {
+      try {
+        const tk = await GithubService.getValidInstallationToken(tenantId, cand);
+        await gh.getRepo(tk, owner, repo);
+        return cand;
+      } catch {
+        /* this installation can't see it — try the next */
+      }
+    }
+    return null;
+  },
+
+  /**
+   * Help-desk users assignable to a task on `repoFullName`: the intersection of
+   * the repo's GitHub collaborators with tenant users whose GitHub login is known
+   * (explicit `githubLogin`, or the account login of an installation they connected).
+   */
+  getAssignableUsers: async (tenantId: string, repoFullName: string) => {
+    const install = await GithubService.findInstallationForRepo(tenantId, repoFullName);
     if (!install) return [];
-    if (install.suspendedAt) return [];
     const token = await GithubService.getValidInstallationToken(tenantId, install);
-    const repos = await gh.listInstallationRepos(token);
-    return repos.map((r) => ({
-      id: r.id,
-      fullName: r.full_name,
-      defaultBranch: r.default_branch,
-      private: r.private,
-      htmlUrl: r.html_url,
-    }));
+    const { owner, repo } = splitRepo(repoFullName);
+
+    const collaborators = await gh.listRepoCollaborators(token, owner, repo);
+    const collabLogins = new Set(collaborators.map((c) => c.login.toLowerCase()));
+
+    return withTenantTransaction(tenantId, async (tx) => {
+      const users = await tx
+        .select({
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          githubLogin: user.githubLogin,
+        })
+        .from(user)
+        .where(eq(user.organizationId, tenantId));
+
+      // Map userId → GitHub login derived from their own installation.
+      const installs = await tx
+        .select({
+          uid: githubInstallation.connectedByUserId,
+          login: githubInstallation.accountLogin,
+        })
+        .from(githubInstallation)
+        .where(eq(githubInstallation.organizationId, tenantId));
+      const installLoginByUser = new Map<string, string>();
+      for (const i of installs) {
+        if (i.uid && i.login) installLoginByUser.set(i.uid, i.login.toLowerCase());
+      }
+
+      return users
+        .filter((u) => {
+          const login = (u.githubLogin ?? installLoginByUser.get(u.id) ?? "").toLowerCase();
+          return login !== "" && collabLogins.has(login);
+        })
+        .map((u) => ({
+          id: u.id,
+          firstName: u.firstName,
+          lastName: u.lastName,
+          email: u.email,
+        }));
+    });
   },
 
   // ─── Task ↔ branch linking ──────────────────────────────────────────────────
@@ -217,9 +348,12 @@ export const GithubService = {
     const existing = await GithubService.getTaskLink(tenantId, taskId);
     if (existing) return existing;
 
-    const install = await GithubService.getInstallation(tenantId);
-    if (!install) throw new Error("Organization has no GitHub installation.");
-    if (install.suspendedAt) throw new Error("GitHub installation is suspended.");
+    const install = await GithubService.findInstallationForRepo(tenantId, repoFullName);
+    if (!install) {
+      throw new Error(
+        `No connected GitHub installation has access to ${repoFullName}.`,
+      );
+    }
 
     // Load the task (validates tenant ownership + gives a title for the PR).
     const t = await withTenantTransaction(tenantId, async (tx) => {

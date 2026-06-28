@@ -19,6 +19,10 @@ export const user = pgTable("user", {
   departmentId: uuid("department_id").references((): AnyPgColumn => department.id, { onDelete: "set null" }),
   // Language preference — ISO 639-1 code (e.g. "en", "tr"). Null = browser default.
   preferredLanguage: varchar("preferred_language", { length: 10 }),
+  // GitHub username, for mapping this user to repo collaborators (task assignee
+  // gating). Auto-derivable from a user's own App install; this field lets a
+  // collaborator who never installed still be matched. Case-insensitive on compare.
+  githubLogin: varchar("github_login", { length: 100 }),
   // Email verification lifecycle.
   emailVerifiedAt: timestamp("email_verified_at"),
   lastLoginAt: timestamp("last_login_at"),

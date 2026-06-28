@@ -14,6 +14,7 @@ import {
 import { timestamps } from "../../infra/db/schema-utils";
 import { organization } from "../organization/organization.schema";
 import { task } from "../task/task.schema";
+import { user } from "../user/user.schema";
 
 /**
  * A GitHub App installation owned by a tenant organization.
@@ -29,6 +30,11 @@ export const githubInstallation = pgTable(
     organizationId: uuid("organization_id")
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
+    // Who connected this installation (attribution + lets a user manage their own).
+    // Nullable so an installation survives the connecting user being deleted.
+    connectedByUserId: uuid("connected_by_user_id").references(() => user.id, {
+      onDelete: "set null",
+    }),
     // GitHub's numeric installation id. Stored as varchar to avoid bigint edge cases
     // and because we only ever compare/equality-match it.
     installationId: varchar("installation_id", { length: 64 }).notNull(),

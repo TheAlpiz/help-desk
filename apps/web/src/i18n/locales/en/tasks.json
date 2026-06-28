@@ -7,7 +7,10 @@
     "repoNone": "No repository",
     "repoHint": "A branch will be created automatically.",
     "section": "GitHub",
-    "pr": "PR"
+    "pr": "PR",
+    "assigneesHint": "Only repo collaborators can be assigned.",
+    "assigneesLoading": "Loading repo collaborators…",
+    "noCollaborators": "No linked collaborators on this repo. Set GitHub usernames in profile."
   },
   "tabs": {
     "active": "Active",

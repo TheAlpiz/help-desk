@@ -181,6 +181,21 @@ function Profile() {
   const [firstName, setFirstName] = useState(user?.firstName ?? "");
   const [lastName, setLastName] = useState(user?.lastName ?? "");
   const [email] = useState(user?.email ?? "");
+  const [githubLogin, setGithubLogin] = useState<string>((user as any)?.githubLogin ?? "");
+
+  const githubMutation = useMutation({
+    mutationFn: async () => {
+      const res = await api.users.me["github-login"].$put({
+        json: { githubLogin: githubLogin || null },
+      });
+      if (!res.ok) throw new Error("Failed");
+    },
+    onSuccess: () => {
+      success(t("githubSaved", "GitHub username saved"));
+      qc.invalidateQueries({ queryKey: ["me"] });
+    },
+    onError: () => toastError(t("profileUpdateFailed")),
+  });
 
   const updateMutation = useMutation({
     mutationFn: async () => {
@@ -288,6 +303,31 @@ function Profile() {
               readOnly
               className="opacity-60 cursor-not-allowed capitalize"
             />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-on-surface">
+              {t("fields.githubLogin", "GitHub username")}
+            </label>
+            <div className="flex gap-2">
+              <Input
+                dense
+                value={githubLogin}
+                onChange={(e) => setGithubLogin(e.target.value)}
+                placeholder="octocat"
+              />
+              <Button
+                variant="secondary"
+                onClick={() => githubMutation.mutate()}
+                disabled={githubMutation.isPending}
+                loading={githubMutation.isPending}
+              >
+                <Save className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+            <p className="text-[10px] text-on-surface-variant/40">
+              {t("githubHint", "Used to match you to repo collaborators for task assignment.")}
+            </p>
           </div>
 
           <div className="flex justify-end">

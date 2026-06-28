@@ -150,6 +150,21 @@ export function getRepo(token: string, owner: string, repo: string) {
   });
 }
 
+export interface Collaborator {
+  login: string;
+  id: number;
+}
+
+// Repo collaborators (anyone with at least pull access). Needs the App's
+// "Members"/"Metadata" read permission on the installation.
+export function listRepoCollaborators(token: string, owner: string, repo: string) {
+  return request<Collaborator[]>(
+    "GET",
+    `/repos/${owner}/${repo}/collaborators?per_page=100`,
+    { type: "token", token },
+  );
+}
+
 export interface GitRef {
   ref: string;
   object: { sha: string; type: string };

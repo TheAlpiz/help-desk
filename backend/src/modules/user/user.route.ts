@@ -6,7 +6,7 @@ import { DepartmentService } from "../department/department.service";
 import { ResponseHandler } from "../../lib/response";
 import { authMiddleware, JwtPayload } from "../../middleware/auth.middleware";
 import { requirePermission } from "../../middleware/permission.middleware";
-import { inviteUserSchema, updateUserSchema, updateAvailabilitySchema } from "@help-desk/shared";
+import { inviteUserSchema, updateUserSchema, updateAvailabilitySchema, updateGithubLoginSchema } from "@help-desk/shared";
 import { wsGateway } from "../../ws/gateway";
 
 const router = new Hono<{ Variables: { tenantId: string; user: JwtPayload } }>()
@@ -48,6 +48,23 @@ const router = new Hono<{ Variables: { tenantId: string; user: JwtPayload } }>()
       if (!updated) return ResponseHandler.notFound(c, "User not found");
       wsGateway.broadcastPresence(tenantId, { userId: me.userId, online: true, availability });
       return ResponseHandler.ok(c, { availability });
+    } catch (error) {
+      return ResponseHandler.internalServerError(c, "Internal Server Error", error);
+    }
+  })
+
+  // Self-service: set/clear my GitHub username (used for repo-collaborator
+  // assignee gating). Empty string clears it.
+  .put("/me/github-login", zValidator("json", updateGithubLoginSchema), async (c) => {
+    const tenantId = c.get("tenantId");
+    const me = c.get("user");
+    const { githubLogin } = c.req.valid("json");
+    try {
+      const updated = await UserService.update(tenantId, me.userId, {
+        githubLogin: githubLogin || null,
+      });
+      if (!updated) return ResponseHandler.notFound(c, "User not found");
+      return ResponseHandler.ok(c, { githubLogin: githubLogin || null });
     } catch (error) {
       return ResponseHandler.internalServerError(c, "Internal Server Error", error);
     }

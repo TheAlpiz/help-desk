@@ -1,0 +1,2 @@
+ALTER TABLE "github_installation" ADD COLUMN "connected_by_user_id" uuid;--> statement-breakpoint
+ALTER TABLE "github_installation" ADD CONSTRAINT "github_installation_connected_by_user_id_user_id_fk" FOREIGN KEY ("connected_by_user_id") REFERENCES "public"."user"("id") ON DELETE set null ON UPDATE no action;

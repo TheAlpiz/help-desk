@@ -135,6 +135,13 @@ const MAIN_NAV: NavItem[] = [
     roles: ["AGENT", "SUPERVISOR", "ADMIN", "SUPER_ADMIN"],
   },
   {
+    // Personal action — any member connects their own GitHub + links repos to tasks.
+    to: "/github",
+    labelKey: "main.github",
+    icon: <GitBranch className="w-4 h-4" />,
+    roles: ["AGENT", "SUPERVISOR", "ADMIN", "SUPER_ADMIN"],
+  },
+  {
     to: "/search",
     labelKey: "main.search",
     icon: <Search className="w-4 h-4" />,
@@ -194,12 +201,6 @@ const ADMIN_NAV: NavItem[] = [
     to: "/ticket-filters",
     labelKey: "admin.ticketFilters",
     icon: <Filter className="w-4 h-4" />,
-    roles: ADMIN_ONLY,
-  },
-  {
-    to: "/github",
-    labelKey: "admin.github",
-    icon: <GitBranch className="w-4 h-4" />,
     roles: ADMIN_ONLY,
   },
   {

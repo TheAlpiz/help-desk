@@ -200,9 +200,29 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
       const res = await api.github.repos.$get();
       if (!res.ok) return [];
       const json = (await res.json().catch(() => null)) as any;
-      return (json?.data ?? []) as Array<{ id: number; fullName: string }>;
+      return (json?.data ?? []) as Array<{ id: number; fullName: string; accountLogin: string | null }>;
     },
   });
+  // Group repos by the GitHub account that owns them (multiple connected accounts).
+  const ghReposByAccount = ghRepos.reduce<Record<string, typeof ghRepos>>((acc, r) => {
+    const key = r.accountLogin ?? "—";
+    (acc[key] ??= []).push(r);
+    return acc;
+  }, {});
+
+  // When a repo is linked, the assignee must be a collaborator on it. Fetch the
+  // allowed users; fall back to all agents when no repo is selected.
+  const { data: assignableUsers, isFetching: assigneesLoading } = useQuery({
+    queryKey: ["github", "assignable-users", githubRepo],
+    enabled: Boolean(githubRepo),
+    queryFn: async () => {
+      const res = await api.github["assignable-users"].$get({ query: { repoFullName: githubRepo } });
+      if (!res.ok) return [];
+      const json = (await res.json().catch(() => null)) as any;
+      return (json?.data ?? []) as Array<{ id: string; firstName: string; lastName: string; email: string }>;
+    },
+  });
+  const assigneeOptions = githubRepo ? (assignableUsers ?? []) : agents;
 
   const form = useForm({
     defaultValues: {
@@ -377,14 +397,24 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
                 className={selectCls}
                 value={field.state.value ?? ""}
                 onChange={(e) => field.handleChange(e.target.value || undefined)}
+                disabled={Boolean(githubRepo) && assigneesLoading}
               >
                 <option value="">{t("fields.unassigned")}</option>
-                {agents.map((a) => (
+                {assigneeOptions.map((a) => (
                   <option key={a.id} value={a.id}>
                     {[a.firstName, a.lastName].filter(Boolean).join(" ") || a.email}
                   </option>
                 ))}
               </select>
+              {githubRepo && (
+                <p className="text-[10px] text-on-surface-variant/50">
+                  {assigneesLoading
+                    ? t("github.assigneesLoading", "Loading repo collaborators…")
+                    : assigneeOptions.length === 0
+                      ? t("github.noCollaborators", "No linked collaborators on this repo. Set GitHub usernames in profile.")
+                      : t("github.assigneesHint", "Only repo collaborators can be assigned.")}
+                </p>
+              )}
             </div>
           )}
         />
@@ -399,13 +429,21 @@ function CreateTaskModal({ onClose }: { onClose: () => void }) {
             <select
               className={selectCls}
               value={githubRepo}
-              onChange={(e) => setGithubRepo(e.target.value)}
+              onChange={(e) => {
+                setGithubRepo(e.target.value);
+                // Assignee must be a collaborator on the new repo — clear stale pick.
+                form.setFieldValue("assigneeId", undefined);
+              }}
             >
               <option value="">{t("github.repoNone", "No repository")}</option>
-              {ghRepos.map((r) => (
-                <option key={r.id} value={r.fullName}>
-                  {r.fullName}
-                </option>
+              {Object.entries(ghReposByAccount).map(([account, list]) => (
+                <optgroup key={account} label={account}>
+                  {list.map((r) => (
+                    <option key={r.id} value={r.fullName}>
+                      {r.fullName}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
             {githubRepo && (

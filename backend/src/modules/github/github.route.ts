@@ -78,21 +78,26 @@ export const githubRouter = new Hono<{
   // ─── 2. Everything below requires authentication. ───────────────────────────
   .use("*", authMiddleware())
 
-  // Current org's installation status.
+  // Org's GitHub status — all connected installations (one per GitHub account).
+  // Any authenticated member may view; connecting is open to all members too.
   .get("/installation", async (c) => {
     const tenantId = c.get("tenantId");
+    const user = c.get("user");
     try {
-      const install = await GithubService.getInstallation(tenantId);
+      const installs = await GithubService.listInstallations(tenantId);
+      const active = installs.filter((i) => !i.suspendedAt);
       return ResponseHandler.ok(c, {
         configured: isGithubConfigured(),
-        connected: Boolean(install) && !install?.suspendedAt,
-        installation: install
-          ? {
-              accountLogin: install.accountLogin,
-              accountType: install.accountType,
-              suspended: Boolean(install.suspendedAt),
-            }
-          : null,
+        connected: active.length > 0,
+        installations: installs.map((i) => ({
+          installationId: i.installationId,
+          accountLogin: i.accountLogin,
+          accountType: i.accountType,
+          suspended: Boolean(i.suspendedAt),
+          connectedByUserId: i.connectedByUserId,
+          // True when the current user connected this one (can self-disconnect).
+          mine: i.connectedByUserId === user.userId,
+        })),
       });
     } catch (err: any) {
       return ResponseHandler.badRequest(c, err.message);
@@ -100,9 +105,8 @@ export const githubRouter = new Hono<{
   })
 
   // URL the user clicks to install the GitHub App. `state` round-trips the tenant.
+  // Open to any member so each can connect their own GitHub account.
   .get("/install-url", async (c) => {
-    const user = c.get("user");
-    if (!isAdmin(user)) return ResponseHandler.forbidden(c, "Admins only");
     if (!env.GITHUB_APP_SLUG) {
       return ResponseHandler.badRequest(c, "GitHub App not configured");
     }
@@ -114,8 +118,6 @@ export const githubRouter = new Hono<{
   // Fallback for the setup page when GitHub's redirect omits installation_id:
   // list the App's installations so the user can pick (or auto-connect if one).
   .get("/installations/available", async (c) => {
-    const user = c.get("user");
-    if (!isAdmin(user)) return ResponseHandler.forbidden(c, "Admins only");
     try {
       const list = await GithubService.listAvailableInstallations();
       return ResponseHandler.ok(c, list);
@@ -124,19 +126,20 @@ export const githubRouter = new Hono<{
     }
   })
 
-  // Setup callback target: bind the installation to this org (admin only).
+  // Setup callback target: bind an installation to this org, tagged with the
+  // connecting user. Any member may connect their own GitHub account.
   .post(
     "/installations",
     zValidator("json", connectInstallationSchema),
     async (c) => {
       const user = c.get("user");
-      if (!isAdmin(user)) return ResponseHandler.forbidden(c, "Admins only");
       const tenantId = c.get("tenantId");
       const { installationId } = c.req.valid("json");
       try {
         const install = await GithubService.connectInstallation(
           tenantId,
           installationId,
+          user.userId,
         );
         return ResponseHandler.created(c, {
           accountLogin: install.accountLogin,
@@ -148,22 +151,44 @@ export const githubRouter = new Hono<{
     },
   )
 
-  .delete("/installation", async (c) => {
+  // Disconnect one installation. The user who connected it, or an admin, may remove it.
+  .delete("/installations/:installationId", async (c) => {
     const user = c.get("user");
-    if (!isAdmin(user)) return ResponseHandler.forbidden(c, "Admins only");
+    const tenantId = c.get("tenantId");
+    const installationId = c.req.param("installationId") as string;
     try {
-      await GithubService.disconnect(c.get("tenantId"));
+      if (!isAdmin(user)) {
+        const installs = await GithubService.listInstallations(tenantId);
+        const target = installs.find((i) => i.installationId === installationId);
+        if (target && target.connectedByUserId !== user.userId) {
+          return ResponseHandler.forbidden(c, "You can only disconnect your own GitHub account");
+        }
+      }
+      await GithubService.disconnect(tenantId, installationId, user.userId);
       return ResponseHandler.ok(c, { ok: true });
     } catch (err: any) {
       return ResponseHandler.badRequest(c, err.message);
     }
   })
 
-  // Repos accessible to the org installation (for the task repo picker).
+  // Repos accessible across all connected installations (for the task repo picker).
   .get("/repos", async (c) => {
     try {
       const repos = await GithubService.listRepos(c.get("tenantId"));
       return ResponseHandler.ok(c, repos);
+    } catch (err: any) {
+      return ResponseHandler.badRequest(c, err.message);
+    }
+  })
+
+  // Help-desk users assignable to a task on a given repo = repo collaborators ∩
+  // tenant users with a known GitHub login. Drives the gated assignee picker.
+  .get("/assignable-users", requirePermission("task.read"), async (c) => {
+    const repoFullName = c.req.query("repoFullName");
+    if (!repoFullName) return ResponseHandler.badRequest(c, "repoFullName required");
+    try {
+      const users = await GithubService.getAssignableUsers(c.get("tenantId"), repoFullName);
+      return ResponseHandler.ok(c, users);
     } catch (err: any) {
       return ResponseHandler.badRequest(c, err.message);
     }

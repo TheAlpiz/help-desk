@@ -5,6 +5,8 @@
   "notConfigured": "GitHub App bu sunucuda yapılandırılmamış. Yöneticinizle iletişime geçin.",
   "notConnected": "Görevleri depolarla bağlamak için kuruluşunuzun GitHub hesabını bağlayın.",
   "connect": "GitHub'a Bağlan",
+  "connectAnother": "Başka hesap bağla",
+  "connectedAccounts": "Bağlı hesaplar",
   "connectedAs": "{{account}} olarak bağlandı",
   "suspended": "Bu kurulum askıya alındı. Devam etmek için uygulamayı GitHub'da yeniden kurun.",
   "repos": "Erişilebilir depolar",

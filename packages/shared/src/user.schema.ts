@@ -55,7 +55,18 @@ export const updateUserSchema = z.object({
   lastName: z.string().min(1).max(100).optional(),
   status: z.enum(["active", "inactive"]).optional(),
   globalRole: z.string().optional(),
+  githubLogin: z.string().max(100).nullable().optional(),
 });
+
+// Self-service: a user sets their own GitHub username (empty string clears it).
+export const updateGithubLoginSchema = z.object({
+  githubLogin: z
+    .string()
+    .max(100)
+    .regex(/^[A-Za-z0-9-]*$/, "Invalid GitHub username")
+    .nullable(),
+});
+export type UpdateGithubLoginInput = z.infer<typeof updateGithubLoginSchema>;
 
 export type InviteUserInput = z.infer<typeof inviteUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
