@@ -61,7 +61,7 @@ import { Route as AuthAccountSecurityRouteImport } from './routes/_auth/account-
 import { Route as AuthTicketsIndexRouteImport } from './routes/_auth/tickets/index'
 import { Route as AuthTicketsTicketIdRouteImport } from './routes/_auth/tickets/$ticketId'
 import { Route as AuthTenantTenantIdRouteImport } from './routes/_auth/tenant.$tenantId'
-import { Route as AuthGithubSetupRouteImport } from './routes/_auth/github.setup'
+import { Route as AuthGithubSetupRouteImport } from './routes/_auth/github_.setup'
 
 const AuthDashboardLazyRouteImport = createFileRoute('/_auth/dashboard')()
 
@@ -323,9 +323,9 @@ const AuthTenantTenantIdRoute = AuthTenantTenantIdRouteImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthGithubSetupRoute = AuthGithubSetupRouteImport.update({
-  id: '/setup',
-  path: '/setup',
-  getParentRoute: () => AuthGithubRoute,
+  id: '/github_/setup',
+  path: '/github/setup',
+  getParentRoute: () => AuthRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -354,7 +354,7 @@ export interface FileRoutesByFullPath {
   '/departments': typeof AuthDepartmentsRoute
   '/email-templates': typeof AuthEmailTemplatesRoute
   '/export': typeof AuthExportRoute
-  '/github': typeof AuthGithubRouteWithChildren
+  '/github': typeof AuthGithubRoute
   '/global-roles': typeof AuthGlobalRolesRoute
   '/global-users': typeof AuthGlobalUsersRoute
   '/macros': typeof AuthMacrosRoute
@@ -407,7 +407,7 @@ export interface FileRoutesByTo {
   '/departments': typeof AuthDepartmentsRoute
   '/email-templates': typeof AuthEmailTemplatesRoute
   '/export': typeof AuthExportRoute
-  '/github': typeof AuthGithubRouteWithChildren
+  '/github': typeof AuthGithubRoute
   '/global-roles': typeof AuthGlobalRolesRoute
   '/global-users': typeof AuthGlobalUsersRoute
   '/macros': typeof AuthMacrosRoute
@@ -462,7 +462,7 @@ export interface FileRoutesById {
   '/_auth/departments': typeof AuthDepartmentsRoute
   '/_auth/email-templates': typeof AuthEmailTemplatesRoute
   '/_auth/export': typeof AuthExportRoute
-  '/_auth/github': typeof AuthGithubRouteWithChildren
+  '/_auth/github': typeof AuthGithubRoute
   '/_auth/global-roles': typeof AuthGlobalRolesRoute
   '/_auth/global-users': typeof AuthGlobalUsersRoute
   '/_auth/macros': typeof AuthMacrosRoute
@@ -484,7 +484,7 @@ export interface FileRoutesById {
   '/_auth/users': typeof AuthUsersRoute
   '/_auth/whatsapp': typeof AuthWhatsappRoute
   '/_auth/dashboard': typeof AuthDashboardLazyRoute
-  '/_auth/github/setup': typeof AuthGithubSetupRoute
+  '/_auth/github_/setup': typeof AuthGithubSetupRoute
   '/_auth/tenant/$tenantId': typeof AuthTenantTenantIdRoute
   '/_auth/tickets/$ticketId': typeof AuthTicketsTicketIdRoute
   '/_auth/tickets/': typeof AuthTicketsIndexRoute
@@ -646,7 +646,7 @@ export interface FileRouteTypes {
     | '/_auth/users'
     | '/_auth/whatsapp'
     | '/_auth/dashboard'
-    | '/_auth/github/setup'
+    | '/_auth/github_/setup'
     | '/_auth/tenant/$tenantId'
     | '/_auth/tickets/$ticketId'
     | '/_auth/tickets/'
@@ -1030,27 +1030,15 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthTenantTenantIdRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/github/setup': {
-      id: '/_auth/github/setup'
-      path: '/setup'
+    '/_auth/github_/setup': {
+      id: '/_auth/github_/setup'
+      path: '/github/setup'
       fullPath: '/github/setup'
       preLoaderRoute: typeof AuthGithubSetupRouteImport
-      parentRoute: typeof AuthGithubRoute
+      parentRoute: typeof AuthRoute
     }
   }
 }
-
-interface AuthGithubRouteChildren {
-  AuthGithubSetupRoute: typeof AuthGithubSetupRoute
-}
-
-const AuthGithubRouteChildren: AuthGithubRouteChildren = {
-  AuthGithubSetupRoute: AuthGithubSetupRoute,
-}
-
-const AuthGithubRouteWithChildren = AuthGithubRoute._addFileChildren(
-  AuthGithubRouteChildren,
-)
 
 interface AuthRouteChildren {
   AuthAccountSecurityRoute: typeof AuthAccountSecurityRoute
@@ -1063,7 +1051,7 @@ interface AuthRouteChildren {
   AuthDepartmentsRoute: typeof AuthDepartmentsRoute
   AuthEmailTemplatesRoute: typeof AuthEmailTemplatesRoute
   AuthExportRoute: typeof AuthExportRoute
-  AuthGithubRoute: typeof AuthGithubRouteWithChildren
+  AuthGithubRoute: typeof AuthGithubRoute
   AuthGlobalRolesRoute: typeof AuthGlobalRolesRoute
   AuthGlobalUsersRoute: typeof AuthGlobalUsersRoute
   AuthMacrosRoute: typeof AuthMacrosRoute
@@ -1085,6 +1073,7 @@ interface AuthRouteChildren {
   AuthUsersRoute: typeof AuthUsersRoute
   AuthWhatsappRoute: typeof AuthWhatsappRoute
   AuthDashboardLazyRoute: typeof AuthDashboardLazyRoute
+  AuthGithubSetupRoute: typeof AuthGithubSetupRoute
   AuthTenantTenantIdRoute: typeof AuthTenantTenantIdRoute
   AuthTicketsTicketIdRoute: typeof AuthTicketsTicketIdRoute
   AuthTicketsIndexRoute: typeof AuthTicketsIndexRoute
@@ -1101,7 +1090,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthDepartmentsRoute: AuthDepartmentsRoute,
   AuthEmailTemplatesRoute: AuthEmailTemplatesRoute,
   AuthExportRoute: AuthExportRoute,
-  AuthGithubRoute: AuthGithubRouteWithChildren,
+  AuthGithubRoute: AuthGithubRoute,
   AuthGlobalRolesRoute: AuthGlobalRolesRoute,
   AuthGlobalUsersRoute: AuthGlobalUsersRoute,
   AuthMacrosRoute: AuthMacrosRoute,
@@ -1123,6 +1112,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthUsersRoute: AuthUsersRoute,
   AuthWhatsappRoute: AuthWhatsappRoute,
   AuthDashboardLazyRoute: AuthDashboardLazyRoute,
+  AuthGithubSetupRoute: AuthGithubSetupRoute,
   AuthTenantTenantIdRoute: AuthTenantTenantIdRoute,
   AuthTicketsTicketIdRoute: AuthTicketsTicketIdRoute,
   AuthTicketsIndexRoute: AuthTicketsIndexRoute,

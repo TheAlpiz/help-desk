@@ -5,7 +5,7 @@ import { GitBranch, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
 
 // GitHub redirects here after the App is installed, appending ?installation_id=...&setup_action=install
-export const Route = createFileRoute("/_auth/github/setup")({
+export const Route = createFileRoute("/_auth/github_/setup")({
   validateSearch: (search: Record<string, unknown>) => ({
     installation_id: typeof search.installation_id === "string" ? search.installation_id : undefined,
     setup_action: typeof search.setup_action === "string" ? search.setup_action : undefined,
