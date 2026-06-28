@@ -16,6 +16,7 @@
     "success": "GitHub connected. Redirecting…",
     "failed": "Could not complete the connection.",
     "missingId": "No installation id was provided by GitHub.",
-    "connecting_short": "Connecting…"
+    "connecting_short": "Connecting…",
+    "pick": "Select the GitHub account to connect:"
   }
 }

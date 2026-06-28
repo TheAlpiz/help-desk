@@ -106,6 +106,20 @@ export const GithubService = {
     });
   },
 
+  /**
+   * List every installation of the App (across accounts), for the connect UI to
+   * pick from when the redirect didn't include an installation_id.
+   */
+  listAvailableInstallations: async () => {
+    if (!gh.isGithubConfigured()) throw new gh.GithubNotConfiguredError();
+    const list = await gh.listAppInstallations();
+    return list.map((i) => ({
+      installationId: String(i.id),
+      accountLogin: i.account?.login ?? null,
+      accountType: i.account?.type ?? null,
+    }));
+  },
+
   disconnect: (tenantId: string) =>
     withTenantTransaction(tenantId, async (tx) => {
       await tx

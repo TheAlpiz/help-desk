@@ -114,6 +114,14 @@ export function getInstallation(installationId: string) {
   );
 }
 
+// All installations of this App (across accounts). Used as a fallback when the
+// post-install redirect doesn't carry installation_id (already-installed apps).
+export function listAppInstallations() {
+  return request<InstallationInfo[]>("GET", `/app/installations?per_page=100`, {
+    type: "app",
+  });
+}
+
 // ─── Installation-token calls ─────────────────────────────────────────────────
 
 export interface GithubRepo {

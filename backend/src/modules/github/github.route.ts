@@ -111,6 +111,19 @@ export const githubRouter = new Hono<{
     return ResponseHandler.ok(c, { url });
   })
 
+  // Fallback for the setup page when GitHub's redirect omits installation_id:
+  // list the App's installations so the user can pick (or auto-connect if one).
+  .get("/installations/available", async (c) => {
+    const user = c.get("user");
+    if (!isAdmin(user)) return ResponseHandler.forbidden(c, "Admins only");
+    try {
+      const list = await GithubService.listAvailableInstallations();
+      return ResponseHandler.ok(c, list);
+    } catch (err: any) {
+      return ResponseHandler.badRequest(c, err.message);
+    }
+  })
+
   // Setup callback target: bind the installation to this org (admin only).
   .post(
     "/installations",

@@ -16,6 +16,7 @@
     "success": "GitHub bağlandı. Yönlendiriliyor…",
     "failed": "Bağlantı tamamlanamadı.",
     "missingId": "GitHub bir kurulum kimliği sağlamadı.",
-    "connecting_short": "Bağlanıyor…"
+    "connecting_short": "Bağlanıyor…",
+    "pick": "Bağlanacak GitHub hesabını seçin:"
   }
 }
